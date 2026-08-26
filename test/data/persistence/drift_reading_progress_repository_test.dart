@@ -44,4 +44,31 @@ void main() {
     expect(restored!.locator, isA<ComicPageLocator>());
     expect((restored.locator as ComicPageLocator).pageIndex, 12);
   });
+
+  test('persists and restores a text chapter locator', () async {
+    const publication = Publication(
+      id: 'text-1',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Sample text',
+      format: PublicationFormat.epub,
+    );
+    await DriftPublicationRepository(database).save(publication);
+    final repository = DriftReadingProgressRepository(database);
+
+    await repository.save(
+      ReadingProgress(
+        publicationId: publication.id,
+        locator: const TextOffsetLocator(chapterIndex: 4, offset: 0),
+        updatedAt: DateTime(2026, 8, 26),
+      ),
+    );
+    final restored = await repository.load(publication.id);
+
+    expect(restored!.locator, isA<TextOffsetLocator>());
+    expect((restored.locator as TextOffsetLocator).chapterIndex, 4);
+  });
 }
