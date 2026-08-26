@@ -1,5 +1,6 @@
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
@@ -9,8 +10,10 @@ import 'package:fbooks/data/persistence/drift_reading_progress_repository.dart';
 import 'package:fbooks/data/persistence/drift_library_source_repository.dart';
 import 'package:fbooks/data/persistence/local_database.dart';
 import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
+import 'package:fbooks/data/opds/http_remote_asset_fetcher.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
 import 'package:fbooks/data/reader/local_text_reader_session.dart';
+import 'package:fbooks/data/storage/managed_asset_store.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
@@ -42,6 +45,24 @@ final opdsHttpClientProvider = Provider<http.Client>((ref) {
 
 final opdsCatalogClientProvider = Provider<OpdsCatalogClient>((ref) {
   return HttpOpdsCatalogClient(ref.watch(opdsHttpClientProvider));
+});
+
+final remoteAssetFetcherProvider = Provider<RemoteAssetFetcher>((ref) {
+  return HttpRemoteAssetFetcher(ref.watch(opdsHttpClientProvider));
+});
+
+final managedAssetStoreProvider = Provider<ManagedAssetStore>(
+  (ref) => AppSupportManagedAssetStore(),
+);
+
+final opdsAcquisitionImporterProvider = Provider<OpdsAcquisitionImporter>((
+  ref,
+) {
+  return OpdsAcquisitionImporter(
+    ref.watch(publicationRepositoryProvider),
+    ref.watch(remoteAssetFetcherProvider),
+    ref.watch(managedAssetStoreProvider),
+  );
 });
 
 final readingProgressRepositoryProvider = Provider<ReadingProgressRepository>(

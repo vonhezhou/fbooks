@@ -1,4 +1,6 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/domain/library/library_source.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,17 +36,9 @@ class OpdsCatalogPage extends ConsumerWidget {
             ],
             ListTile(title: Text(value.title)),
             for (final publication in value.publications)
-              ListTile(
-                leading: const Icon(Icons.menu_book_outlined),
-                title: Text(publication.title),
-                subtitle: Text(
-                  publication.authors.isEmpty
-                      ? 'No author metadata'
-                      : publication.authors.join(', '),
-                ),
-                trailing: publication.acquisitions.isEmpty
-                    ? null
-                    : const Icon(Icons.download_outlined),
+              _OpdsPublicationTile(
+                endpoint: endpoint,
+                publication: publication,
               ),
           ],
         ),
@@ -60,5 +54,85 @@ class OpdsCatalogPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );
+  }
+}
+
+class _OpdsPublicationTile extends ConsumerStatefulWidget {
+  const _OpdsPublicationTile({
+    required this.endpoint,
+    required this.publication,
+  });
+
+  final Uri endpoint;
+  final OpdsPublication publication;
+
+  @override
+  ConsumerState<_OpdsPublicationTile> createState() =>
+      _OpdsPublicationTileState();
+}
+
+class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
+  bool _isDownloading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final acquisition = widget.publication.acquisitions.firstOrNull;
+    return ListTile(
+      leading: const Icon(Icons.menu_book_outlined),
+      title: Text(widget.publication.title),
+      subtitle: Text(
+        widget.publication.authors.isEmpty
+            ? 'No author metadata'
+            : widget.publication.authors.join(', '),
+      ),
+      trailing: acquisition == null
+          ? null
+          : IconButton(
+              tooltip: 'Download to library',
+              onPressed: _isDownloading ? null : () => _download(acquisition),
+              icon: _isDownloading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.download_outlined),
+            ),
+    );
+  }
+
+  Future<void> _download(OpdsAcquisition acquisition) async {
+    setState(() => _isDownloading = true);
+    try {
+      final publication = await ref
+          .read(opdsAcquisitionImporterProvider)
+          .acquire(
+            source: LibrarySource(
+              id: 'opds:${widget.endpoint}',
+              kind: LibrarySourceKind.opds,
+              name: widget.endpoint.host,
+              endpoint: widget.endpoint,
+            ),
+            publication: widget.publication,
+            acquisition: acquisition,
+          );
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${publication.title} added to the library.')),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to download publication: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloading = false);
+      }
+    }
   }
 }

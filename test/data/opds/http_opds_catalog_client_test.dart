@@ -28,9 +28,12 @@ void main() {
       Uri.parse('https://books.example.org/opds/fiction.json'),
     );
     expect(catalog.publications.single.authors, ['Ada']);
-    expect(catalog.publications.single.acquisitions, [
-      Uri.parse('https://books.example.org/opds/book.epub'),
-    ]);
+    expect(
+      catalog.publications.single.acquisitions.map(
+        (acquisition) => acquisition.href,
+      ),
+      [Uri.parse('https://books.example.org/opds/book.epub')],
+    );
   });
 
   test('parses an OPDS 1 Atom acquisition feed', () async {

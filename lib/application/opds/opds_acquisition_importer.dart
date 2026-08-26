@@ -1,0 +1,135 @@
+import 'dart:typed_data';
+
+import 'package:fbooks/application/library/local_publication_importer.dart';
+import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/domain/library/library_source.dart';
+import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/domain/publication/publication_asset.dart';
+import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:path/path.dart' as path;
+import 'package:uuid/uuid.dart';
+
+class RemoteAssetResponse {
+  const RemoteAssetResponse({
+    required this.bytes,
+    required this.fileName,
+    this.mediaType,
+  });
+
+  final Stream<Uint8List> bytes;
+  final String fileName;
+  final String? mediaType;
+}
+
+abstract interface class RemoteAssetFetcher {
+  Future<RemoteAssetResponse> fetch(Uri uri);
+}
+
+abstract interface class ManagedAssetStore {
+  Future<Uri> save({
+    required String assetId,
+    required String fileName,
+    required Stream<Uint8List> bytes,
+  });
+
+  Future<void> delete(Uri location);
+}
+
+class OpdsAcquisitionImporter {
+  OpdsAcquisitionImporter(
+    this._publicationRepository,
+    this._remoteAssetFetcher,
+    this._managedAssetStore, {
+    Uuid? uuid,
+  }) : _uuid = uuid ?? const Uuid();
+
+  final PublicationRepository _publicationRepository;
+  final RemoteAssetFetcher _remoteAssetFetcher;
+  final ManagedAssetStore _managedAssetStore;
+  final Uuid _uuid;
+
+  Future<Publication> acquire({
+    required LibrarySource source,
+    required OpdsPublication publication,
+    required OpdsAcquisition acquisition,
+  }) async {
+    final existing = await _publicationRepository.findByAssetLocation(
+      acquisition.href,
+    );
+    if (existing != null) {
+      return existing;
+    }
+
+    final format = _detectFormat(acquisition);
+    if (format == null) {
+      throw UnsupportedError(
+        'Unsupported OPDS acquisition: ${acquisition.href}',
+      );
+    }
+
+    final publicationId = _uuid.v4();
+    final remoteAssetId = _uuid.v4();
+    final localAssetId = _uuid.v4();
+    final response = await _remoteAssetFetcher.fetch(acquisition.href);
+    Uri? localLocation;
+    try {
+      localLocation = await _managedAssetStore.save(
+        assetId: localAssetId,
+        fileName: _safeFileName(response.fileName, acquisition.href),
+        bytes: response.bytes,
+      );
+      final acquired = Publication(
+        id: publicationId,
+        source: source,
+        title: publication.title,
+        authors: publication.authors,
+        format: format,
+        assets: [
+          PublicationAsset(
+            id: remoteAssetId,
+            publicationId: publicationId,
+            kind: PublicationAssetKind.remoteAcquisition,
+            location: acquisition.href,
+            mediaType: acquisition.mediaType,
+          ),
+          PublicationAsset(
+            id: localAssetId,
+            publicationId: publicationId,
+            kind: PublicationAssetKind.localFile,
+            location: localLocation,
+            mediaType: response.mediaType ?? acquisition.mediaType,
+          ),
+        ],
+      );
+      await _publicationRepository.save(acquired);
+      return acquired;
+    } catch (_) {
+      if (localLocation != null) {
+        await _managedAssetStore.delete(localLocation);
+      }
+      rethrow;
+    }
+  }
+
+  PublicationFormat? _detectFormat(OpdsAcquisition acquisition) {
+    final fromFileName = PublicationFormatDetector.fromFileName(
+      acquisition.href.path,
+    );
+    if (fromFileName != null) {
+      return fromFileName;
+    }
+    return switch (acquisition.mediaType?.toLowerCase()) {
+      'application/epub+zip' => PublicationFormat.epub,
+      'application/pdf' => PublicationFormat.pdf,
+      'text/plain' => PublicationFormat.text,
+      _ => null,
+    };
+  }
+
+  String _safeFileName(String fileName, Uri source) {
+    final candidate = fileName.trim().isEmpty
+        ? path.basename(source.path)
+        : path.basename(fileName);
+    return candidate.isEmpty ? 'download' : candidate;
+  }
+}

@@ -76,8 +76,14 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
     final acquisitions = ((publication['links'] as List<Object?>?) ?? const [])
         .whereType<Map<Object?, Object?>>()
         .where((link) => _isAcquisition(link['rel']))
-        .map((link) => _resolveHref(endpoint, link['href']))
-        .whereType<Uri>()
+        .map(
+          (link) => _opdsAcquisition(
+            endpoint,
+            href: link['href'],
+            mediaType: link['type'],
+          ),
+        )
+        .whereType<OpdsAcquisition>()
         .toList(growable: false);
     return OpdsPublication(
       title: metadata['title'] as String? ?? 'Untitled',
@@ -128,8 +134,14 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
     final acquisitions = entry
         .findElements('link')
         .where((link) => _isAcquisition(link.getAttribute('rel')))
-        .map((link) => _resolveHref(endpoint, link.getAttribute('href')))
-        .whereType<Uri>()
+        .map(
+          (link) => _opdsAcquisition(
+            endpoint,
+            href: link.getAttribute('href'),
+            mediaType: link.getAttribute('type'),
+          ),
+        )
+        .whereType<OpdsAcquisition>()
         .toList(growable: false);
     return OpdsPublication(
       title: _elementText(entry, 'title') ?? 'Untitled',
@@ -168,5 +180,19 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
 
   Uri? _resolveHref(Uri endpoint, Object? href) {
     return href is String && href.isNotEmpty ? endpoint.resolve(href) : null;
+  }
+
+  OpdsAcquisition? _opdsAcquisition(
+    Uri endpoint, {
+    required Object? href,
+    required Object? mediaType,
+  }) {
+    final resolvedHref = _resolveHref(endpoint, href);
+    return resolvedHref == null
+        ? null
+        : OpdsAcquisition(
+            href: resolvedHref,
+            mediaType: mediaType is String ? mediaType : null,
+          );
   }
 }

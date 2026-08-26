@@ -19,7 +19,14 @@ class OpdsPublication {
 
   final String title;
   final List<String> authors;
-  final List<Uri> acquisitions;
+  final List<OpdsAcquisition> acquisitions;
+}
+
+class OpdsAcquisition {
+  const OpdsAcquisition({required this.href, this.mediaType});
+
+  final Uri href;
+  final String? mediaType;
 }
 
 class OpdsNavigationLink {
