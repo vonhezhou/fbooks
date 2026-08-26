@@ -61,6 +61,8 @@ class StoredPublicationAssets extends Table {
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(driftDatabase(name: 'fbooks'));
 
+  LocalDatabase.forTesting(super.executor);
+
   @override
   int get schemaVersion => 2;
 

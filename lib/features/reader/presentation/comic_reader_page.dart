@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
+import 'package:fbooks/domain/reading/reading_locator.dart';
+import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,7 +26,8 @@ class ComicReaderPage extends ConsumerWidget {
       backgroundColor: Colors.black,
       appBar: AppBar(title: Text(title)),
       body: session.when(
-        data: (value) => _ComicPageView(session: value),
+        data: (value) =>
+            _ComicPageView(publicationId: publicationId, session: value),
         error: (error, stackTrace) => _ReaderErrorView(error: error),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
@@ -31,19 +35,83 @@ class ComicReaderPage extends ConsumerWidget {
   }
 }
 
-class _ComicPageView extends StatelessWidget {
-  const _ComicPageView({required this.session});
+class _ComicPageView extends ConsumerStatefulWidget {
+  const _ComicPageView({required this.publicationId, required this.session});
 
+  final PublicationId publicationId;
   final ComicReaderSession session;
 
   @override
+  ConsumerState<_ComicPageView> createState() => _ComicPageViewState();
+}
+
+class _ComicPageViewState extends ConsumerState<_ComicPageView> {
+  late final PageController _pageController;
+  bool _hasRestoredPosition = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final progress = ref.watch(readingProgressProvider(widget.publicationId));
+    progress.whenData(_restorePosition);
     return PageView.builder(
-      itemCount: session.document.pages.length,
+      controller: _pageController,
+      itemCount: widget.session.document.pages.length,
+      onPageChanged: _savePosition,
       itemBuilder: (context, index) {
-        return _ComicImage(session: session, pageIndex: index);
+        return _ComicImage(session: widget.session, pageIndex: index);
       },
     );
+  }
+
+  void _restorePosition(ReadingProgress? progress) {
+    if (_hasRestoredPosition) {
+      return;
+    }
+    _hasRestoredPosition = true;
+    final locator = progress?.locator;
+    if (locator is! ComicPageLocator) {
+      return;
+    }
+
+    final lastPage = widget.session.document.pages.length - 1;
+    final pageIndex = locator.pageIndex.clamp(0, lastPage);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _pageController.hasClients) {
+        _pageController.jumpToPage(pageIndex);
+      }
+    });
+  }
+
+  void _savePosition(int pageIndex) {
+    unawaited(_persistPosition(pageIndex));
+  }
+
+  Future<void> _persistPosition(int pageIndex) async {
+    try {
+      await ref
+          .read(readingProgressRepositoryProvider)
+          .save(
+            ReadingProgress(
+              publicationId: widget.publicationId,
+              locator: ComicPageLocator(pageIndex),
+              updatedAt: DateTime.now(),
+            ),
+          );
+    } catch (_) {
+      // A failed progress write must not interrupt reading.
+    }
   }
 }
 
