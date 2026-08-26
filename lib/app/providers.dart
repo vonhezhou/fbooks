@@ -1,10 +1,12 @@
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
+import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/persistence/drift_publication_repository.dart';
 import 'package:fbooks/data/persistence/drift_reading_progress_repository.dart';
 import 'package:fbooks/data/persistence/local_database.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
+import 'package:fbooks/data/reader/local_text_reader_session.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
@@ -40,6 +42,10 @@ final comicReaderSessionFactoryProvider = Provider<ComicReaderSessionFactory>(
   (ref) => ArchiveComicReaderSessionFactory(),
 );
 
+final textReaderSessionFactoryProvider = Provider<TextReaderSessionFactory>(
+  (ref) => LocalTextReaderSessionFactory(),
+);
+
 final libraryPublicationsProvider = StreamProvider<List<Publication>>((ref) {
   return ref.watch(publicationRepositoryProvider).watchPublications();
 });
@@ -64,4 +70,18 @@ final readingProgressProvider =
       publicationId,
     ) {
       return ref.watch(readingProgressRepositoryProvider).load(publicationId);
+    });
+
+final textReaderSessionProvider =
+    FutureProvider.family<TextReaderSession, PublicationId>((
+      ref,
+      publicationId,
+    ) async {
+      final publication = await ref
+          .watch(publicationRepositoryProvider)
+          .findById(publicationId);
+      if (publication == null) {
+        throw StateError('Publication $publicationId was not found');
+      }
+      return ref.watch(textReaderSessionFactoryProvider).open(publication);
     });

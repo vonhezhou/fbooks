@@ -1,6 +1,7 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -134,18 +135,29 @@ class _PublicationList extends StatelessWidget {
                 : publication.authors.join(', '),
           ),
           trailing: Text(publication.format.name),
-          onTap: publication.format == PublicationFormat.comicArchive
-              ? () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (context) => ComicReaderPage(
-                        publicationId: publication.id,
-                        title: publication.title,
-                      ),
-                    ),
-                  );
-                }
-              : null,
+          onTap: switch (publication.format) {
+            PublicationFormat.comicArchive => () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => ComicReaderPage(
+                    publicationId: publication.id,
+                    title: publication.title,
+                  ),
+                ),
+              );
+            },
+            PublicationFormat.epub || PublicationFormat.text => () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => TextReaderPage(
+                    publicationId: publication.id,
+                    title: publication.title,
+                  ),
+                ),
+              );
+            },
+            _ => null,
+          },
         );
       },
       separatorBuilder: (context, index) => const Divider(height: 1),
