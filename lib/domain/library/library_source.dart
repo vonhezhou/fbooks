@@ -9,9 +9,11 @@ class LibrarySource {
     required this.id,
     required this.kind,
     required this.name,
+    this.endpoint,
   });
 
   final String id;
   final LibrarySourceKind kind;
   final String name;
+  final Uri? endpoint;
 }

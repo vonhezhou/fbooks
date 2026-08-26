@@ -1,5 +1,7 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,16 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.add_circle_outline),
+          ),
+          IconButton(
+            tooltip: 'Connect OPDS catalog',
+            onPressed: _connectOpdsCatalog,
+            icon: const Icon(Icons.add_to_queue_outlined),
+          ),
+          IconButton(
+            tooltip: 'Browse OPDS catalogs',
+            onPressed: _showOpdsCatalogs,
+            icon: const Icon(Icons.cloud_outlined),
           ),
         ],
       ),
@@ -83,6 +95,110 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
         setState(() => _isImporting = false);
       }
     }
+  }
+
+  Future<void> _connectOpdsCatalog() async {
+    final controller = TextEditingController();
+    final endpointText = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Connect OPDS catalog'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'https://example.com/opds',
+            labelText: 'Catalog URL',
+          ),
+          keyboardType: TextInputType.url,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('Connect'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (endpointText == null || !mounted) {
+      return;
+    }
+
+    final endpoint = Uri.tryParse(endpointText.trim());
+    if (endpoint == null ||
+        !endpoint.hasAuthority ||
+        (endpoint.scheme != 'http' && endpoint.scheme != 'https')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid HTTP(S) catalog URL.')),
+      );
+      return;
+    }
+
+    await ref
+        .read(librarySourceRepositoryProvider)
+        .save(
+          LibrarySource(
+            id: 'opds:$endpoint',
+            kind: LibrarySourceKind.opds,
+            name: endpoint.host,
+            endpoint: endpoint,
+          ),
+        );
+    if (!mounted) {
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => OpdsCatalogPage(endpoint: endpoint),
+      ),
+    );
+  }
+
+  Future<void> _showOpdsCatalogs() async {
+    final sources = await ref
+        .read(librarySourceRepositoryProvider)
+        .listSources();
+    final opdsSources = sources
+        .where((source) => source.kind == LibrarySourceKind.opds)
+        .toList();
+    if (!mounted) {
+      return;
+    }
+    if (opdsSources.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No OPDS catalogs connected yet.')),
+      );
+      return;
+    }
+
+    final endpoint = await showModalBottomSheet<Uri>(
+      context: context,
+      builder: (context) => ListView(
+        children: [
+          const ListTile(title: Text('OPDS catalogs')),
+          for (final source in opdsSources)
+            ListTile(
+              leading: const Icon(Icons.cloud_outlined),
+              title: Text(source.name),
+              subtitle: Text(source.endpoint.toString()),
+              onTap: () => Navigator.of(context).pop(source.endpoint),
+            ),
+        ],
+      ),
+    );
+    if (endpoint == null || !mounted) {
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => OpdsCatalogPage(endpoint: endpoint),
+      ),
+    );
   }
 }
 

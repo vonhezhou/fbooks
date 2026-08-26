@@ -7,6 +7,7 @@ class StoredLibrarySources extends Table {
   TextColumn get id => text()();
   TextColumn get kind => text()();
   TextColumn get name => text()();
+  TextColumn get endpoint => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
 
   @override
@@ -64,20 +65,23 @@ class LocalDatabase extends _$LocalDatabase {
   LocalDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      switch (from) {
-        case 1:
-          await migrator.createTable(storedPublicationAssets);
-          break;
-        case 2:
-          break;
-        default:
-          throw StateError('Unsupported database migration: $from -> $to.');
+      if (from < 1 || from > 3) {
+        throw StateError('Unsupported database migration: $from -> $to.');
+      }
+      if (from == 1) {
+        await migrator.createTable(storedPublicationAssets);
+      }
+      if (from <= 2) {
+        await migrator.addColumn(
+          storedLibrarySources,
+          storedLibrarySources.endpoint,
+        );
       }
     },
     beforeOpen: (details) async {

@@ -1,18 +1,24 @@
 import 'package:fbooks/application/library/local_publication_importer.dart';
+import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/persistence/drift_publication_repository.dart';
 import 'package:fbooks/data/persistence/drift_reading_progress_repository.dart';
+import 'package:fbooks/data/persistence/drift_library_source_repository.dart';
 import 'package:fbooks/data/persistence/local_database.dart';
+import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
 import 'package:fbooks/data/reader/local_text_reader_session.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:fbooks/domain/library/library_source_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 final localDatabaseProvider = Provider<LocalDatabase>((ref) {
   final database = LocalDatabase();
@@ -22,6 +28,20 @@ final localDatabaseProvider = Provider<LocalDatabase>((ref) {
 
 final publicationRepositoryProvider = Provider<PublicationRepository>((ref) {
   return DriftPublicationRepository(ref.watch(localDatabaseProvider));
+});
+
+final librarySourceRepositoryProvider = Provider<LibrarySourceRepository>(
+  (ref) => DriftLibrarySourceRepository(ref.watch(localDatabaseProvider)),
+);
+
+final opdsHttpClientProvider = Provider<http.Client>((ref) {
+  final client = http.Client();
+  ref.onDispose(client.close);
+  return client;
+});
+
+final opdsCatalogClientProvider = Provider<OpdsCatalogClient>((ref) {
+  return HttpOpdsCatalogClient(ref.watch(opdsHttpClientProvider));
 });
 
 final readingProgressRepositoryProvider = Provider<ReadingProgressRepository>(
@@ -85,3 +105,7 @@ final textReaderSessionProvider =
       }
       return ref.watch(textReaderSessionFactoryProvider).open(publication);
     });
+
+final opdsCatalogProvider = FutureProvider.family<OpdsCatalog, Uri>(
+  (ref, endpoint) => ref.watch(opdsCatalogClientProvider).fetch(endpoint),
+);

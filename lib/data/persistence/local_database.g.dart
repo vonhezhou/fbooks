@@ -36,6 +36,17 @@ class $StoredLibrarySourcesTable extends StoredLibrarySources
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _endpointMeta = const VerificationMeta(
+    'endpoint',
+  );
+  @override
+  late final GeneratedColumn<String> endpoint = GeneratedColumn<String>(
+    'endpoint',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -48,7 +59,7 @@ class $StoredLibrarySourcesTable extends StoredLibrarySources
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, kind, name, createdAt];
+  List<GeneratedColumn> get $columns => [id, kind, name, endpoint, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -82,6 +93,12 @@ class $StoredLibrarySourcesTable extends StoredLibrarySources
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('endpoint')) {
+      context.handle(
+        _endpointMeta,
+        endpoint.isAcceptableOrUnknown(data['endpoint']!, _endpointMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -111,6 +128,10 @@ class $StoredLibrarySourcesTable extends StoredLibrarySources
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      endpoint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}endpoint'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -129,11 +150,13 @@ class StoredLibrarySource extends DataClass
   final String id;
   final String kind;
   final String name;
+  final String? endpoint;
   final DateTime createdAt;
   const StoredLibrarySource({
     required this.id,
     required this.kind,
     required this.name,
+    this.endpoint,
     required this.createdAt,
   });
   @override
@@ -142,6 +165,9 @@ class StoredLibrarySource extends DataClass
     map['id'] = Variable<String>(id);
     map['kind'] = Variable<String>(kind);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || endpoint != null) {
+      map['endpoint'] = Variable<String>(endpoint);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -151,6 +177,9 @@ class StoredLibrarySource extends DataClass
       id: Value(id),
       kind: Value(kind),
       name: Value(name),
+      endpoint: endpoint == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endpoint),
       createdAt: Value(createdAt),
     );
   }
@@ -164,6 +193,7 @@ class StoredLibrarySource extends DataClass
       id: serializer.fromJson<String>(json['id']),
       kind: serializer.fromJson<String>(json['kind']),
       name: serializer.fromJson<String>(json['name']),
+      endpoint: serializer.fromJson<String?>(json['endpoint']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -174,6 +204,7 @@ class StoredLibrarySource extends DataClass
       'id': serializer.toJson<String>(id),
       'kind': serializer.toJson<String>(kind),
       'name': serializer.toJson<String>(name),
+      'endpoint': serializer.toJson<String?>(endpoint),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -182,11 +213,13 @@ class StoredLibrarySource extends DataClass
     String? id,
     String? kind,
     String? name,
+    Value<String?> endpoint = const Value.absent(),
     DateTime? createdAt,
   }) => StoredLibrarySource(
     id: id ?? this.id,
     kind: kind ?? this.kind,
     name: name ?? this.name,
+    endpoint: endpoint.present ? endpoint.value : this.endpoint,
     createdAt: createdAt ?? this.createdAt,
   );
   StoredLibrarySource copyWithCompanion(StoredLibrarySourcesCompanion data) {
@@ -194,6 +227,7 @@ class StoredLibrarySource extends DataClass
       id: data.id.present ? data.id.value : this.id,
       kind: data.kind.present ? data.kind.value : this.kind,
       name: data.name.present ? data.name.value : this.name,
+      endpoint: data.endpoint.present ? data.endpoint.value : this.endpoint,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -204,13 +238,14 @@ class StoredLibrarySource extends DataClass
           ..write('id: $id, ')
           ..write('kind: $kind, ')
           ..write('name: $name, ')
+          ..write('endpoint: $endpoint, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, kind, name, createdAt);
+  int get hashCode => Object.hash(id, kind, name, endpoint, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -218,6 +253,7 @@ class StoredLibrarySource extends DataClass
           other.id == this.id &&
           other.kind == this.kind &&
           other.name == this.name &&
+          other.endpoint == this.endpoint &&
           other.createdAt == this.createdAt);
 }
 
@@ -226,12 +262,14 @@ class StoredLibrarySourcesCompanion
   final Value<String> id;
   final Value<String> kind;
   final Value<String> name;
+  final Value<String?> endpoint;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const StoredLibrarySourcesCompanion({
     this.id = const Value.absent(),
     this.kind = const Value.absent(),
     this.name = const Value.absent(),
+    this.endpoint = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -239,6 +277,7 @@ class StoredLibrarySourcesCompanion
     required String id,
     required String kind,
     required String name,
+    this.endpoint = const Value.absent(),
     required DateTime createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -249,6 +288,7 @@ class StoredLibrarySourcesCompanion
     Expression<String>? id,
     Expression<String>? kind,
     Expression<String>? name,
+    Expression<String>? endpoint,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -256,6 +296,7 @@ class StoredLibrarySourcesCompanion
       if (id != null) 'id': id,
       if (kind != null) 'kind': kind,
       if (name != null) 'name': name,
+      if (endpoint != null) 'endpoint': endpoint,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -265,6 +306,7 @@ class StoredLibrarySourcesCompanion
     Value<String>? id,
     Value<String>? kind,
     Value<String>? name,
+    Value<String?>? endpoint,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -272,6 +314,7 @@ class StoredLibrarySourcesCompanion
       id: id ?? this.id,
       kind: kind ?? this.kind,
       name: name ?? this.name,
+      endpoint: endpoint ?? this.endpoint,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -289,6 +332,9 @@ class StoredLibrarySourcesCompanion
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (endpoint.present) {
+      map['endpoint'] = Variable<String>(endpoint.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -304,6 +350,7 @@ class StoredLibrarySourcesCompanion
           ..write('id: $id, ')
           ..write('kind: $kind, ')
           ..write('name: $name, ')
+          ..write('endpoint: $endpoint, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1667,6 +1714,7 @@ typedef $$StoredLibrarySourcesTableCreateCompanionBuilder =
       required String id,
       required String kind,
       required String name,
+      Value<String?> endpoint,
       required DateTime createdAt,
       Value<int> rowid,
     });
@@ -1675,6 +1723,7 @@ typedef $$StoredLibrarySourcesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> kind,
       Value<String> name,
+      Value<String?> endpoint,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -1700,6 +1749,11 @@ class $$StoredLibrarySourcesTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endpoint => $composableBuilder(
+    column: $table.endpoint,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1733,6 +1787,11 @@ class $$StoredLibrarySourcesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get endpoint => $composableBuilder(
+    column: $table.endpoint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1756,6 +1815,9 @@ class $$StoredLibrarySourcesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get endpoint =>
+      $composableBuilder(column: $table.endpoint, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -1807,12 +1869,14 @@ class $$StoredLibrarySourcesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> kind = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String?> endpoint = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoredLibrarySourcesCompanion(
                 id: id,
                 kind: kind,
                 name: name,
+                endpoint: endpoint,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -1821,12 +1885,14 @@ class $$StoredLibrarySourcesTableTableManager
                 required String id,
                 required String kind,
                 required String name,
+                Value<String?> endpoint = const Value.absent(),
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => StoredLibrarySourcesCompanion.insert(
                 id: id,
                 kind: kind,
                 name: name,
+                endpoint: endpoint,
                 createdAt: createdAt,
                 rowid: rowid,
               ),

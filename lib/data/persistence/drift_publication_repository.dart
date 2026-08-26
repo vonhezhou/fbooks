@@ -59,6 +59,7 @@ class DriftPublicationRepository implements PublicationRepository {
               id: publication.source.id,
               kind: publication.source.kind.name,
               name: publication.source.name,
+              endpoint: Value(publication.source.endpoint?.toString()),
               createdAt: DateTime.now(),
             ),
           );
@@ -172,6 +173,7 @@ class DriftPublicationRepository implements PublicationRepository {
         id: source.id,
         kind: LibrarySourceKind.values.byName(source.kind),
         name: source.name,
+        endpoint: source.endpoint == null ? null : Uri.parse(source.endpoint!),
       ),
       title: publication.title,
       authors: authors,
