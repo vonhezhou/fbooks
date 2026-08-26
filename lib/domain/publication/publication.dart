@@ -1,6 +1,6 @@
 import 'package:fbooks/domain/library/library_source.dart';
-
-typedef PublicationId = String;
+import 'package:fbooks/domain/publication/publication_asset.dart';
+import 'package:fbooks/domain/publication/publication_id.dart';
 
 /// The file family determines which reader and reading locator can be used.
 enum PublicationFormat { comicArchive, comicDirectory, epub, pdf, text }
@@ -15,6 +15,7 @@ class Publication {
     this.authors = const [],
     this.description,
     this.coverUri,
+    this.assets = const [],
   });
 
   final PublicationId id;
@@ -24,4 +25,5 @@ class Publication {
   final PublicationFormat format;
   final String? description;
   final Uri? coverUri;
+  final List<PublicationAsset> assets;
 }

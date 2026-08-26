@@ -4,6 +4,8 @@ import 'package:drift/drift.dart';
 import 'package:fbooks/data/persistence/local_database.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/domain/publication/publication_asset.dart';
+import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 
 class DriftPublicationRepository implements PublicationRepository {
@@ -28,6 +30,15 @@ class DriftPublicationRepository implements PublicationRepository {
     }
 
     return _loadDomainPublication(publication);
+  }
+
+  @override
+  Future<Publication?> findByAssetLocation(Uri location) async {
+    final asset =
+        await (_database.select(_database.storedPublicationAssets)
+              ..where((row) => row.location.equals(location.toString())))
+            .getSingleOrNull();
+    return asset == null ? null : findById(asset.publicationId);
   }
 
   @override
@@ -67,6 +78,32 @@ class DriftPublicationRepository implements PublicationRepository {
               updatedAt: DateTime.now(),
             ),
           );
+
+      await (_database.delete(
+        _database.storedPublicationAssets,
+      )..where((asset) => asset.publicationId.equals(publication.id))).go();
+      await _database.batch((batch) {
+        for (final asset in publication.assets) {
+          if (asset.publicationId != publication.id) {
+            throw ArgumentError.value(
+              asset.publicationId,
+              'asset.publicationId',
+              'must match the publication id',
+            );
+          }
+          batch.insert(
+            _database.storedPublicationAssets,
+            StoredPublicationAssetsCompanion.insert(
+              id: asset.id,
+              publicationId: asset.publicationId,
+              kind: asset.kind.name,
+              location: asset.location.toString(),
+              mediaType: Value(asset.mediaType),
+              createdAt: DateTime.now(),
+            ),
+          );
+        }
+      });
     });
   }
 
@@ -84,12 +121,22 @@ class DriftPublicationRepository implements PublicationRepository {
     final sourceRows = await _database
         .select(_database.storedLibrarySources)
         .get();
+    final assetRows = await _database
+        .select(_database.storedPublicationAssets)
+        .get();
     final sourceById = {for (final source in sourceRows) source.id: source};
+    final assetsByPublicationId = <String, List<StoredPublicationAsset>>{};
+    for (final asset in assetRows) {
+      assetsByPublicationId
+          .putIfAbsent(asset.publicationId, () => [])
+          .add(asset);
+    }
     return publications
         .map(
           (publication) => _toPublication(
             publication,
             source: sourceById[publication.sourceId],
+            assets: assetsByPublicationId[publication.id] ?? const [],
           ),
         )
         .toList(growable: false);
@@ -101,12 +148,16 @@ class DriftPublicationRepository implements PublicationRepository {
     final source = await (_database.select(
       _database.storedLibrarySources,
     )..where((row) => row.id.equals(publication.sourceId))).getSingle();
-    return _toPublication(publication, source: source);
+    final assets = await (_database.select(
+      _database.storedPublicationAssets,
+    )..where((row) => row.publicationId.equals(publication.id))).get();
+    return _toPublication(publication, source: source, assets: assets);
   }
 
   Publication _toPublication(
     StoredPublication publication, {
     required StoredLibrarySource? source,
+    required List<StoredPublicationAsset> assets,
   }) {
     if (source == null) {
       throw StateError('Publication ${publication.id} has no library source');
@@ -129,6 +180,17 @@ class DriftPublicationRepository implements PublicationRepository {
       coverUri: publication.coverUri == null
           ? null
           : Uri.parse(publication.coverUri!),
+      assets: assets
+          .map(
+            (asset) => PublicationAsset(
+              id: asset.id,
+              publicationId: asset.publicationId,
+              kind: PublicationAssetKind.values.byName(asset.kind),
+              location: Uri.parse(asset.location),
+              mediaType: asset.mediaType,
+            ),
+          )
+          .toList(growable: false),
     );
   }
 }

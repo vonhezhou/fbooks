@@ -1221,6 +1221,424 @@ class StoredReadingProgressesCompanion
   }
 }
 
+class $StoredPublicationAssetsTable extends StoredPublicationAssets
+    with TableInfo<$StoredPublicationAssetsTable, StoredPublicationAsset> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredPublicationAssetsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _publicationIdMeta = const VerificationMeta(
+    'publicationId',
+  );
+  @override
+  late final GeneratedColumn<String> publicationId = GeneratedColumn<String>(
+    'publication_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaTypeMeta = const VerificationMeta(
+    'mediaType',
+  );
+  @override
+  late final GeneratedColumn<String> mediaType = GeneratedColumn<String>(
+    'media_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    publicationId,
+    kind,
+    location,
+    mediaType,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_publication_assets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredPublicationAsset> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('publication_id')) {
+      context.handle(
+        _publicationIdMeta,
+        publicationId.isAcceptableOrUnknown(
+          data['publication_id']!,
+          _publicationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_publicationIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_locationMeta);
+    }
+    if (data.containsKey('media_type')) {
+      context.handle(
+        _mediaTypeMeta,
+        mediaType.isAcceptableOrUnknown(data['media_type']!, _mediaTypeMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoredPublicationAsset map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredPublicationAsset(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      publicationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}publication_id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      )!,
+      mediaType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_type'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StoredPublicationAssetsTable createAlias(String alias) {
+    return $StoredPublicationAssetsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredPublicationAsset extends DataClass
+    implements Insertable<StoredPublicationAsset> {
+  final String id;
+  final String publicationId;
+  final String kind;
+  final String location;
+  final String? mediaType;
+  final DateTime createdAt;
+  const StoredPublicationAsset({
+    required this.id,
+    required this.publicationId,
+    required this.kind,
+    required this.location,
+    this.mediaType,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['publication_id'] = Variable<String>(publicationId);
+    map['kind'] = Variable<String>(kind);
+    map['location'] = Variable<String>(location);
+    if (!nullToAbsent || mediaType != null) {
+      map['media_type'] = Variable<String>(mediaType);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  StoredPublicationAssetsCompanion toCompanion(bool nullToAbsent) {
+    return StoredPublicationAssetsCompanion(
+      id: Value(id),
+      publicationId: Value(publicationId),
+      kind: Value(kind),
+      location: Value(location),
+      mediaType: mediaType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaType),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory StoredPublicationAsset.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredPublicationAsset(
+      id: serializer.fromJson<String>(json['id']),
+      publicationId: serializer.fromJson<String>(json['publicationId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      location: serializer.fromJson<String>(json['location']),
+      mediaType: serializer.fromJson<String?>(json['mediaType']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'publicationId': serializer.toJson<String>(publicationId),
+      'kind': serializer.toJson<String>(kind),
+      'location': serializer.toJson<String>(location),
+      'mediaType': serializer.toJson<String?>(mediaType),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  StoredPublicationAsset copyWith({
+    String? id,
+    String? publicationId,
+    String? kind,
+    String? location,
+    Value<String?> mediaType = const Value.absent(),
+    DateTime? createdAt,
+  }) => StoredPublicationAsset(
+    id: id ?? this.id,
+    publicationId: publicationId ?? this.publicationId,
+    kind: kind ?? this.kind,
+    location: location ?? this.location,
+    mediaType: mediaType.present ? mediaType.value : this.mediaType,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  StoredPublicationAsset copyWithCompanion(
+    StoredPublicationAssetsCompanion data,
+  ) {
+    return StoredPublicationAsset(
+      id: data.id.present ? data.id.value : this.id,
+      publicationId: data.publicationId.present
+          ? data.publicationId.value
+          : this.publicationId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      location: data.location.present ? data.location.value : this.location,
+      mediaType: data.mediaType.present ? data.mediaType.value : this.mediaType,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredPublicationAsset(')
+          ..write('id: $id, ')
+          ..write('publicationId: $publicationId, ')
+          ..write('kind: $kind, ')
+          ..write('location: $location, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, publicationId, kind, location, mediaType, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredPublicationAsset &&
+          other.id == this.id &&
+          other.publicationId == this.publicationId &&
+          other.kind == this.kind &&
+          other.location == this.location &&
+          other.mediaType == this.mediaType &&
+          other.createdAt == this.createdAt);
+}
+
+class StoredPublicationAssetsCompanion
+    extends UpdateCompanion<StoredPublicationAsset> {
+  final Value<String> id;
+  final Value<String> publicationId;
+  final Value<String> kind;
+  final Value<String> location;
+  final Value<String?> mediaType;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const StoredPublicationAssetsCompanion({
+    this.id = const Value.absent(),
+    this.publicationId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.location = const Value.absent(),
+    this.mediaType = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredPublicationAssetsCompanion.insert({
+    required String id,
+    required String publicationId,
+    required String kind,
+    required String location,
+    this.mediaType = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       publicationId = Value(publicationId),
+       kind = Value(kind),
+       location = Value(location),
+       createdAt = Value(createdAt);
+  static Insertable<StoredPublicationAsset> custom({
+    Expression<String>? id,
+    Expression<String>? publicationId,
+    Expression<String>? kind,
+    Expression<String>? location,
+    Expression<String>? mediaType,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (publicationId != null) 'publication_id': publicationId,
+      if (kind != null) 'kind': kind,
+      if (location != null) 'location': location,
+      if (mediaType != null) 'media_type': mediaType,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredPublicationAssetsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? publicationId,
+    Value<String>? kind,
+    Value<String>? location,
+    Value<String?>? mediaType,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return StoredPublicationAssetsCompanion(
+      id: id ?? this.id,
+      publicationId: publicationId ?? this.publicationId,
+      kind: kind ?? this.kind,
+      location: location ?? this.location,
+      mediaType: mediaType ?? this.mediaType,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (publicationId.present) {
+      map['publication_id'] = Variable<String>(publicationId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
+    if (mediaType.present) {
+      map['media_type'] = Variable<String>(mediaType.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredPublicationAssetsCompanion(')
+          ..write('id: $id, ')
+          ..write('publicationId: $publicationId, ')
+          ..write('kind: $kind, ')
+          ..write('location: $location, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$LocalDatabase extends GeneratedDatabase {
   _$LocalDatabase(QueryExecutor e) : super(e);
   $LocalDatabaseManager get managers => $LocalDatabaseManager(this);
@@ -1230,6 +1648,8 @@ abstract class _$LocalDatabase extends GeneratedDatabase {
       $StoredPublicationsTable(this);
   late final $StoredReadingProgressesTable storedReadingProgresses =
       $StoredReadingProgressesTable(this);
+  late final $StoredPublicationAssetsTable storedPublicationAssets =
+      $StoredPublicationAssetsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1238,6 +1658,7 @@ abstract class _$LocalDatabase extends GeneratedDatabase {
     storedLibrarySources,
     storedPublications,
     storedReadingProgresses,
+    storedPublicationAssets,
   ];
 }
 
@@ -1937,6 +2358,246 @@ typedef $$StoredReadingProgressesTableProcessedTableManager =
       StoredReadingProgressesData,
       PrefetchHooks Function()
     >;
+typedef $$StoredPublicationAssetsTableCreateCompanionBuilder =
+    StoredPublicationAssetsCompanion Function({
+      required String id,
+      required String publicationId,
+      required String kind,
+      required String location,
+      Value<String?> mediaType,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$StoredPublicationAssetsTableUpdateCompanionBuilder =
+    StoredPublicationAssetsCompanion Function({
+      Value<String> id,
+      Value<String> publicationId,
+      Value<String> kind,
+      Value<String> location,
+      Value<String?> mediaType,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$StoredPublicationAssetsTableFilterComposer
+    extends Composer<_$LocalDatabase, $StoredPublicationAssetsTable> {
+  $$StoredPublicationAssetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publicationId => $composableBuilder(
+    column: $table.publicationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StoredPublicationAssetsTableOrderingComposer
+    extends Composer<_$LocalDatabase, $StoredPublicationAssetsTable> {
+  $$StoredPublicationAssetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publicationId => $composableBuilder(
+    column: $table.publicationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaType => $composableBuilder(
+    column: $table.mediaType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StoredPublicationAssetsTableAnnotationComposer
+    extends Composer<_$LocalDatabase, $StoredPublicationAssetsTable> {
+  $$StoredPublicationAssetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get publicationId => $composableBuilder(
+    column: $table.publicationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$StoredPublicationAssetsTableTableManager
+    extends
+        RootTableManager<
+          _$LocalDatabase,
+          $StoredPublicationAssetsTable,
+          StoredPublicationAsset,
+          $$StoredPublicationAssetsTableFilterComposer,
+          $$StoredPublicationAssetsTableOrderingComposer,
+          $$StoredPublicationAssetsTableAnnotationComposer,
+          $$StoredPublicationAssetsTableCreateCompanionBuilder,
+          $$StoredPublicationAssetsTableUpdateCompanionBuilder,
+          (
+            StoredPublicationAsset,
+            BaseReferences<
+              _$LocalDatabase,
+              $StoredPublicationAssetsTable,
+              StoredPublicationAsset
+            >,
+          ),
+          StoredPublicationAsset,
+          PrefetchHooks Function()
+        > {
+  $$StoredPublicationAssetsTableTableManager(
+    _$LocalDatabase db,
+    $StoredPublicationAssetsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StoredPublicationAssetsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$StoredPublicationAssetsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$StoredPublicationAssetsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> publicationId = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> location = const Value.absent(),
+                Value<String?> mediaType = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredPublicationAssetsCompanion(
+                id: id,
+                publicationId: publicationId,
+                kind: kind,
+                location: location,
+                mediaType: mediaType,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String publicationId,
+                required String kind,
+                required String location,
+                Value<String?> mediaType = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredPublicationAssetsCompanion.insert(
+                id: id,
+                publicationId: publicationId,
+                kind: kind,
+                location: location,
+                mediaType: mediaType,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredPublicationAssetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LocalDatabase,
+      $StoredPublicationAssetsTable,
+      StoredPublicationAsset,
+      $$StoredPublicationAssetsTableFilterComposer,
+      $$StoredPublicationAssetsTableOrderingComposer,
+      $$StoredPublicationAssetsTableAnnotationComposer,
+      $$StoredPublicationAssetsTableCreateCompanionBuilder,
+      $$StoredPublicationAssetsTableUpdateCompanionBuilder,
+      (
+        StoredPublicationAsset,
+        BaseReferences<
+          _$LocalDatabase,
+          $StoredPublicationAssetsTable,
+          StoredPublicationAsset
+        >,
+      ),
+      StoredPublicationAsset,
+      PrefetchHooks Function()
+    >;
 
 class $LocalDatabaseManager {
   final _$LocalDatabase _db;
@@ -1949,5 +2610,10 @@ class $LocalDatabaseManager {
       $$StoredReadingProgressesTableTableManager(
         _db,
         _db.storedReadingProgresses,
+      );
+  $$StoredPublicationAssetsTableTableManager get storedPublicationAssets =>
+      $$StoredPublicationAssetsTableTableManager(
+        _db,
+        _db.storedPublicationAssets,
       );
 }

@@ -1,0 +1,23 @@
+import 'package:fbooks/domain/publication/publication_id.dart';
+
+/// A readable representation of a [Publication].
+///
+/// The same publication can later have both an OPDS acquisition URL and an
+/// offline file cache, so assets are modeled independently from metadata.
+enum PublicationAssetKind { localFile, remoteAcquisition }
+
+class PublicationAsset {
+  const PublicationAsset({
+    required this.id,
+    required this.publicationId,
+    required this.kind,
+    required this.location,
+    this.mediaType,
+  });
+
+  final String id;
+  final PublicationId publicationId;
+  final PublicationAssetKind kind;
+  final Uri location;
+  final String? mediaType;
+}

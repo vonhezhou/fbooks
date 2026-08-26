@@ -1,6 +1,7 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/app/fbooks_app.dart';
 import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +31,10 @@ class _EmptyPublicationRepository implements PublicationRepository {
 
   @override
   Future<Publication?> findById(PublicationId id) => throw UnimplementedError();
+
+  @override
+  Future<Publication?> findByAssetLocation(Uri location) =>
+      throw UnimplementedError();
 
   @override
   Future<List<Publication>> listPublications() => Future.value(const []);

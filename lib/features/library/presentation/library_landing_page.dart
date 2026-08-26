@@ -3,13 +3,35 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LibraryLandingPage extends ConsumerWidget {
+class LibraryLandingPage extends ConsumerStatefulWidget {
   const LibraryLandingPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LibraryLandingPage> createState() => _LibraryLandingPageState();
+}
+
+class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
+  bool _isImporting = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Fbooks')),
+      appBar: AppBar(
+        title: const Text('Fbooks'),
+        actions: [
+          IconButton(
+            tooltip: 'Add local publications',
+            onPressed: _isImporting ? null : _importLocalPublications,
+            icon: _isImporting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add_circle_outline),
+          ),
+        ],
+      ),
       body: ref
           .watch(libraryPublicationsProvider)
           .when(
@@ -21,6 +43,44 @@ class LibraryLandingPage extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
           ),
     );
+  }
+
+  Future<void> _importLocalPublications() async {
+    setState(() => _isImporting = true);
+    try {
+      final candidates = await ref.read(localPublicationPickerProvider).pick();
+      if (candidates.isEmpty || !mounted) {
+        return;
+      }
+
+      final result = await ref
+          .read(localPublicationImporterProvider)
+          .importCandidates(candidates);
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${result.imported.length} added, '
+            '${result.duplicates.length} already in library, '
+            '${result.unsupported.length} unsupported.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to add publications: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isImporting = false);
+      }
+    }
   }
 }
 

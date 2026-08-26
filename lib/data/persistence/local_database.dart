@@ -38,23 +38,44 @@ class StoredReadingProgresses extends Table {
   Set<Column<Object>> get primaryKey => {publicationId};
 }
 
+class StoredPublicationAssets extends Table {
+  TextColumn get id => text()();
+  TextColumn get publicationId => text().references(StoredPublications, #id)();
+  TextColumn get kind => text()();
+  TextColumn get location => text()();
+  TextColumn get mediaType => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
-  tables: [StoredLibrarySources, StoredPublications, StoredReadingProgresses],
+  tables: [
+    StoredLibrarySources,
+    StoredPublications,
+    StoredReadingProgresses,
+    StoredPublicationAssets,
+  ],
 )
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(driftDatabase(name: 'fbooks'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      if (from != to) {
-        throw StateError(
-          'A database migration must be written for $from -> $to.',
-        );
+      switch (from) {
+        case 1:
+          await migrator.createTable(storedPublicationAssets);
+          break;
+        case 2:
+          break;
+        default:
+          throw StateError('Unsupported database migration: $from -> $to.');
       }
     },
     beforeOpen: (details) async {

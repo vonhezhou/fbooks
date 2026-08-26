@@ -1,4 +1,4 @@
-import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 
 class ReadingProgress {
