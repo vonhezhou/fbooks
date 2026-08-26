@@ -6,5 +6,9 @@ abstract interface class PublicationRepository {
 
   Future<Publication?> findById(PublicationId id);
 
+  Future<void> save(Publication publication);
+
+  Future<void> delete(PublicationId id);
+
   Stream<List<Publication>> watchPublications();
 }

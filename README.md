@@ -5,9 +5,9 @@ libraries, OPDS catalogs, contextual AI questions, and background TTS.
 
 ## Status
 
-This repository is a clean implementation. The first milestone establishes the
-application shell and domain boundaries; it does not yet persist or render a
-library.
+This repository is a clean implementation. It currently establishes the
+application shell, domain boundaries, and a migratable local metadata store;
+local-file import and reader rendering are the next milestones.
 
 ## Development
 

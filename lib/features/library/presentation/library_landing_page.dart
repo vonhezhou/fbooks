@@ -1,33 +1,80 @@
+import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/domain/publication/publication.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LibraryLandingPage extends StatelessWidget {
+class LibraryLandingPage extends ConsumerWidget {
   const LibraryLandingPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Fbooks')),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.auto_stories_outlined, size: 64),
-              SizedBox(height: 16),
-              Text(
-                'Your library will appear here.',
-                style: TextStyle(fontSize: 20),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Start by importing a local publication or connecting an OPDS source.',
-                textAlign: TextAlign.center,
-              ),
-            ],
+      body: ref
+          .watch(libraryPublicationsProvider)
+          .when(
+            data: (publications) => publications.isEmpty
+                ? const _EmptyLibraryView()
+                : _PublicationList(publications: publications),
+            error: (error, stackTrace) =>
+                Center(child: Text('Unable to load the library: $error')),
+            loading: () => const Center(child: CircularProgressIndicator()),
           ),
+    );
+  }
+}
+
+class _EmptyLibraryView extends StatelessWidget {
+  const _EmptyLibraryView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_stories_outlined, size: 64),
+            SizedBox(height: 16),
+            Text(
+              'Your library will appear here.',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Start by importing a local publication or connecting an OPDS source.',
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _PublicationList extends StatelessWidget {
+  const _PublicationList({required this.publications});
+
+  final List<Publication> publications;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      itemCount: publications.length,
+      itemBuilder: (context, index) {
+        final publication = publications[index];
+        return ListTile(
+          leading: const Icon(Icons.menu_book_outlined),
+          title: Text(publication.title),
+          subtitle: Text(
+            publication.authors.isEmpty
+                ? publication.source.name
+                : publication.authors.join(', '),
+          ),
+        );
+      },
+      separatorBuilder: (context, index) => const Divider(height: 1),
     );
   }
 }

@@ -26,3 +26,6 @@ presentation -> application -> domain <- data / infrastructure
   import and delete workflows can recover from partial failures.
 - AI answers and TTS consume extracted content with an originating locator,
   allowing the app to cite and resume at the referenced passage.
+- Database schema changes require an explicit migration before the schema
+  version changes; an unimplemented migration fails loudly instead of risking
+  the user's library data.
