@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/application/library/library_publication_remover.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
@@ -17,7 +18,16 @@ class PublicationDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(readingProgressProvider(publication.id));
     return Scaffold(
-      appBar: AppBar(title: const Text('Publication details')),
+      appBar: AppBar(
+        title: const Text('Publication details'),
+        actions: [
+          IconButton(
+            tooltip: 'Remove from library',
+            onPressed: () => _confirmRemoval(context, ref, publication),
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
+      ),
       body: SafeArea(
         top: false,
         child: ListView(
@@ -83,6 +93,74 @@ class PublicationDetailsPage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+Future<void> _confirmRemoval(
+  BuildContext context,
+  WidgetRef ref,
+  Publication publication,
+) async {
+  final downloadFiles = managedDownloadFiles(publication);
+  final deleteDownload = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Remove from library?'),
+      content: Text(
+        downloadFiles.isEmpty
+            ? '“${publication.title}” will be removed from Fbooks, all collections, and saved reading progress. Its original local file will stay on your device.'
+            : '“${publication.title}” will be removed from Fbooks, all collections, and saved reading progress. Choose whether to keep its downloaded file.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        if (downloadFiles.isNotEmpty)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Remove and keep download'),
+          ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(downloadFiles.isNotEmpty),
+          child: Text(
+            downloadFiles.isEmpty
+                ? 'Remove from library'
+                : 'Remove and delete download',
+          ),
+        ),
+      ],
+    ),
+  );
+  if (!context.mounted || deleteDownload == null) {
+    return;
+  }
+
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final result = await ref
+        .read(libraryPublicationRemoverProvider)
+        .remove(publication.id, deleteManagedFiles: deleteDownload);
+    if (!context.mounted) {
+      return;
+    }
+    Navigator.of(context).pop();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.filesNotDeleted.isEmpty
+              ? '“${publication.title}” was removed from the library.'
+              : '“${publication.title}” was removed, but its downloaded file could not be deleted.',
+        ),
+      ),
+    );
+  } catch (error) {
+    if (!context.mounted) {
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(content: Text('Unable to remove publication: $error')),
     );
   }
 }

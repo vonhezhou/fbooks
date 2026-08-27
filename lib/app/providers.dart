@@ -1,4 +1,5 @@
 import 'package:fbooks/application/library/local_publication_importer.dart';
+import 'package:fbooks/application/library/library_publication_remover.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
@@ -110,6 +111,13 @@ final localPublicationImporterProvider = Provider<LocalPublicationImporter>((
 ) {
   return LocalPublicationImporter(ref.watch(publicationRepositoryProvider));
 });
+
+final libraryPublicationRemoverProvider = Provider<LibraryPublicationRemover>(
+  (ref) => LibraryPublicationRemover(
+    ref.watch(publicationRepositoryProvider),
+    ref.watch(managedAssetStoreProvider),
+  ),
+);
 
 final comicReaderSessionFactoryProvider = Provider<ComicReaderSessionFactory>(
   (ref) => ArchiveComicReaderSessionFactory(),

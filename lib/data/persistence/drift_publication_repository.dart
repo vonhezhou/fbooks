@@ -15,9 +15,20 @@ class DriftPublicationRepository implements PublicationRepository {
 
   @override
   Future<void> delete(PublicationId id) async {
-    await (_database.delete(
-      _database.storedPublications,
-    )..where((publication) => publication.id.equals(id))).go();
+    await _database.transaction(() async {
+      await (_database.delete(
+        _database.storedCollectionPublications,
+      )..where((entry) => entry.publicationId.equals(id))).go();
+      await (_database.delete(
+        _database.storedReadingProgresses,
+      )..where((progress) => progress.publicationId.equals(id))).go();
+      await (_database.delete(
+        _database.storedPublicationAssets,
+      )..where((asset) => asset.publicationId.equals(id))).go();
+      await (_database.delete(
+        _database.storedPublications,
+      )..where((publication) => publication.id.equals(id))).go();
+    });
   }
 
   @override

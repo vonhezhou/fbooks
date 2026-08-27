@@ -100,8 +100,10 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 
 - [x] Publication details: cover, authors, description, source, format, and
   last-opened state.
-- [ ] Library operations: remove a publication, retain or delete downloaded
-  files deliberately, and repair a missing local file.
+- [x] Remove a publication while clearing its reading state and collection
+  memberships; users explicitly choose whether to retain or delete an
+  app-managed OPDS download. Original local files are always retained.
+- [ ] Repair a missing local file without losing its metadata or reading state.
 - [ ] Search, sort, and filter local and OPDS publications.
 - [ ] OPDS catalog management: edit/remove a catalog, authentication strategy,
   retries, download progress, and cancellation.
