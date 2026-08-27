@@ -67,9 +67,9 @@ visual intent; the Flutter implementation remains the production app.
 This is the active product milestone. Each checked item should have its own
 focused commit and pass `flutter analyze` plus `flutter test`.
 
-- [ ] Make the vertical comic mode a continuous vertical scroll. The current
-  implementation is vertical *paging*, which is useful but does not yet meet
-  the intended continuous-scroll mode.
+- [x] Make the vertical comic mode a continuous vertical scroll. It preserves
+  a page-level reading position while users scroll and can return to a chosen
+  page from the reader controls.
 - [ ] Validate comic layouts on real phone, tablet, and desktop windows.
   Decide and implement precise fit/crop behavior for single pages, covers, and
   double-page spreads; confirm right-to-left spread order with sample manga.
