@@ -10,6 +10,8 @@ import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+enum _AppSection { library, collections, plugins, settings }
+
 class LibraryLandingPage extends ConsumerStatefulWidget {
   const LibraryLandingPage({super.key});
 
@@ -19,11 +21,12 @@ class LibraryLandingPage extends ConsumerStatefulWidget {
 
 class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   bool _isImporting = false;
+  var _section = _AppSection.library;
 
   @override
   Widget build(BuildContext context) {
     final publications = ref.watch(libraryPublicationsProvider);
-    final body = publications.when(
+    final libraryBody = publications.when(
       data: (items) => items.isEmpty
           ? const _EmptyLibraryView()
           : _PublicationList(publications: items),
@@ -31,32 +34,79 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
           Center(child: Text('Unable to load the library: $error')),
       loading: () => const Center(child: CircularProgressIndicator()),
     );
+    final body = switch (_section) {
+      _AppSection.library => libraryBody,
+      _AppSection.collections => const _FeaturePlaceholder(
+        icon: Icons.collections_bookmark_outlined,
+        title: 'Collections',
+        message: 'Organise your library into collections.',
+      ),
+      _AppSection.plugins => const _FeaturePlaceholder(
+        icon: Icons.extension_outlined,
+        title: 'Plugins',
+        message: 'Reader extensions will appear here.',
+      ),
+      _AppSection.settings => const _FeaturePlaceholder(
+        icon: Icons.settings_outlined,
+        title: 'Settings',
+        message: 'Reading and library settings will appear here.',
+      ),
+    };
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 840) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Fbooks'),
-              actions: _compactActions,
+              title: Text(_sectionLabel),
+              actions: _section == _AppSection.library ? _compactActions : [],
             ),
             body: body,
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _section.index,
+              onDestinationSelected: (index) =>
+                  setState(() => _section = _AppSection.values[index]),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.library_books_outlined),
+                  label: 'Library',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.collections_bookmark_outlined),
+                  label: 'Collections',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.extension_outlined),
+                  label: 'Plugins',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  label: 'Settings',
+                ),
+              ],
+            ),
           );
         }
         return Scaffold(
           body: Row(
             children: [
-              const _DesktopSidebar(),
+              _DesktopSidebar(
+                section: _section,
+                onSelected: (section) => setState(() => _section = section),
+              ),
               Expanded(
                 child: ColoredBox(
                   color: const Color(0xFFF8F7F3),
                   child: Column(
                     children: [
-                      _DesktopHeader(
-                        isImporting: _isImporting,
-                        onImport: _importLocalPublications,
-                        onConnectOpds: _connectOpdsCatalog,
-                        onBrowseOpds: _showOpdsCatalogs,
-                      ),
+                      if (_section == _AppSection.library)
+                        _DesktopHeader(
+                          isImporting: _isImporting,
+                          onImport: _importLocalPublications,
+                          onConnectOpds: _connectOpdsCatalog,
+                          onBrowseOpds: _showOpdsCatalogs,
+                        )
+                      else
+                        _SectionHeader(title: _sectionLabel),
                       Expanded(child: body),
                     ],
                   ),
@@ -92,6 +142,13 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       icon: const Icon(Icons.cloud_outlined),
     ),
   ];
+
+  String get _sectionLabel => switch (_section) {
+    _AppSection.library => 'Fbooks',
+    _AppSection.collections => 'Collections',
+    _AppSection.plugins => 'Plugins',
+    _AppSection.settings => 'Settings',
+  };
 
   Future<void> _importLocalPublications() async {
     setState(() => _isImporting = true);
@@ -237,7 +294,10 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
 }
 
 class _DesktopSidebar extends StatelessWidget {
-  const _DesktopSidebar();
+  const _DesktopSidebar({required this.section, required this.onSelected});
+
+  final _AppSection section;
+  final ValueChanged<_AppSection> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -275,19 +335,30 @@ class _DesktopSidebar extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 40),
-              const _SidebarItem(
+              _SidebarItem(
                 icon: Icons.library_books_outlined,
                 label: 'Library',
-                selected: true,
+                selected: section == _AppSection.library,
+                onTap: () => onSelected(_AppSection.library),
               ),
-              const _SidebarItem(
+              _SidebarItem(
                 icon: Icons.collections_bookmark_outlined,
                 label: 'Collections',
+                selected: section == _AppSection.collections,
+                onTap: () => onSelected(_AppSection.collections),
               ),
               const Spacer(),
-              const _SidebarItem(
+              _SidebarItem(
+                icon: Icons.extension_outlined,
+                label: 'Plugins',
+                selected: section == _AppSection.plugins,
+                onTap: () => onSelected(_AppSection.plugins),
+              ),
+              _SidebarItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
+                selected: section == _AppSection.settings,
+                onTap: () => onSelected(_AppSection.settings),
               ),
             ],
           ),
@@ -301,43 +372,49 @@ class _SidebarItem extends StatelessWidget {
   const _SidebarItem({
     required this.icon,
     required this.label,
+    required this.onTap,
     this.selected = false,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF35373C) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                color: selected ? const Color(0xFFD8FF67) : Colors.white60,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: selected ? Colors.white : Colors.white70,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFF35373C) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: selected ? const Color(0xFFD8FF67) : Colors.white60,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: selected ? Colors.white : Colors.white70,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -398,6 +475,50 @@ class _DesktopHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(36, 28, 36, 20),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
+    ),
+  );
+}
+
+class _FeaturePlaceholder extends StatelessWidget {
+  const _FeaturePlaceholder({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 52),
+          const SizedBox(height: 16),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center),
+        ],
+      ),
+    ),
+  );
 }
 
 class _EmptyLibraryView extends StatelessWidget {
