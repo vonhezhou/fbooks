@@ -6,7 +6,9 @@ import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
+import 'package:fbooks/data/preferences/shared_preferences_app_settings_repository.dart';
 import 'package:fbooks/data/persistence/drift_publication_repository.dart';
+import 'package:fbooks/data/persistence/drift_book_collection_repository.dart';
 import 'package:fbooks/data/persistence/drift_reading_progress_repository.dart';
 import 'package:fbooks/data/persistence/drift_library_source_repository.dart';
 import 'package:fbooks/data/persistence/local_database.dart';
@@ -19,10 +21,14 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:fbooks/domain/library/library_source_repository.dart';
+import 'package:fbooks/domain/collection/book_collection.dart';
+import 'package:fbooks/domain/collection/book_collection_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences_repository.dart';
+import 'package:fbooks/domain/settings/app_settings.dart';
+import 'package:fbooks/domain/settings/app_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -39,6 +45,12 @@ final publicationRepositoryProvider = Provider<PublicationRepository>((ref) {
 final librarySourceRepositoryProvider = Provider<LibrarySourceRepository>(
   (ref) => DriftLibrarySourceRepository(ref.watch(localDatabaseProvider)),
 );
+
+final bookCollectionRepositoryProvider = Provider<BookCollectionRepository>((
+  ref,
+) {
+  return DriftBookCollectionRepository(ref.watch(localDatabaseProvider));
+});
 
 final opdsHttpClientProvider = Provider<http.Client>((ref) {
   final client = http.Client();
@@ -77,6 +89,10 @@ final comicReadingPreferencesRepositoryProvider =
       (ref) => SharedPreferencesComicReadingPreferencesRepository(),
     );
 
+final appSettingsRepositoryProvider = Provider<AppSettingsRepository>((ref) {
+  return SharedPreferencesAppSettingsRepository();
+});
+
 final localPublicationPickerProvider = Provider<LocalPublicationPicker>((ref) {
   return FilePickerLocalPublicationPicker();
 });
@@ -98,6 +114,17 @@ final textReaderSessionFactoryProvider = Provider<TextReaderSessionFactory>(
 final libraryPublicationsProvider = StreamProvider<List<Publication>>((ref) {
   return ref.watch(publicationRepositoryProvider).watchPublications();
 });
+
+final bookCollectionsProvider = StreamProvider<List<BookCollection>>((ref) {
+  return ref.watch(bookCollectionRepositoryProvider).watchCollections();
+});
+
+final collectionPublicationIdsProvider =
+    StreamProvider.family<List<PublicationId>, String>((ref, collectionId) {
+      return ref
+          .watch(bookCollectionRepositoryProvider)
+          .watchPublicationIds(collectionId);
+    });
 
 final comicReaderSessionProvider =
     FutureProvider.family<ComicReaderSession, PublicationId>((
@@ -126,6 +153,10 @@ final comicReadingPreferencesProvider = FutureProvider<ComicReadingPreferences>(
     return ref.watch(comicReadingPreferencesRepositoryProvider).load();
   },
 );
+
+final appSettingsProvider = FutureProvider<AppSettings>((ref) {
+  return ref.watch(appSettingsRepositoryProvider).load();
+});
 
 final textReaderSessionProvider =
     FutureProvider.family<TextReaderSession, PublicationId>((

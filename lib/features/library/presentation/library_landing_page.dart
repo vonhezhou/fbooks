@@ -4,9 +4,12 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
+import 'package:fbooks/features/collections/presentation/collections_page.dart';
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
+import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
+import 'package:fbooks/features/settings/presentation/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,21 +39,9 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     );
     final body = switch (_section) {
       _AppSection.library => libraryBody,
-      _AppSection.collections => const _FeaturePlaceholder(
-        icon: Icons.collections_bookmark_outlined,
-        title: 'Collections',
-        message: 'Organise your library into collections.',
-      ),
-      _AppSection.plugins => const _FeaturePlaceholder(
-        icon: Icons.extension_outlined,
-        title: 'Plugins',
-        message: 'Reader extensions will appear here.',
-      ),
-      _AppSection.settings => const _FeaturePlaceholder(
-        icon: Icons.settings_outlined,
-        title: 'Settings',
-        message: 'Reading and library settings will appear here.',
-      ),
+      _AppSection.collections => const CollectionsPage(),
+      _AppSection.plugins => const PluginsPage(),
+      _AppSection.settings => const SettingsPage(),
     };
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -104,9 +95,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                           onImport: _importLocalPublications,
                           onConnectOpds: _connectOpdsCatalog,
                           onBrowseOpds: _showOpdsCatalogs,
-                        )
-                      else
-                        _SectionHeader(title: _sectionLabel),
+                        ),
                       Expanded(child: body),
                     ],
                   ),
@@ -475,50 +464,6 @@ class _DesktopHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(36, 28, 36, 20),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
-    ),
-  );
-}
-
-class _FeaturePlaceholder extends StatelessWidget {
-  const _FeaturePlaceholder({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 52),
-          const SizedBox(height: 16),
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center),
-        ],
-      ),
-    ),
-  );
 }
 
 class _EmptyLibraryView extends StatelessWidget {

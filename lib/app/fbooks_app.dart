@@ -1,11 +1,16 @@
+import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/features/library/presentation/library_landing_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FbooksApp extends StatelessWidget {
+class FbooksApp extends ConsumerWidget {
   const FbooksApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode =
+        ref.watch(appSettingsProvider).asData?.value.themeMode ??
+        ThemeMode.system;
     return MaterialApp(
       title: 'Fbooks',
       debugShowCheckedModeBanner: false,
@@ -32,6 +37,16 @@ class FbooksApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFD8FF67),
+          brightness: Brightness.dark,
+          surface: const Color(0xFF1C1D20),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF1C1D20),
+        useMaterial3: true,
+      ),
+      themeMode: themeMode,
       home: const LibraryLandingPage(),
     );
   }

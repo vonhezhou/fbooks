@@ -51,12 +51,37 @@ class StoredPublicationAssets extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class StoredBookCollections extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get kind => text()();
+  TextColumn get description => text().nullable()();
+  TextColumn get coverUri => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class StoredCollectionPublications extends Table {
+  TextColumn get collectionId =>
+      text().references(StoredBookCollections, #id)();
+  TextColumn get publicationId => text().references(StoredPublications, #id)();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {collectionId, publicationId};
+}
+
 @DriftDatabase(
   tables: [
     StoredLibrarySources,
     StoredPublications,
     StoredReadingProgresses,
     StoredPublicationAssets,
+    StoredBookCollections,
+    StoredCollectionPublications,
   ],
 )
 class LocalDatabase extends _$LocalDatabase {
@@ -65,13 +90,13 @@ class LocalDatabase extends _$LocalDatabase {
   LocalDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      if (from < 1 || from > 3) {
+      if (from < 1 || from > 4) {
         throw StateError('Unsupported database migration: $from -> $to.');
       }
       if (from == 1) {
@@ -82,6 +107,10 @@ class LocalDatabase extends _$LocalDatabase {
           storedLibrarySources,
           storedLibrarySources.endpoint,
         );
+      }
+      if (from <= 3) {
+        await migrator.createTable(storedBookCollections);
+        await migrator.createTable(storedCollectionPublications);
       }
     },
     beforeOpen: (details) async {

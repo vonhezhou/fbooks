@@ -1686,6 +1686,762 @@ class StoredPublicationAssetsCompanion
   }
 }
 
+class $StoredBookCollectionsTable extends StoredBookCollections
+    with TableInfo<$StoredBookCollectionsTable, StoredBookCollection> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredBookCollectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _coverUriMeta = const VerificationMeta(
+    'coverUri',
+  );
+  @override
+  late final GeneratedColumn<String> coverUri = GeneratedColumn<String>(
+    'cover_uri',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    kind,
+    description,
+    coverUri,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_book_collections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredBookCollection> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cover_uri')) {
+      context.handle(
+        _coverUriMeta,
+        coverUri.isAcceptableOrUnknown(data['cover_uri']!, _coverUriMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoredBookCollection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredBookCollection(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      coverUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_uri'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StoredBookCollectionsTable createAlias(String alias) {
+    return $StoredBookCollectionsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredBookCollection extends DataClass
+    implements Insertable<StoredBookCollection> {
+  final String id;
+  final String name;
+  final String kind;
+  final String? description;
+  final String? coverUri;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const StoredBookCollection({
+    required this.id,
+    required this.name,
+    required this.kind,
+    this.description,
+    this.coverUri,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || coverUri != null) {
+      map['cover_uri'] = Variable<String>(coverUri);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  StoredBookCollectionsCompanion toCompanion(bool nullToAbsent) {
+    return StoredBookCollectionsCompanion(
+      id: Value(id),
+      name: Value(name),
+      kind: Value(kind),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      coverUri: coverUri == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverUri),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory StoredBookCollection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredBookCollection(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      kind: serializer.fromJson<String>(json['kind']),
+      description: serializer.fromJson<String?>(json['description']),
+      coverUri: serializer.fromJson<String?>(json['coverUri']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'kind': serializer.toJson<String>(kind),
+      'description': serializer.toJson<String?>(description),
+      'coverUri': serializer.toJson<String?>(coverUri),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  StoredBookCollection copyWith({
+    String? id,
+    String? name,
+    String? kind,
+    Value<String?> description = const Value.absent(),
+    Value<String?> coverUri = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => StoredBookCollection(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    kind: kind ?? this.kind,
+    description: description.present ? description.value : this.description,
+    coverUri: coverUri.present ? coverUri.value : this.coverUri,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  StoredBookCollection copyWithCompanion(StoredBookCollectionsCompanion data) {
+    return StoredBookCollection(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      coverUri: data.coverUri.present ? data.coverUri.value : this.coverUri,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredBookCollection(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('description: $description, ')
+          ..write('coverUri: $coverUri, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, kind, description, coverUri, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredBookCollection &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.kind == this.kind &&
+          other.description == this.description &&
+          other.coverUri == this.coverUri &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class StoredBookCollectionsCompanion
+    extends UpdateCompanion<StoredBookCollection> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> kind;
+  final Value<String?> description;
+  final Value<String?> coverUri;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const StoredBookCollectionsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.description = const Value.absent(),
+    this.coverUri = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredBookCollectionsCompanion.insert({
+    required String id,
+    required String name,
+    required String kind,
+    this.description = const Value.absent(),
+    this.coverUri = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       kind = Value(kind),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<StoredBookCollection> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? kind,
+    Expression<String>? description,
+    Expression<String>? coverUri,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (kind != null) 'kind': kind,
+      if (description != null) 'description': description,
+      if (coverUri != null) 'cover_uri': coverUri,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredBookCollectionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? kind,
+    Value<String?>? description,
+    Value<String?>? coverUri,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return StoredBookCollectionsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      kind: kind ?? this.kind,
+      description: description ?? this.description,
+      coverUri: coverUri ?? this.coverUri,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (coverUri.present) {
+      map['cover_uri'] = Variable<String>(coverUri.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredBookCollectionsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('description: $description, ')
+          ..write('coverUri: $coverUri, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StoredCollectionPublicationsTable extends StoredCollectionPublications
+    with
+        TableInfo<
+          $StoredCollectionPublicationsTable,
+          StoredCollectionPublication
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredCollectionPublicationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _collectionIdMeta = const VerificationMeta(
+    'collectionId',
+  );
+  @override
+  late final GeneratedColumn<String> collectionId = GeneratedColumn<String>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _publicationIdMeta = const VerificationMeta(
+    'publicationId',
+  );
+  @override
+  late final GeneratedColumn<String> publicationId = GeneratedColumn<String>(
+    'publication_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    collectionId,
+    publicationId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_collection_publications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredCollectionPublication> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('collection_id')) {
+      context.handle(
+        _collectionIdMeta,
+        collectionId.isAcceptableOrUnknown(
+          data['collection_id']!,
+          _collectionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_collectionIdMeta);
+    }
+    if (data.containsKey('publication_id')) {
+      context.handle(
+        _publicationIdMeta,
+        publicationId.isAcceptableOrUnknown(
+          data['publication_id']!,
+          _publicationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_publicationIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {collectionId, publicationId};
+  @override
+  StoredCollectionPublication map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredCollectionPublication(
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}collection_id'],
+      )!,
+      publicationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}publication_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StoredCollectionPublicationsTable createAlias(String alias) {
+    return $StoredCollectionPublicationsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredCollectionPublication extends DataClass
+    implements Insertable<StoredCollectionPublication> {
+  final String collectionId;
+  final String publicationId;
+  final DateTime createdAt;
+  const StoredCollectionPublication({
+    required this.collectionId,
+    required this.publicationId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['collection_id'] = Variable<String>(collectionId);
+    map['publication_id'] = Variable<String>(publicationId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  StoredCollectionPublicationsCompanion toCompanion(bool nullToAbsent) {
+    return StoredCollectionPublicationsCompanion(
+      collectionId: Value(collectionId),
+      publicationId: Value(publicationId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory StoredCollectionPublication.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredCollectionPublication(
+      collectionId: serializer.fromJson<String>(json['collectionId']),
+      publicationId: serializer.fromJson<String>(json['publicationId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'collectionId': serializer.toJson<String>(collectionId),
+      'publicationId': serializer.toJson<String>(publicationId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  StoredCollectionPublication copyWith({
+    String? collectionId,
+    String? publicationId,
+    DateTime? createdAt,
+  }) => StoredCollectionPublication(
+    collectionId: collectionId ?? this.collectionId,
+    publicationId: publicationId ?? this.publicationId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  StoredCollectionPublication copyWithCompanion(
+    StoredCollectionPublicationsCompanion data,
+  ) {
+    return StoredCollectionPublication(
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      publicationId: data.publicationId.present
+          ? data.publicationId.value
+          : this.publicationId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredCollectionPublication(')
+          ..write('collectionId: $collectionId, ')
+          ..write('publicationId: $publicationId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(collectionId, publicationId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredCollectionPublication &&
+          other.collectionId == this.collectionId &&
+          other.publicationId == this.publicationId &&
+          other.createdAt == this.createdAt);
+}
+
+class StoredCollectionPublicationsCompanion
+    extends UpdateCompanion<StoredCollectionPublication> {
+  final Value<String> collectionId;
+  final Value<String> publicationId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const StoredCollectionPublicationsCompanion({
+    this.collectionId = const Value.absent(),
+    this.publicationId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredCollectionPublicationsCompanion.insert({
+    required String collectionId,
+    required String publicationId,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : collectionId = Value(collectionId),
+       publicationId = Value(publicationId),
+       createdAt = Value(createdAt);
+  static Insertable<StoredCollectionPublication> custom({
+    Expression<String>? collectionId,
+    Expression<String>? publicationId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (collectionId != null) 'collection_id': collectionId,
+      if (publicationId != null) 'publication_id': publicationId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredCollectionPublicationsCompanion copyWith({
+    Value<String>? collectionId,
+    Value<String>? publicationId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return StoredCollectionPublicationsCompanion(
+      collectionId: collectionId ?? this.collectionId,
+      publicationId: publicationId ?? this.publicationId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (collectionId.present) {
+      map['collection_id'] = Variable<String>(collectionId.value);
+    }
+    if (publicationId.present) {
+      map['publication_id'] = Variable<String>(publicationId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredCollectionPublicationsCompanion(')
+          ..write('collectionId: $collectionId, ')
+          ..write('publicationId: $publicationId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$LocalDatabase extends GeneratedDatabase {
   _$LocalDatabase(QueryExecutor e) : super(e);
   $LocalDatabaseManager get managers => $LocalDatabaseManager(this);
@@ -1697,6 +2453,10 @@ abstract class _$LocalDatabase extends GeneratedDatabase {
       $StoredReadingProgressesTable(this);
   late final $StoredPublicationAssetsTable storedPublicationAssets =
       $StoredPublicationAssetsTable(this);
+  late final $StoredBookCollectionsTable storedBookCollections =
+      $StoredBookCollectionsTable(this);
+  late final $StoredCollectionPublicationsTable storedCollectionPublications =
+      $StoredCollectionPublicationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1706,6 +2466,8 @@ abstract class _$LocalDatabase extends GeneratedDatabase {
     storedPublications,
     storedReadingProgresses,
     storedPublicationAssets,
+    storedBookCollections,
+    storedCollectionPublications,
   ];
 }
 
@@ -2664,6 +3426,450 @@ typedef $$StoredPublicationAssetsTableProcessedTableManager =
       StoredPublicationAsset,
       PrefetchHooks Function()
     >;
+typedef $$StoredBookCollectionsTableCreateCompanionBuilder =
+    StoredBookCollectionsCompanion Function({
+      required String id,
+      required String name,
+      required String kind,
+      Value<String?> description,
+      Value<String?> coverUri,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$StoredBookCollectionsTableUpdateCompanionBuilder =
+    StoredBookCollectionsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> kind,
+      Value<String?> description,
+      Value<String?> coverUri,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$StoredBookCollectionsTableFilterComposer
+    extends Composer<_$LocalDatabase, $StoredBookCollectionsTable> {
+  $$StoredBookCollectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get coverUri => $composableBuilder(
+    column: $table.coverUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StoredBookCollectionsTableOrderingComposer
+    extends Composer<_$LocalDatabase, $StoredBookCollectionsTable> {
+  $$StoredBookCollectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get coverUri => $composableBuilder(
+    column: $table.coverUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StoredBookCollectionsTableAnnotationComposer
+    extends Composer<_$LocalDatabase, $StoredBookCollectionsTable> {
+  $$StoredBookCollectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get coverUri =>
+      $composableBuilder(column: $table.coverUri, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$StoredBookCollectionsTableTableManager
+    extends
+        RootTableManager<
+          _$LocalDatabase,
+          $StoredBookCollectionsTable,
+          StoredBookCollection,
+          $$StoredBookCollectionsTableFilterComposer,
+          $$StoredBookCollectionsTableOrderingComposer,
+          $$StoredBookCollectionsTableAnnotationComposer,
+          $$StoredBookCollectionsTableCreateCompanionBuilder,
+          $$StoredBookCollectionsTableUpdateCompanionBuilder,
+          (
+            StoredBookCollection,
+            BaseReferences<
+              _$LocalDatabase,
+              $StoredBookCollectionsTable,
+              StoredBookCollection
+            >,
+          ),
+          StoredBookCollection,
+          PrefetchHooks Function()
+        > {
+  $$StoredBookCollectionsTableTableManager(
+    _$LocalDatabase db,
+    $StoredBookCollectionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StoredBookCollectionsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$StoredBookCollectionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$StoredBookCollectionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> coverUri = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredBookCollectionsCompanion(
+                id: id,
+                name: name,
+                kind: kind,
+                description: description,
+                coverUri: coverUri,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String kind,
+                Value<String?> description = const Value.absent(),
+                Value<String?> coverUri = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredBookCollectionsCompanion.insert(
+                id: id,
+                name: name,
+                kind: kind,
+                description: description,
+                coverUri: coverUri,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredBookCollectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LocalDatabase,
+      $StoredBookCollectionsTable,
+      StoredBookCollection,
+      $$StoredBookCollectionsTableFilterComposer,
+      $$StoredBookCollectionsTableOrderingComposer,
+      $$StoredBookCollectionsTableAnnotationComposer,
+      $$StoredBookCollectionsTableCreateCompanionBuilder,
+      $$StoredBookCollectionsTableUpdateCompanionBuilder,
+      (
+        StoredBookCollection,
+        BaseReferences<
+          _$LocalDatabase,
+          $StoredBookCollectionsTable,
+          StoredBookCollection
+        >,
+      ),
+      StoredBookCollection,
+      PrefetchHooks Function()
+    >;
+typedef $$StoredCollectionPublicationsTableCreateCompanionBuilder =
+    StoredCollectionPublicationsCompanion Function({
+      required String collectionId,
+      required String publicationId,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$StoredCollectionPublicationsTableUpdateCompanionBuilder =
+    StoredCollectionPublicationsCompanion Function({
+      Value<String> collectionId,
+      Value<String> publicationId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$StoredCollectionPublicationsTableFilterComposer
+    extends Composer<_$LocalDatabase, $StoredCollectionPublicationsTable> {
+  $$StoredCollectionPublicationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publicationId => $composableBuilder(
+    column: $table.publicationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StoredCollectionPublicationsTableOrderingComposer
+    extends Composer<_$LocalDatabase, $StoredCollectionPublicationsTable> {
+  $$StoredCollectionPublicationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publicationId => $composableBuilder(
+    column: $table.publicationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StoredCollectionPublicationsTableAnnotationComposer
+    extends Composer<_$LocalDatabase, $StoredCollectionPublicationsTable> {
+  $$StoredCollectionPublicationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get publicationId => $composableBuilder(
+    column: $table.publicationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$StoredCollectionPublicationsTableTableManager
+    extends
+        RootTableManager<
+          _$LocalDatabase,
+          $StoredCollectionPublicationsTable,
+          StoredCollectionPublication,
+          $$StoredCollectionPublicationsTableFilterComposer,
+          $$StoredCollectionPublicationsTableOrderingComposer,
+          $$StoredCollectionPublicationsTableAnnotationComposer,
+          $$StoredCollectionPublicationsTableCreateCompanionBuilder,
+          $$StoredCollectionPublicationsTableUpdateCompanionBuilder,
+          (
+            StoredCollectionPublication,
+            BaseReferences<
+              _$LocalDatabase,
+              $StoredCollectionPublicationsTable,
+              StoredCollectionPublication
+            >,
+          ),
+          StoredCollectionPublication,
+          PrefetchHooks Function()
+        > {
+  $$StoredCollectionPublicationsTableTableManager(
+    _$LocalDatabase db,
+    $StoredCollectionPublicationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StoredCollectionPublicationsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$StoredCollectionPublicationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$StoredCollectionPublicationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> collectionId = const Value.absent(),
+                Value<String> publicationId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredCollectionPublicationsCompanion(
+                collectionId: collectionId,
+                publicationId: publicationId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String collectionId,
+                required String publicationId,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredCollectionPublicationsCompanion.insert(
+                collectionId: collectionId,
+                publicationId: publicationId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredCollectionPublicationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$LocalDatabase,
+      $StoredCollectionPublicationsTable,
+      StoredCollectionPublication,
+      $$StoredCollectionPublicationsTableFilterComposer,
+      $$StoredCollectionPublicationsTableOrderingComposer,
+      $$StoredCollectionPublicationsTableAnnotationComposer,
+      $$StoredCollectionPublicationsTableCreateCompanionBuilder,
+      $$StoredCollectionPublicationsTableUpdateCompanionBuilder,
+      (
+        StoredCollectionPublication,
+        BaseReferences<
+          _$LocalDatabase,
+          $StoredCollectionPublicationsTable,
+          StoredCollectionPublication
+        >,
+      ),
+      StoredCollectionPublication,
+      PrefetchHooks Function()
+    >;
 
 class $LocalDatabaseManager {
   final _$LocalDatabase _db;
@@ -2681,5 +3887,13 @@ class $LocalDatabaseManager {
       $$StoredPublicationAssetsTableTableManager(
         _db,
         _db.storedPublicationAssets,
+      );
+  $$StoredBookCollectionsTableTableManager get storedBookCollections =>
+      $$StoredBookCollectionsTableTableManager(_db, _db.storedBookCollections);
+  $$StoredCollectionPublicationsTableTableManager
+  get storedCollectionPublications =>
+      $$StoredCollectionPublicationsTableTableManager(
+        _db,
+        _db.storedCollectionPublications,
       );
 }

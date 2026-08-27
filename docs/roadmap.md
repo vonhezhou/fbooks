@@ -54,8 +54,10 @@ visual intent; the Flutter implementation remains the production app.
   library toolbar, and compact-window fallback (`095ebda`).
 - [x] Add shared desktop-sidebar and mobile-bottom navigation for Library,
   Collections, Plugins, and Settings (`b132425`).
-- [ ] Replace the Collections, Plugins, and Settings UI placeholders with
+- [x] Replace the Collections, Plugins, and Settings UI placeholders with
   real, scoped product capabilities while keeping Library wired to real data.
+  Collections are persisted locally and can contain library books; Plugins
+  documents the shipped built-in integrations; Settings persists the app theme.
 - [ ] Compare every finished screen with the stable Figma Make design before
   marking its UI pass complete. If pixel-level export or annotations become
   necessary, promote that screen to a standard Figma Design frame.
