@@ -33,6 +33,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Local agent skills injected by the development environment
+.agents/
+skills-lock.json
+
 # Symbolication related
 app.*.symbols
 
