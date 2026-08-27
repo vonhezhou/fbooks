@@ -5,6 +5,7 @@ import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
+import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/text_document.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,17 +55,24 @@ class _TextChapterPager extends ConsumerStatefulWidget {
 
 class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
   late final PageController _pageController;
+  late final ReadingProgressRepository _progressRepository;
   bool _hasRestoredPosition = false;
   var _currentChapter = 0;
+  final _chapterOffsets = <int, int>{};
+  Timer? _pendingProgressWrite;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _progressRepository = ref.read(readingProgressRepositoryProvider);
   }
 
   @override
   void dispose() {
+    _pendingProgressWrite?.cancel();
+    final offset = _chapterOffsets[_currentChapter] ?? 0;
+    unawaited(_persistPosition(_currentChapter, offset));
     _pageController.dispose();
     super.dispose();
   }
@@ -84,7 +92,10 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
             onPageChanged: _savePosition,
             itemBuilder: (context, index) {
               return _TextChapterView(
+                key: ValueKey(widget.session.document.chapters[index].index),
                 chapter: widget.session.document.chapters[index],
+                initialOffset: _chapterOffsets[index] ?? 0,
+                onPositionChanged: _savePosition,
               );
             },
           ),
@@ -109,6 +120,7 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
     }
     final lastChapter = widget.session.document.chapters.length - 1;
     final chapterIndex = locator.chapterIndex.clamp(0, lastChapter).toInt();
+    _chapterOffsets[chapterIndex] = locator.offset;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _pageController.hasClients) {
         _pageController.jumpToPage(chapterIndex);
@@ -117,9 +129,12 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
     });
   }
 
-  void _savePosition(int chapterIndex) {
-    setState(() => _currentChapter = chapterIndex);
-    unawaited(_persistPosition(chapterIndex));
+  void _savePosition(int chapterIndex, [int offset = 0]) {
+    if (_currentChapter != chapterIndex) {
+      setState(() => _currentChapter = chapterIndex);
+    }
+    _chapterOffsets[chapterIndex] = offset;
+    _queuePositionPersist(chapterIndex, offset);
   }
 
   Future<void> _goToChapter(int chapterIndex) async {
@@ -133,17 +148,25 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
     );
   }
 
-  Future<void> _persistPosition(int chapterIndex) async {
+  void _queuePositionPersist(int chapterIndex, int offset) {
+    _pendingProgressWrite?.cancel();
+    _pendingProgressWrite = Timer(const Duration(milliseconds: 400), () {
+      unawaited(_persistPosition(chapterIndex, offset));
+    });
+  }
+
+  Future<void> _persistPosition(int chapterIndex, [int offset = 0]) async {
     try {
-      await ref
-          .read(readingProgressRepositoryProvider)
-          .save(
-            ReadingProgress(
-              publicationId: widget.publicationId,
-              locator: TextOffsetLocator(chapterIndex: chapterIndex, offset: 0),
-              updatedAt: DateTime.now(),
-            ),
-          );
+      await _progressRepository.save(
+        ReadingProgress(
+          publicationId: widget.publicationId,
+          locator: TextOffsetLocator(
+            chapterIndex: chapterIndex,
+            offset: offset,
+          ),
+          updatedAt: DateTime.now(),
+        ),
+      );
     } catch (_) {
       // A failed progress write must not interrupt reading.
     }
@@ -209,24 +232,100 @@ class _TextChapterControls extends StatelessWidget {
 }
 
 class _TextChapterView extends StatelessWidget {
-  const _TextChapterView({required this.chapter});
+  const _TextChapterView({
+    super.key,
+    required this.chapter,
+    required this.initialOffset,
+    required this.onPositionChanged,
+  });
 
   final TextChapter chapter;
+  final int initialOffset;
+  final void Function(int chapterIndex, int offset) onPositionChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TextChapterScrollView(
+      chapter: chapter,
+      initialOffset: initialOffset,
+      onPositionChanged: onPositionChanged,
+    );
+  }
+}
+
+class _TextChapterScrollView extends StatefulWidget {
+  const _TextChapterScrollView({
+    required this.chapter,
+    required this.initialOffset,
+    required this.onPositionChanged,
+  });
+
+  final TextChapter chapter;
+  final int initialOffset;
+  final void Function(int chapterIndex, int offset) onPositionChanged;
+
+  @override
+  State<_TextChapterScrollView> createState() => _TextChapterScrollViewState();
+}
+
+class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController(
+      initialScrollOffset: widget.initialOffset.toDouble(),
+    )..addListener(_reportPosition);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_reportPosition)
+      ..dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _TextChapterScrollView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialOffset == widget.initialOffset ||
+        !_scrollController.hasClients) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollController.hasClients) {
+        _scrollController.jumpTo(widget.initialOffset.toDouble());
+      }
+    });
+  }
+
+  void _reportPosition() {
+    widget.onPositionChanged(
+      widget.chapter.index,
+      _scrollController.offset.round().clamp(0, 1 << 31).toInt(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return SelectionArea(
       child: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              chapter.title,
+              widget.chapter.title,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 24),
-            Text(chapter.text, style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              widget.chapter.text,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ],
         ),
       ),
