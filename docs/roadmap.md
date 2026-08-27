@@ -43,6 +43,22 @@ Fbooks is a local-first reader for comics and ebooks.
 | Local import | CBZ, EPUB, TXT | CBR, CBT, CB7, PDF |
 | OPDS acquisition | CBZ, EPUB, TXT when detectable | PDF and unrecognised formats |
 
+## Design implementation (active)
+
+The visual reference is the user-owned Figma Make project **PC 阅读软件**.
+Its component structure covers the library, collections, comic reader, ebook
+reader, and settings. Figma Make is being used as the source of interaction and
+visual intent; the Flutter implementation remains the production app.
+
+- [x] Establish a responsive desktop library shell with a persistent sidebar,
+  library toolbar, and compact-window fallback (`095ebda`).
+- [ ] Apply the same information architecture to reader chrome, library cards,
+  collections, and settings while keeping each screen wired to real domain
+  data.
+- [ ] Compare every finished screen with the stable Figma Make design before
+  marking its UI pass complete. If pixel-level export or annotations become
+  necessary, promote that screen to a standard Figma Design frame.
+
 ## Next: finish basic reading experience
 
 This is the active product milestone. Each checked item should have its own
