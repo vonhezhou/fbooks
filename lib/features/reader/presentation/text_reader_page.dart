@@ -371,12 +371,13 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                Text(
-                  widget.chapter.text,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: _foregroundColor(widget.preferences.appearance),
-                    fontSize: widget.preferences.fontSize,
-                    height: widget.preferences.lineHeight,
+                Text.rich(
+                  TextSpan(
+                    children: _chapterTextSpans(
+                      context,
+                      widget.chapter,
+                      widget.preferences,
+                    ),
                   ),
                 ),
               ],
@@ -386,6 +387,30 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
       },
     );
   }
+}
+
+List<InlineSpan> _chapterTextSpans(
+  BuildContext context,
+  TextChapter chapter,
+  TextReadingPreferences preferences,
+) {
+  final baseStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
+    color: _foregroundColor(preferences.appearance),
+    fontSize: preferences.fontSize,
+    height: preferences.lineHeight,
+  );
+  final segments = chapter.segments.isEmpty
+      ? [TextSegment(text: chapter.text)]
+      : chapter.segments;
+  return [
+    for (final segment in segments)
+      TextSpan(
+        text: segment.text,
+        style: segment.emphasized
+            ? baseStyle?.copyWith(fontStyle: FontStyle.italic)
+            : baseStyle,
+      ),
+  ];
 }
 
 Future<void> _showTextReadingSettings(BuildContext context, WidgetRef ref) {

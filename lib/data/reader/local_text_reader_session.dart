@@ -7,6 +7,7 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/reading/text_document.dart';
 import 'package:html/parser.dart' as html;
+import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart' as path;
 import 'package:xml/xml.dart';
 
@@ -115,8 +116,8 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     document
         .querySelectorAll('script, style')
         .forEach((element) => element.remove());
-    final body =
-        document.body?.text.replaceAll(RegExp(r'\s+'), ' ').trim() ?? '';
+    final segments = _readSegments(document.body);
+    final body = segments.map((segment) => segment.text).join().trim();
     final title = document.querySelector('h1, h2, h3')?.text.trim();
     return TextChapter(
       index: index,
@@ -124,7 +125,50 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
           ? path.posix.basenameWithoutExtension(chapterPath)
           : title,
       text: body,
+      segments: segments,
     );
+  }
+
+  List<TextSegment> _readSegments(dom.Element? body) {
+    if (body == null) {
+      return const [];
+    }
+    final segments = <TextSegment>[];
+    final blocks = body.querySelectorAll('p, li, blockquote, pre');
+    final content = blocks.isEmpty ? <dom.Element>[body] : blocks;
+    for (final block in content) {
+      final start = segments.length;
+      _appendNodeSegments(block, segments);
+      if (segments.length > start) {
+        segments.add(const TextSegment(text: '\n\n'));
+      }
+    }
+    if (segments.isNotEmpty) {
+      segments.removeLast();
+    }
+    return segments;
+  }
+
+  void _appendNodeSegments(
+    dom.Node node,
+    List<TextSegment> segments, [
+    bool emphasized = false,
+  ]) {
+    if (node is dom.Text) {
+      final text = node.data.replaceAll(RegExp(r'\s+'), ' ');
+      if (text.isNotEmpty) {
+        segments.add(TextSegment(text: text, emphasized: emphasized));
+      }
+      return;
+    }
+    if (node is! dom.Element) {
+      return;
+    }
+    final nextEmphasis =
+        emphasized || const {'em', 'i', 'strong', 'b'}.contains(node.localName);
+    for (final child in node.nodes) {
+      _appendNodeSegments(child, segments, nextEmphasis);
+    }
   }
 
   String _readUtf8(Map<String, ArchiveFile> files, String fileName) {

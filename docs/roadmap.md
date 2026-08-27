@@ -78,7 +78,7 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 - [x] Add text-reading preferences: font size, line height, margins, and
   light/dark/sepia appearance. Persist them locally and retain the reading
   position when they change.
-- [ ] Improve the text reader's EPUB presentation: preserve paragraph breaks
+- [x] Improve the text reader's EPUB presentation: preserve paragraph breaks
   and basic emphasis rather than flattening every spine item into one text
   string.
 - [ ] Give every reader a clear loading, missing-file, corrupt-file, and empty

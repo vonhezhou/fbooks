@@ -36,7 +36,7 @@ void main() {
       ..addFile(
         _textArchiveFile(
           'OEBPS/first.xhtml',
-          '<html><body><h1>First</h1><p>Hello world.</p></body></html>',
+          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p>Second paragraph.</p></body></html>',
         ),
       )
       ..addFile(
@@ -55,7 +55,12 @@ void main() {
       'First',
       'Second',
     ]);
-    expect(session.document.chapters.first.text, 'FirstHello world.');
+    final first = session.document.chapters.first;
+    expect(first.text, 'Hello world.\n\nSecond paragraph.');
+    expect(
+      first.segments.where((segment) => segment.emphasized).single.text,
+      'world',
+    );
   });
 
   test('opens a local text file as one chapter', () async {
