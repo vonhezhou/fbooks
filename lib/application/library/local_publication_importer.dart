@@ -94,21 +94,12 @@ class LocalPublicationImporter {
 class PublicationFormatDetector {
   const PublicationFormatDetector._();
 
-  static const supportedExtensions = <String>[
-    'cb7',
-    'cbr',
-    'cbt',
-    'cbz',
-    'epub',
-    'pdf',
-    'txt',
-  ];
+  static const supportedExtensions = <String>['cbz', 'epub', 'txt'];
 
   static PublicationFormat? fromFileName(String fileName) {
     return switch (path.extension(fileName).toLowerCase()) {
-      '.cb7' || '.cbr' || '.cbt' || '.cbz' => PublicationFormat.comicArchive,
+      '.cbz' => PublicationFormat.comicArchive,
       '.epub' => PublicationFormat.epub,
-      '.pdf' => PublicationFormat.pdf,
       '.txt' => PublicationFormat.text,
       _ => null,
     };

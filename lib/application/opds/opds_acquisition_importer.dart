@@ -119,8 +119,8 @@ class OpdsAcquisitionImporter {
       return fromFileName;
     }
     return switch (acquisition.mediaType?.toLowerCase()) {
+      'application/vnd.comicbook+zip' => PublicationFormat.comicArchive,
       'application/epub+zip' => PublicationFormat.epub,
-      'application/pdf' => PublicationFormat.pdf,
       'text/plain' => PublicationFormat.text,
       _ => null,
     };

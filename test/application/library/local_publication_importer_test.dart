@@ -63,6 +63,26 @@ void main() {
       expect(await repository.listPublications(), isEmpty);
     },
   );
+
+  test('only accepts local formats the reader can open', () async {
+    final repository = _MemoryPublicationRepository();
+    final importer = LocalPublicationImporter(repository);
+    final candidates =
+        ['Comic.cbz', 'Book.epub', 'Notes.txt', 'Comic.cbr', 'Book.pdf'].map(
+          (name) => LocalPublicationCandidate(
+            fileName: name,
+            location: Uri.file('/books/$name'),
+          ),
+        );
+
+    final result = await importer.importCandidates(candidates.toList());
+
+    expect(result.imported, hasLength(3));
+    expect(result.unsupported.map((candidate) => candidate.fileName), [
+      'Comic.cbr',
+      'Book.pdf',
+    ]);
+  });
 }
 
 class _MemoryPublicationRepository implements PublicationRepository {
