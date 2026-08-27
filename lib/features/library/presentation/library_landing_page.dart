@@ -326,11 +326,15 @@ class _SidebarItem extends StatelessWidget {
                 color: selected ? const Color(0xFFD8FF67) : Colors.white60,
               ),
               const SizedBox(width: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected ? Colors.white : Colors.white70,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected ? Colors.white : Colors.white70,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ),
             ],
@@ -432,52 +436,88 @@ class _PublicationList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.separated(
-      itemCount: publications.length,
-      itemBuilder: (context, index) {
-        final publication = publications[index];
-        final progress = ref.watch(readingProgressProvider(publication.id));
-        return ListTile(
-          leading: Icon(_iconFor(publication.format)),
-          title: Text(publication.title),
-          subtitle: _PublicationSubtitle(
-            publication: publication,
-            progress: progress.asData?.value,
-          ),
-          trailing: Text(_formatLabel(publication.format)),
-          onTap: switch (publication.format) {
-            PublicationFormat.comicArchive => () {
-              _openReader(
-                context,
-                ref,
-                publication.id,
-                MaterialPageRoute<void>(
-                  builder: (context) => ComicReaderPage(
-                    publicationId: publication.id,
-                    title: publication.title,
-                  ),
-                ),
-              );
-            },
-            PublicationFormat.epub || PublicationFormat.text => () {
-              _openReader(
-                context,
-                ref,
-                publication.id,
-                MaterialPageRoute<void>(
-                  builder: (context) => TextReaderPage(
-                    publicationId: publication.id,
-                    title: publication.title,
-                  ),
-                ),
-              );
-            },
-            _ => null,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 720) {
+          return GridView.builder(
+            padding: const EdgeInsets.fromLTRB(36, 8, 36, 36),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 240,
+              mainAxisExtent: 304,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+            ),
+            itemCount: publications.length,
+            itemBuilder: (context, index) => _PublicationCard(
+              publication: publications[index],
+              progress: ref
+                  .watch(readingProgressProvider(publications[index].id))
+                  .asData
+                  ?.value,
+              onTap: () => _openPublication(context, ref, publications[index]),
+              icon: _iconFor(publications[index].format),
+              formatLabel: _formatLabel(publications[index].format),
+            ),
+          );
+        }
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: publications.length,
+          itemBuilder: (context, index) {
+            final publication = publications[index];
+            final progress = ref.watch(readingProgressProvider(publication.id));
+            return ListTile(
+              leading: Icon(_iconFor(publication.format)),
+              title: Text(publication.title),
+              subtitle: _PublicationSubtitle(
+                publication: publication,
+                progress: progress.asData?.value,
+              ),
+              trailing: Text(_formatLabel(publication.format)),
+              onTap: () => _openPublication(context, ref, publication),
+            );
           },
+          separatorBuilder: (context, index) => const Divider(height: 1),
         );
       },
-      separatorBuilder: (context, index) => const Divider(height: 1),
     );
+  }
+
+  void _openPublication(
+    BuildContext context,
+    WidgetRef ref,
+    Publication publication,
+  ) {
+    switch (publication.format) {
+      case PublicationFormat.comicArchive:
+        _openReader(
+          context,
+          ref,
+          publication.id,
+          MaterialPageRoute<void>(
+            builder: (context) => ComicReaderPage(
+              publicationId: publication.id,
+              title: publication.title,
+            ),
+          ),
+        );
+        return;
+      case PublicationFormat.epub || PublicationFormat.text:
+        _openReader(
+          context,
+          ref,
+          publication.id,
+          MaterialPageRoute<void>(
+            builder: (context) => TextReaderPage(
+              publicationId: publication.id,
+              title: publication.title,
+            ),
+          ),
+        );
+        return;
+      default:
+        return;
+    }
   }
 
   Future<void> _openReader(
@@ -509,6 +549,80 @@ class _PublicationList extends ConsumerWidget {
       PublicationFormat.text => 'TXT',
     };
   }
+}
+
+class _PublicationCard extends StatelessWidget {
+  const _PublicationCard({
+    required this.publication,
+    required this.progress,
+    required this.onTap,
+    required this.icon,
+    required this.formatLabel,
+  });
+
+  final Publication publication;
+  final ReadingProgress? progress;
+  final VoidCallback onTap;
+  final IconData icon;
+  final String formatLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: _coverColor(publication.format),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Icon(icon, size: 52, color: Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                publication.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                progress == null ? formatLabel : _resumeLabel(progress!),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _coverColor(PublicationFormat format) => switch (format) {
+    PublicationFormat.comicArchive ||
+    PublicationFormat.comicDirectory => const Color(0xFF455A64),
+    PublicationFormat.epub => const Color(0xFF6D597A),
+    PublicationFormat.text => const Color(0xFF5B7C6F),
+    PublicationFormat.pdf => const Color(0xFF9B3D3D),
+  };
+
+  String _resumeLabel(ReadingProgress progress) => switch (progress.locator) {
+    ComicPageLocator(:final pageIndex) => 'Page ${pageIndex + 1}',
+    TextOffsetLocator(:final chapterIndex) => 'Chapter ${chapterIndex + 1}',
+    EpubCfiLocator() => 'Resume reading',
+  };
 }
 
 class _PublicationSubtitle extends StatelessWidget {

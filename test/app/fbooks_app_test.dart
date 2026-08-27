@@ -3,6 +3,7 @@ import 'package:fbooks/app/fbooks_app.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,6 +23,29 @@ void main() {
 
     expect(find.text('Fbooks'), findsOneWidget);
     expect(find.text('Your library will appear here.'), findsOneWidget);
+  });
+
+  testWidgets('uses the desktop library shell in a wide window', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _EmptyPublicationRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Your library'), findsOneWidget);
+    expect(find.text('Collections'), findsOneWidget);
+    expect(find.text('Add books'), findsOneWidget);
   });
 }
 
