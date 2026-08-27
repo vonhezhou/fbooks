@@ -1,5 +1,6 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/features/library/presentation/library_landing_page.dart';
+import 'package:fbooks/features/navigation/presentation/not_found_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -48,6 +49,10 @@ class FbooksApp extends ConsumerWidget {
       ),
       themeMode: themeMode,
       home: const LibraryLandingPage(),
+      onUnknownRoute: (settings) => MaterialPageRoute<void>(
+        settings: settings,
+        builder: (context) => NotFoundPage(routeName: settings.name),
+      ),
     );
   }
 }

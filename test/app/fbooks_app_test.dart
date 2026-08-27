@@ -47,6 +47,28 @@ void main() {
     expect(find.text('Collections'), findsOneWidget);
     expect(find.text('Add books'), findsOneWidget);
   });
+
+  testWidgets('shows the not-found page for an unknown named route', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _EmptyPublicationRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pump();
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/missing');
+    await tester.pumpAndSettle();
+
+    expect(find.text('This page is not in your library.'), findsOneWidget);
+    expect(find.textContaining('“/missing”'), findsOneWidget);
+  });
 }
 
 class _EmptyPublicationRepository implements PublicationRepository {
