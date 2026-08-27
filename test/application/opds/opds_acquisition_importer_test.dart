@@ -23,9 +23,11 @@ void main() {
 
       final imported = await importer.acquire(
         source: _source,
-        publication: const OpdsPublication(
+        publication: OpdsPublication(
           title: 'Remote book',
           authors: ['Ada'],
+          description: 'A downloaded classic.',
+          coverUri: Uri.parse('https://books.example.org/covers/book.jpg'),
           acquisitions: [],
         ),
         acquisition: acquisition,
@@ -43,6 +45,11 @@ void main() {
       expect(imported.assets, hasLength(2));
       expect(imported.assets.first.location, acquisition.href);
       expect(imported.assets.last.location.scheme, 'file');
+      expect(imported.description, 'A downloaded classic.');
+      expect(
+        imported.coverUri,
+        Uri.parse('https://books.example.org/covers/book.jpg'),
+      );
       expect(store.savedBytes, [1, 2, 3]);
       expect(fetcher.fetchCount, 1);
       expect(duplicate.id, imported.id);

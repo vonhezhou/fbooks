@@ -5,6 +5,7 @@ import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/collections/presentation/collections_page.dart';
+import 'package:fbooks/features/library/presentation/publication_details_page.dart';
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
@@ -521,6 +522,8 @@ class _PublicationList extends ConsumerWidget {
                   .asData
                   ?.value,
               onTap: () => _openPublication(context, ref, publications[index]),
+              onDetails: () =>
+                  _showPublicationDetails(context, publications[index]),
               icon: _iconFor(publications[index].format),
               formatLabel: _formatLabel(publications[index].format),
             ),
@@ -539,7 +542,18 @@ class _PublicationList extends ConsumerWidget {
                 publication: publication,
                 progress: progress.asData?.value,
               ),
-              trailing: Text(_formatLabel(publication.format)),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_formatLabel(publication.format)),
+                  IconButton(
+                    tooltip: 'Publication details',
+                    onPressed: () =>
+                        _showPublicationDetails(context, publication),
+                    icon: const Icon(Icons.info_outline),
+                  ),
+                ],
+              ),
               onTap: () => _openPublication(context, ref, publication),
             );
           },
@@ -596,6 +610,14 @@ class _PublicationList extends ConsumerWidget {
     ref.invalidate(readingProgressProvider(publicationId));
   }
 
+  void _showPublicationDetails(BuildContext context, Publication publication) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => PublicationDetailsPage(publication: publication),
+      ),
+    );
+  }
+
   IconData _iconFor(PublicationFormat format) {
     return switch (format) {
       PublicationFormat.comicArchive ||
@@ -622,6 +644,7 @@ class _PublicationCard extends StatelessWidget {
     required this.publication,
     required this.progress,
     required this.onTap,
+    required this.onDetails,
     required this.icon,
     required this.formatLabel,
   });
@@ -629,6 +652,7 @@ class _PublicationCard extends StatelessWidget {
   final Publication publication;
   final ReadingProgress? progress;
   final VoidCallback onTap;
+  final VoidCallback onDetails;
   final IconData icon;
   final String formatLabel;
 
@@ -636,42 +660,58 @@ class _PublicationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: _coverColor(publication.format),
-                    borderRadius: BorderRadius.circular(10),
+      child: Stack(
+        children: [
+          InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: _coverColor(publication.format),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(icon, size: 52, color: Colors.white),
+                      ),
+                    ),
                   ),
-                  child: Center(
-                    child: Icon(icon, size: 52, color: Colors.white),
+                  const SizedBox(height: 12),
+                  Text(
+                    publication.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    progress == null ? formatLabel : _resumeLabel(progress!),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                publication.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                progress == null ? formatLabel : _resumeLabel(progress!),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: IconButton(
+              tooltip: 'Publication details',
+              onPressed: onDetails,
+              icon: const Icon(Icons.info_outline),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: .88),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -98,7 +98,7 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 
 ## After basic reading: library and OPDS quality
 
-- [ ] Publication details: cover, authors, description, source, format, and
+- [x] Publication details: cover, authors, description, source, format, and
   last-opened state.
 - [ ] Library operations: remove a publication, retain or delete downloaded
   files deliberately, and repair a missing local file.

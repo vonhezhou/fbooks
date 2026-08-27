@@ -84,6 +84,8 @@ class OpdsAcquisitionImporter {
         title: publication.title,
         authors: publication.authors,
         format: format,
+        description: publication.description,
+        coverUri: publication.coverUri,
         assets: [
           PublicationAsset(
             id: remoteAssetId,

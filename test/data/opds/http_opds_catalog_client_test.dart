@@ -11,8 +11,11 @@ void main() {
           "metadata": {"title": "Library"},
           "navigation": [{"title": "Fiction", "href": "fiction.json"}],
           "publications": [{
-            "metadata": {"title": "Book", "author": [{"name": "Ada"}]},
-            "links": [{"rel": "http://opds-spec.org/acquisition", "href": "book.epub"}]
+            "metadata": {"title": "Book", "author": [{"name": "Ada"}], "description": "A readable book."},
+            "links": [
+              {"rel": "http://opds-spec.org/acquisition", "href": "book.epub"},
+              {"rel": "thumbnail", "href": "covers/book.jpg"}
+            ]
           }]
         }''', 200),
       ),
@@ -28,6 +31,11 @@ void main() {
       Uri.parse('https://books.example.org/opds/fiction.json'),
     );
     expect(catalog.publications.single.authors, ['Ada']);
+    expect(catalog.publications.single.description, 'A readable book.');
+    expect(
+      catalog.publications.single.coverUri,
+      Uri.parse('https://books.example.org/opds/covers/book.jpg'),
+    );
     expect(
       catalog.publications.single.acquisitions.map(
         (acquisition) => acquisition.href,
@@ -45,7 +53,9 @@ void main() {
             <entry>
               <title>Book</title>
               <author><name>Ada</name></author>
+              <summary>A classic.</summary>
               <link rel="http://opds-spec.org/acquisition" href="book.epub" />
+              <link rel="http://opds-spec.org/image/thumbnail" href="covers/book.jpg" />
             </entry>
           </feed>''', 200),
       ),
@@ -58,5 +68,10 @@ void main() {
     expect(catalog.title, 'Library');
     expect(catalog.publications.single.title, 'Book');
     expect(catalog.publications.single.authors, ['Ada']);
+    expect(catalog.publications.single.description, 'A classic.');
+    expect(
+      catalog.publications.single.coverUri,
+      Uri.parse('https://books.example.org/opds/covers/book.jpg'),
+    );
   });
 }

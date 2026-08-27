@@ -15,11 +15,15 @@ class OpdsPublication {
     required this.title,
     required this.authors,
     required this.acquisitions,
+    this.description,
+    this.coverUri,
   });
 
   final String title;
   final List<String> authors;
   final List<OpdsAcquisition> acquisitions;
+  final String? description;
+  final Uri? coverUri;
 }
 
 class OpdsAcquisition {

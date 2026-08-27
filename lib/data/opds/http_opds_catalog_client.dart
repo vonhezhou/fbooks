@@ -89,6 +89,8 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
       title: metadata['title'] as String? ?? 'Untitled',
       authors: authors,
       acquisitions: acquisitions,
+      description: _nonEmptyString(metadata['description']),
+      coverUri: _coverFromJsonLinks(publication['links'], endpoint),
     );
   }
 
@@ -147,7 +149,38 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
       title: _elementText(entry, 'title') ?? 'Untitled',
       authors: authors,
       acquisitions: acquisitions,
+      description:
+          _elementText(entry, 'summary') ?? _elementText(entry, 'content'),
+      coverUri: _coverFromAtomLinks(entry, endpoint),
     );
+  }
+
+  Uri? _coverFromJsonLinks(Object? value, Uri endpoint) {
+    final links = (value as List<Object?>?) ?? const [];
+    for (final link in links.whereType<Map<Object?, Object?>>()) {
+      final rel = link['rel'];
+      if (rel is String && (rel == 'cover' || rel == 'thumbnail')) {
+        final cover = _resolveHref(endpoint, link['href']);
+        if (cover != null) {
+          return cover;
+        }
+      }
+    }
+    return null;
+  }
+
+  Uri? _coverFromAtomLinks(XmlElement entry, Uri endpoint) {
+    for (final link in entry.findElements('link')) {
+      final rel = link.getAttribute('rel');
+      if (rel == 'http://opds-spec.org/image' ||
+          rel == 'http://opds-spec.org/image/thumbnail') {
+        final cover = _resolveHref(endpoint, link.getAttribute('href'));
+        if (cover != null) {
+          return cover;
+        }
+      }
+    }
+    return null;
   }
 
   OpdsNavigationLink? _atomNavigation(XmlElement link, Uri endpoint) {
@@ -168,6 +201,14 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
       }
     }
     return null;
+  }
+
+  String? _nonEmptyString(Object? value) {
+    if (value is! String) {
+      return null;
+    }
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   bool _isAcquisition(Object? rel) {
