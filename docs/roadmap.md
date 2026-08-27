@@ -52,9 +52,10 @@ visual intent; the Flutter implementation remains the production app.
 
 - [x] Establish a responsive desktop library shell with a persistent sidebar,
   library toolbar, and compact-window fallback (`095ebda`).
-- [ ] Apply the same information architecture to reader chrome, library cards,
-  collections, and settings while keeping each screen wired to real domain
-  data.
+- [x] Add shared desktop-sidebar and mobile-bottom navigation for Library,
+  Collections, Plugins, and Settings (`b132425`).
+- [ ] Replace the Collections, Plugins, and Settings UI placeholders with
+  real, scoped product capabilities while keeping Library wired to real data.
 - [ ] Compare every finished screen with the stable Figma Make design before
   marking its UI pass complete. If pixel-level export or annotations become
   necessary, promote that screen to a standard Figma Design frame.
