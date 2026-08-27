@@ -1,6 +1,9 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/domain/publication/publication_id.dart';
+import 'package:fbooks/domain/reading/reading_locator.dart';
+import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
@@ -231,29 +234,32 @@ class _EmptyLibraryView extends StatelessWidget {
   }
 }
 
-class _PublicationList extends StatelessWidget {
+class _PublicationList extends ConsumerWidget {
   const _PublicationList({required this.publications});
 
   final List<Publication> publications;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListView.separated(
       itemCount: publications.length,
       itemBuilder: (context, index) {
         final publication = publications[index];
+        final progress = ref.watch(readingProgressProvider(publication.id));
         return ListTile(
-          leading: const Icon(Icons.menu_book_outlined),
+          leading: Icon(_iconFor(publication.format)),
           title: Text(publication.title),
-          subtitle: Text(
-            publication.authors.isEmpty
-                ? publication.source.name
-                : publication.authors.join(', '),
+          subtitle: _PublicationSubtitle(
+            publication: publication,
+            progress: progress.asData?.value,
           ),
-          trailing: Text(publication.format.name),
+          trailing: Text(_formatLabel(publication.format)),
           onTap: switch (publication.format) {
             PublicationFormat.comicArchive => () {
-              Navigator.of(context).push(
+              _openReader(
+                context,
+                ref,
+                publication.id,
                 MaterialPageRoute<void>(
                   builder: (context) => ComicReaderPage(
                     publicationId: publication.id,
@@ -263,7 +269,10 @@ class _PublicationList extends StatelessWidget {
               );
             },
             PublicationFormat.epub || PublicationFormat.text => () {
-              Navigator.of(context).push(
+              _openReader(
+                context,
+                ref,
+                publication.id,
                 MaterialPageRoute<void>(
                   builder: (context) => TextReaderPage(
                     publicationId: publication.id,
@@ -277,6 +286,71 @@ class _PublicationList extends StatelessWidget {
         );
       },
       separatorBuilder: (context, index) => const Divider(height: 1),
+    );
+  }
+
+  Future<void> _openReader(
+    BuildContext context,
+    WidgetRef ref,
+    PublicationId publicationId,
+    Route<void> route,
+  ) async {
+    await Navigator.of(context).push(route);
+    ref.invalidate(readingProgressProvider(publicationId));
+  }
+
+  IconData _iconFor(PublicationFormat format) {
+    return switch (format) {
+      PublicationFormat.comicArchive ||
+      PublicationFormat.comicDirectory => Icons.auto_stories_outlined,
+      PublicationFormat.epub ||
+      PublicationFormat.text => Icons.menu_book_outlined,
+      PublicationFormat.pdf => Icons.picture_as_pdf_outlined,
+    };
+  }
+
+  String _formatLabel(PublicationFormat format) {
+    return switch (format) {
+      PublicationFormat.comicArchive => 'CBZ',
+      PublicationFormat.comicDirectory => 'Comic',
+      PublicationFormat.epub => 'EPUB',
+      PublicationFormat.pdf => 'PDF',
+      PublicationFormat.text => 'TXT',
+    };
+  }
+}
+
+class _PublicationSubtitle extends StatelessWidget {
+  const _PublicationSubtitle({
+    required this.publication,
+    required this.progress,
+  });
+
+  final Publication publication;
+  final ReadingProgress? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final attribution = publication.authors.isEmpty
+        ? publication.source.name
+        : publication.authors.join(', ');
+    final resumeLabel = switch (progress?.locator) {
+      ComicPageLocator(:final pageIndex) => 'Resume at page ${pageIndex + 1}',
+      TextOffsetLocator(:final chapterIndex) =>
+        'Resume at chapter ${chapterIndex + 1}',
+      EpubCfiLocator() => 'Resume reading',
+      null => null,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(attribution),
+        if (resumeLabel != null)
+          Text(
+            resumeLabel,
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
+      ],
     );
   }
 }
