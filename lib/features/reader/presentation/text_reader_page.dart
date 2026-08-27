@@ -24,7 +24,10 @@ class TextReaderPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(textReaderSessionProvider(publicationId));
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        centerTitle: MediaQuery.sizeOf(context).width < 720,
+      ),
       body: session.when(
         data: (value) =>
             _TextChapterPager(publicationId: publicationId, session: value),
@@ -310,25 +313,38 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
 
   @override
   Widget build(BuildContext context) {
-    return SelectionArea(
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.chapter.title,
-              style: Theme.of(context).textTheme.headlineSmall,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final horizontalPadding = constraints.maxWidth >= 840
+            ? (constraints.maxWidth - 720) / 2
+            : 24.0;
+        return SelectionArea(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              32,
+              horizontalPadding,
+              48,
             ),
-            const SizedBox(height: 24),
-            Text(
-              widget.chapter.text,
-              style: Theme.of(context).textTheme.bodyLarge,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.chapter.title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  widget.chapter.text,
+                  style: Theme.of(context).textTheme.bodyLarge
+                      ?.copyWith(height: 1.7),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

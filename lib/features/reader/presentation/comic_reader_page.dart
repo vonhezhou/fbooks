@@ -29,6 +29,9 @@ class ComicReaderPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.black,
         title: Text(title),
         actions: [
           IconButton(
@@ -387,10 +390,7 @@ Future<void> _showComicReadingSettings(BuildContext context, WidgetRef ref) {
                     label: const Text('Reading mode'),
                     dropdownMenuEntries: [
                       for (final mode in ComicReadingMode.values)
-                        DropdownMenuEntry(
-                          value: mode,
-                          label: _modeLabel(mode),
-                        ),
+                        DropdownMenuEntry(value: mode, label: _modeLabel(mode)),
                     ],
                     onSelected: (value) {
                       if (value != null) {
