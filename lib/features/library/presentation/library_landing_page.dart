@@ -22,45 +22,76 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fbooks'),
-        actions: [
-          IconButton(
-            tooltip: 'Add local publications',
-            onPressed: _isImporting ? null : _importLocalPublications,
-            icon: _isImporting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.add_circle_outline),
+    final publications = ref.watch(libraryPublicationsProvider);
+    final body = publications.when(
+      data: (items) => items.isEmpty
+          ? const _EmptyLibraryView()
+          : _PublicationList(publications: items),
+      error: (error, stackTrace) =>
+          Center(child: Text('Unable to load the library: $error')),
+      loading: () => const Center(child: CircularProgressIndicator()),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 840) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Fbooks'),
+              actions: _compactActions,
+            ),
+            body: body,
+          );
+        }
+        return Scaffold(
+          body: Row(
+            children: [
+              const _DesktopSidebar(),
+              Expanded(
+                child: ColoredBox(
+                  color: const Color(0xFFF8F7F3),
+                  child: Column(
+                    children: [
+                      _DesktopHeader(
+                        isImporting: _isImporting,
+                        onImport: _importLocalPublications,
+                        onConnectOpds: _connectOpdsCatalog,
+                        onBrowseOpds: _showOpdsCatalogs,
+                      ),
+                      Expanded(child: body),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            tooltip: 'Connect OPDS catalog',
-            onPressed: _connectOpdsCatalog,
-            icon: const Icon(Icons.add_to_queue_outlined),
-          ),
-          IconButton(
-            tooltip: 'Browse OPDS catalogs',
-            onPressed: _showOpdsCatalogs,
-            icon: const Icon(Icons.cloud_outlined),
-          ),
-        ],
-      ),
-      body: ref
-          .watch(libraryPublicationsProvider)
-          .when(
-            data: (publications) => publications.isEmpty
-                ? const _EmptyLibraryView()
-                : _PublicationList(publications: publications),
-            error: (error, stackTrace) =>
-                Center(child: Text('Unable to load the library: $error')),
-            loading: () => const Center(child: CircularProgressIndicator()),
-          ),
+        );
+      },
     );
   }
+
+  List<Widget> get _compactActions => [
+    IconButton(
+      tooltip: 'Add local publications',
+      onPressed: _isImporting ? null : _importLocalPublications,
+      icon: _isImporting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.add_circle_outline),
+    ),
+    IconButton(
+      tooltip: 'Connect OPDS catalog',
+      onPressed: _connectOpdsCatalog,
+      icon: const Icon(Icons.add_to_queue_outlined),
+    ),
+    IconButton(
+      tooltip: 'Browse OPDS catalogs',
+      onPressed: _showOpdsCatalogs,
+      icon: const Icon(Icons.cloud_outlined),
+    ),
+  ];
 
   Future<void> _importLocalPublications() async {
     setState(() => _isImporting = true);
@@ -200,6 +231,166 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => OpdsCatalogPage(endpoint: endpoint),
+      ),
+    );
+  }
+}
+
+class _DesktopSidebar extends StatelessWidget {
+  const _DesktopSidebar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 248,
+      color: const Color(0xFF1C1D20),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Row(
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFD8FF67),
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    child: SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: Icon(Icons.auto_stories_rounded),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Fbooks',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+              const _SidebarItem(
+                icon: Icons.library_books_outlined,
+                label: 'Library',
+                selected: true,
+              ),
+              const _SidebarItem(
+                icon: Icons.collections_bookmark_outlined,
+                label: 'Collections',
+              ),
+              const Spacer(),
+              const _SidebarItem(
+                icon: Icons.settings_outlined,
+                label: 'Settings',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SidebarItem extends StatelessWidget {
+  const _SidebarItem({
+    required this.icon,
+    required this.label,
+    this.selected = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF35373C) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: selected ? const Color(0xFFD8FF67) : Colors.white60,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected ? Colors.white : Colors.white70,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopHeader extends StatelessWidget {
+  const _DesktopHeader({
+    required this.isImporting,
+    required this.onImport,
+    required this.onConnectOpds,
+    required this.onBrowseOpds,
+  });
+
+  final bool isImporting;
+  final VoidCallback onImport;
+  final VoidCallback onConnectOpds;
+  final VoidCallback onBrowseOpds;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(36, 28, 36, 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Your library',
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Browse OPDS catalogs',
+            onPressed: onBrowseOpds,
+            icon: const Icon(Icons.cloud_outlined),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: onConnectOpds,
+            icon: const Icon(Icons.add_to_queue_outlined),
+            label: const Text('Connect OPDS'),
+          ),
+          const SizedBox(width: 12),
+          FilledButton.icon(
+            onPressed: isImporting ? null : onImport,
+            icon: isImporting
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add),
+            label: const Text('Add books'),
+          ),
+        ],
       ),
     );
   }
