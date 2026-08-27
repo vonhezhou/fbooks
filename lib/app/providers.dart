@@ -5,6 +5,7 @@ import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
+import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
 import 'package:fbooks/data/persistence/drift_publication_repository.dart';
 import 'package:fbooks/data/persistence/drift_reading_progress_repository.dart';
 import 'package:fbooks/data/persistence/drift_library_source_repository.dart';
@@ -20,6 +21,8 @@ import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:fbooks/domain/library/library_source_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
+import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
+import 'package:fbooks/domain/reading/comic_reading_preferences_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -69,6 +72,11 @@ final readingProgressRepositoryProvider = Provider<ReadingProgressRepository>(
   (ref) => DriftReadingProgressRepository(ref.watch(localDatabaseProvider)),
 );
 
+final comicReadingPreferencesRepositoryProvider =
+    Provider<ComicReadingPreferencesRepository>(
+      (ref) => SharedPreferencesComicReadingPreferencesRepository(),
+    );
+
 final localPublicationPickerProvider = Provider<LocalPublicationPicker>((ref) {
   return FilePickerLocalPublicationPicker();
 });
@@ -112,6 +120,12 @@ final readingProgressProvider =
     ) {
       return ref.watch(readingProgressRepositoryProvider).load(publicationId);
     });
+
+final comicReadingPreferencesProvider = FutureProvider<ComicReadingPreferences>(
+  (ref) {
+    return ref.watch(comicReadingPreferencesRepositoryProvider).load();
+  },
+);
 
 final textReaderSessionProvider =
     FutureProvider.family<TextReaderSession, PublicationId>((
