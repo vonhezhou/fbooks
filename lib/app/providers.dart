@@ -6,6 +6,7 @@ import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
+import 'package:fbooks/data/preferences/shared_preferences_text_reading_preferences_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_app_settings_repository.dart';
 import 'package:fbooks/data/persistence/drift_publication_repository.dart';
 import 'package:fbooks/data/persistence/drift_book_collection_repository.dart';
@@ -27,6 +28,8 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences_repository.dart';
+import 'package:fbooks/domain/reading/text_reading_preferences.dart';
+import 'package:fbooks/domain/reading/text_reading_preferences_repository.dart';
 import 'package:fbooks/domain/settings/app_settings.dart';
 import 'package:fbooks/domain/settings/app_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,6 +96,11 @@ final appSettingsRepositoryProvider = Provider<AppSettingsRepository>((ref) {
   return SharedPreferencesAppSettingsRepository();
 });
 
+final textReadingPreferencesRepositoryProvider =
+    Provider<TextReadingPreferencesRepository>((ref) {
+      return SharedPreferencesTextReadingPreferencesRepository();
+    });
+
 final localPublicationPickerProvider = Provider<LocalPublicationPicker>((ref) {
   return FilePickerLocalPublicationPicker();
 });
@@ -157,6 +165,10 @@ final comicReadingPreferencesProvider = FutureProvider<ComicReadingPreferences>(
 final appSettingsProvider = FutureProvider<AppSettings>((ref) {
   return ref.watch(appSettingsRepositoryProvider).load();
 });
+
+final textReadingPreferencesProvider = FutureProvider<TextReadingPreferences>(
+  (ref) => ref.watch(textReadingPreferencesRepositoryProvider).load(),
+);
 
 final textReaderSessionProvider =
     FutureProvider.family<TextReaderSession, PublicationId>((

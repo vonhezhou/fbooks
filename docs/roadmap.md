@@ -71,9 +71,11 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   a page-level reading position while users scroll and can return to a chosen
   page from the reader controls.
 - [ ] Validate comic layouts on real phone, tablet, and desktop windows.
-  Decide and implement precise fit/crop behavior for single pages, covers, and
-  double-page spreads; confirm right-to-left spread order with sample manga.
-- [ ] Add text-reading preferences: font size, line height, margins, and
+  The default policy is full-page `contain` for horizontal reading and
+  width-fitted, uncropped images for vertical scroll. Keep alternative
+  fit/crop settings for a later reader-preferences milestone; confirm
+  right-to-left spread order with sample manga.
+- [x] Add text-reading preferences: font size, line height, margins, and
   light/dark/sepia appearance. Persist them locally and retain the reading
   position when they change.
 - [ ] Improve the text reader's EPUB presentation: preserve paragraph breaks
