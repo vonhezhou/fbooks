@@ -12,8 +12,9 @@ presentation -> application -> domain <- data / infrastructure
 
 - `domain` contains stable concepts and repository ports. It must not import
   Flutter, Drift, HTTP, file-system, or TTS/AI SDK types.
-- `application` will coordinate import, download, reading progress, playback,
-  and contextual questions through domain ports.
+- `application` coordinates import, download, and format-specific reading
+  progress through domain ports. Playback and contextual questions are later
+  extensions.
 - `data` and `infrastructure` will implement those ports for SQLite, local
   files, OPDS, TTS, and AI providers.
 - `features/*/presentation` contains widgets and feature-local state only.
@@ -24,8 +25,8 @@ presentation -> application -> domain <- data / infrastructure
   is never used as an EPUB position.
 - The readable asset and the metadata record have independent lifecycles, so
   import and delete workflows can recover from partial failures.
-- AI answers and TTS consume extracted content with an originating locator,
-  allowing the app to cite and resume at the referenced passage.
+- Future AI answers and TTS will consume extracted content with an originating
+  locator, allowing the app to cite and resume at the referenced passage.
 - Database schema changes require an explicit migration before the schema
   version changes; an unimplemented migration fails loudly instead of risking
   the user's library data.
