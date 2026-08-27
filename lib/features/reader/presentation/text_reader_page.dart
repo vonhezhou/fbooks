@@ -108,6 +108,26 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
         .watch(readingProgressProvider(widget.publicationId))
         .whenData(_restorePosition);
     final chapterCount = widget.session.document.chapters.length;
+    if (chapterCount == 0) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.article_outlined, size: 52),
+              SizedBox(height: 16),
+              Text('Nothing to read'),
+              SizedBox(height: 8),
+              Text(
+                'This publication does not contain readable text content.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Column(
       children: [
         Expanded(

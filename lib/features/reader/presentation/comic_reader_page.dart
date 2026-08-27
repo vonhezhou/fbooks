@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fbooks/app/providers.dart';
@@ -118,6 +119,11 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
     final progress = ref.watch(readingProgressProvider(widget.publicationId));
     progress.whenData(_restorePosition);
     final pageCount = widget.session.document.pages.length;
+    if (pageCount == 0) {
+      return const _ReaderEmptyContentView(
+        message: 'This comic does not contain any readable image pages.',
+      );
+    }
     return Column(
       children: [
         Expanded(
@@ -602,14 +608,57 @@ class _ReaderErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (title, message) = switch (error) {
+      FileSystemException() => (
+        'File unavailable',
+        'The original comic file can no longer be found. Re-import it to continue reading.',
+      ),
+      FormatException() => (
+        'Comic cannot be read',
+        'This file is incomplete or uses an unsupported comic format.',
+      ),
+      _ => ('Unable to open this comic', error.toString()),
+    };
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(
-          'Unable to open this publication.\n$error',
-          textAlign: TextAlign.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 52),
+            const SizedBox(height: 16),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center),
+          ],
         ),
       ),
     );
   }
+}
+
+class _ReaderEmptyContentView extends StatelessWidget {
+  const _ReaderEmptyContentView({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.hide_image_outlined, size: 52),
+          const SizedBox(height: 16),
+          Text(
+            'Nothing to display',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center),
+        ],
+      ),
+    ),
+  );
 }
