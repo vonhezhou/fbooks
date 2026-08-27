@@ -17,6 +17,8 @@ class LocalPublicationCandidate {
 
 abstract interface class LocalPublicationPicker {
   Future<List<LocalPublicationCandidate>> pick();
+
+  Future<LocalPublicationCandidate?> pickReplacement(PublicationFormat format);
 }
 
 class LocalPublicationImportResult {
@@ -112,6 +114,16 @@ class PublicationFormatDetector {
       PublicationFormat.epub => 'application/epub+zip',
       PublicationFormat.pdf => 'application/pdf',
       PublicationFormat.text => 'text/plain',
+    };
+  }
+
+  static String extensionFor(PublicationFormat format) {
+    return switch (format) {
+      PublicationFormat.comicArchive => 'cbz',
+      PublicationFormat.epub => 'epub',
+      PublicationFormat.text => 'txt',
+      PublicationFormat.comicDirectory || PublicationFormat.pdf =>
+        throw ArgumentError.value(format, 'format', 'is not locally supported'),
     };
   }
 }

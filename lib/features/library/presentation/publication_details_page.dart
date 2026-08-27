@@ -1,5 +1,6 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
+import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
@@ -21,6 +22,12 @@ class PublicationDetailsPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Publication details'),
         actions: [
+          if (publication.source.kind == LibrarySourceKind.local)
+            IconButton(
+              tooltip: 'Repair local file',
+              onPressed: () => _repairLocalFile(context, ref, publication),
+              icon: const Icon(Icons.build_outlined),
+            ),
           IconButton(
             tooltip: 'Remove from library',
             onPressed: () => _confirmRemoval(context, ref, publication),
@@ -93,6 +100,44 @@ class PublicationDetailsPage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+Future<void> _repairLocalFile(
+  BuildContext context,
+  WidgetRef ref,
+  Publication publication,
+) async {
+  final replacement = await ref
+      .read(localPublicationPickerProvider)
+      .pickReplacement(publication.format);
+  if (!context.mounted || replacement == null) {
+    return;
+  }
+
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    await ref
+        .read(localPublicationRepairerProvider)
+        .repair(publicationId: publication.id, replacement: replacement);
+    if (!context.mounted) {
+      return;
+    }
+    ref.invalidate(comicReaderSessionProvider(publication.id));
+    ref.invalidate(textReaderSessionProvider(publication.id));
+    Navigator.of(context).pop();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('“${publication.title}” now uses the selected file.'),
+      ),
+    );
+  } catch (error) {
+    if (!context.mounted) {
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(content: Text('Unable to repair local file: $error')),
     );
   }
 }
