@@ -105,7 +105,8 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   app-managed OPDS download. Original local files are always retained.
 - [x] Repair a missing local file without losing its metadata, collection
   memberships, or reading state.
-- [ ] Search, sort, and filter local and OPDS publications.
+- [x] Search titles and authors; filter local and OPDS publications by source
+  and format; sort the library alphabetically.
 - [ ] OPDS catalog management: edit/remove a catalog, authentication strategy,
   retries, download progress, and cancellation.
 - [ ] Refresh downloaded or remote metadata without creating duplicates.

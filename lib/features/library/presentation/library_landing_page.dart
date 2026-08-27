@@ -16,6 +16,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum _AppSection { library, collections, plugins, settings }
 
+enum _LibrarySourceFilter { all, local, opds }
+
+enum _LibraryFormatFilter { all, comic, epub, text }
+
+enum _LibrarySort { titleAscending, titleDescending }
+
 class LibraryLandingPage extends ConsumerStatefulWidget {
   const LibraryLandingPage({super.key});
 
@@ -26,14 +32,33 @@ class LibraryLandingPage extends ConsumerStatefulWidget {
 class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   bool _isImporting = false;
   var _section = _AppSection.library;
+  var _query = '';
+  var _sourceFilter = _LibrarySourceFilter.all;
+  var _formatFilter = _LibraryFormatFilter.all;
+  var _sort = _LibrarySort.titleAscending;
 
   @override
   Widget build(BuildContext context) {
     final publications = ref.watch(libraryPublicationsProvider);
     final libraryBody = publications.when(
-      data: (items) => items.isEmpty
-          ? const _EmptyLibraryView()
-          : _PublicationList(publications: items),
+      data: (items) {
+        if (items.isEmpty) {
+          return const _EmptyLibraryView();
+        }
+        return _LibraryContent(
+          publications: _filterPublications(items),
+          query: _query,
+          sourceFilter: _sourceFilter,
+          formatFilter: _formatFilter,
+          sort: _sort,
+          onQueryChanged: (value) => setState(() => _query = value),
+          onSourceFilterChanged: (value) =>
+              setState(() => _sourceFilter = value),
+          onFormatFilterChanged: (value) =>
+              setState(() => _formatFilter = value),
+          onSortChanged: (value) => setState(() => _sort = value),
+        );
+      },
       error: (error, stackTrace) =>
           Center(child: Text('Unable to load the library: $error')),
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -107,6 +132,42 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
         );
       },
     );
+  }
+
+  List<Publication> _filterPublications(List<Publication> publications) {
+    final normalizedQuery = _query.trim().toLowerCase();
+    final filtered = publications.where((publication) {
+      final matchesQuery =
+          normalizedQuery.isEmpty ||
+          publication.title.toLowerCase().contains(normalizedQuery) ||
+          publication.authors.any(
+            (author) => author.toLowerCase().contains(normalizedQuery),
+          );
+      final matchesSource = switch (_sourceFilter) {
+        _LibrarySourceFilter.all => true,
+        _LibrarySourceFilter.local =>
+          publication.source.kind == LibrarySourceKind.local,
+        _LibrarySourceFilter.opds =>
+          publication.source.kind == LibrarySourceKind.opds,
+      };
+      final matchesFormat = switch (_formatFilter) {
+        _LibraryFormatFilter.all => true,
+        _LibraryFormatFilter.comic =>
+          publication.format == PublicationFormat.comicArchive ||
+              publication.format == PublicationFormat.comicDirectory,
+        _LibraryFormatFilter.epub =>
+          publication.format == PublicationFormat.epub,
+        _LibraryFormatFilter.text =>
+          publication.format == PublicationFormat.text,
+      };
+      return matchesQuery && matchesSource && matchesFormat;
+    }).toList();
+    filtered.sort(
+      (left, right) => _sort == _LibrarySort.titleAscending
+          ? left.title.toLowerCase().compareTo(right.title.toLowerCase())
+          : right.title.toLowerCase().compareTo(left.title.toLowerCase()),
+    );
+    return filtered;
   }
 
   List<Widget> get _compactActions => [
@@ -494,6 +555,209 @@ class _EmptyLibraryView extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LibraryContent extends StatelessWidget {
+  const _LibraryContent({
+    required this.publications,
+    required this.query,
+    required this.sourceFilter,
+    required this.formatFilter,
+    required this.sort,
+    required this.onQueryChanged,
+    required this.onSourceFilterChanged,
+    required this.onFormatFilterChanged,
+    required this.onSortChanged,
+  });
+
+  final List<Publication> publications;
+  final String query;
+  final _LibrarySourceFilter sourceFilter;
+  final _LibraryFormatFilter formatFilter;
+  final _LibrarySort sort;
+  final ValueChanged<String> onQueryChanged;
+  final ValueChanged<_LibrarySourceFilter> onSourceFilterChanged;
+  final ValueChanged<_LibraryFormatFilter> onFormatFilterChanged;
+  final ValueChanged<_LibrarySort> onSortChanged;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      _LibraryFilterBar(
+        query: query,
+        sourceFilter: sourceFilter,
+        formatFilter: formatFilter,
+        sort: sort,
+        onQueryChanged: onQueryChanged,
+        onSourceFilterChanged: onSourceFilterChanged,
+        onFormatFilterChanged: onFormatFilterChanged,
+        onSortChanged: onSortChanged,
+      ),
+      Expanded(
+        child: publications.isEmpty
+            ? const _NoSearchResults()
+            : _PublicationList(publications: publications),
+      ),
+    ],
+  );
+}
+
+class _LibraryFilterBar extends StatelessWidget {
+  const _LibraryFilterBar({
+    required this.query,
+    required this.sourceFilter,
+    required this.formatFilter,
+    required this.sort,
+    required this.onQueryChanged,
+    required this.onSourceFilterChanged,
+    required this.onFormatFilterChanged,
+    required this.onSortChanged,
+  });
+
+  final String query;
+  final _LibrarySourceFilter sourceFilter;
+  final _LibraryFormatFilter formatFilter;
+  final _LibrarySort sort;
+  final ValueChanged<String> onQueryChanged;
+  final ValueChanged<_LibrarySourceFilter> onSourceFilterChanged;
+  final ValueChanged<_LibraryFormatFilter> onFormatFilterChanged;
+  final ValueChanged<_LibrarySort> onSortChanged;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final search = TextFormField(
+          initialValue: query,
+          onChanged: onQueryChanged,
+          decoration: InputDecoration(
+            labelText: 'Search library',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: query.isEmpty
+                ? null
+                : IconButton(
+                    tooltip: 'Clear search',
+                    onPressed: () => onQueryChanged(''),
+                    icon: const Icon(Icons.clear),
+                  ),
+            border: const OutlineInputBorder(),
+          ),
+        );
+        final controls = Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _FilterMenu<_LibrarySourceFilter>(
+              tooltip: 'Filter source',
+              value: sourceFilter,
+              items: const {
+                _LibrarySourceFilter.all: 'All sources',
+                _LibrarySourceFilter.local: 'Local',
+                _LibrarySourceFilter.opds: 'OPDS',
+              },
+              onChanged: onSourceFilterChanged,
+            ),
+            _FilterMenu<_LibraryFormatFilter>(
+              tooltip: 'Filter format',
+              value: formatFilter,
+              items: const {
+                _LibraryFormatFilter.all: 'All formats',
+                _LibraryFormatFilter.comic: 'Comics',
+                _LibraryFormatFilter.epub: 'EPUB',
+                _LibraryFormatFilter.text: 'Text',
+              },
+              onChanged: onFormatFilterChanged,
+            ),
+            _FilterMenu<_LibrarySort>(
+              tooltip: 'Sort publications',
+              value: sort,
+              items: const {
+                _LibrarySort.titleAscending: 'Title A–Z',
+                _LibrarySort.titleDescending: 'Title Z–A',
+              },
+              onChanged: onSortChanged,
+            ),
+          ],
+        );
+        return constraints.maxWidth < 620
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [search, const SizedBox(height: 8), controls],
+              )
+            : Row(
+                children: [
+                  Expanded(child: search),
+                  const SizedBox(width: 12),
+                  controls,
+                ],
+              );
+      },
+    ),
+  );
+}
+
+class _FilterMenu<T> extends StatelessWidget {
+  const _FilterMenu({
+    required this.tooltip,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  final String tooltip;
+  final T value;
+  final Map<T, String> items;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<T>(
+        value: value,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        borderRadius: BorderRadius.circular(12),
+        items: items.entries
+            .map(
+              (entry) => DropdownMenuItem<T>(
+                value: entry.key,
+                child: Text(entry.value),
+              ),
+            )
+            .toList(growable: false),
+        onChanged: (value) {
+          if (value != null) {
+            onChanged(value);
+          }
+        },
+      ),
+    ),
+  );
+}
+
+class _NoSearchResults extends StatelessWidget {
+  const _NoSearchResults();
+
+  @override
+  Widget build(BuildContext context) => const Center(
+    child: Padding(
+      padding: EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.search_off_outlined, size: 48),
+          SizedBox(height: 12),
+          Text('No matching publications'),
+          SizedBox(height: 6),
+          Text(
+            'Try another title, author, source, or format.',
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _PublicationList extends ConsumerWidget {
