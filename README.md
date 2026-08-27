@@ -26,4 +26,5 @@ flutter test
 ```
 
 See [the architecture notes](docs/architecture.md) for dependency rules and
-product invariants.
+product invariants. See [the roadmap](docs/roadmap.md) for the current plan,
+completed milestones, and acceptance criteria.
