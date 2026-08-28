@@ -122,7 +122,8 @@ complete.
 
 - [x] PDF reader with an independent page locator and progress persistence,
   using cross-platform `pdfrx` rendering.
-- [ ] Additional comic containers (CBR, CBT, CB7) after selecting supported,
+- [ ] Defer additional comic containers (CBR, CBT, CB7). CBZ is the primary
+  comic format for now; revisit this only after selecting supported,
   maintained decoding libraries per target platform.
 - [x] EPUB table of contents extraction and chapter jumps from navigation
   documents.
