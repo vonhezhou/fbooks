@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
+
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -141,6 +143,7 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
                 chapter: widget.session.document.chapters[index],
                 initialOffset: _chapterOffsets[index] ?? 0,
                 onPositionChanged: _savePosition,
+                onChapterSelected: _goToChapter,
                 preferences: widget.preferences,
               );
             },
@@ -325,12 +328,14 @@ class _TextChapterView extends StatelessWidget {
     required this.chapter,
     required this.initialOffset,
     required this.onPositionChanged,
+    required this.onChapterSelected,
     required this.preferences,
   });
 
   final TextChapter chapter;
   final int initialOffset;
   final void Function(int chapterIndex, int offset) onPositionChanged;
+  final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
 
   @override
@@ -339,6 +344,7 @@ class _TextChapterView extends StatelessWidget {
       chapter: chapter,
       initialOffset: initialOffset,
       onPositionChanged: onPositionChanged,
+      onChapterSelected: onChapterSelected,
       preferences: preferences,
     );
   }
@@ -349,12 +355,14 @@ class _TextChapterScrollView extends StatefulWidget {
     required this.chapter,
     required this.initialOffset,
     required this.onPositionChanged,
+    required this.onChapterSelected,
     required this.preferences,
   });
 
   final TextChapter chapter;
   final int initialOffset;
   final void Function(int chapterIndex, int offset) onPositionChanged;
+  final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
 
   @override
@@ -363,6 +371,7 @@ class _TextChapterScrollView extends StatefulWidget {
 
 class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
   late final ScrollController _scrollController;
+  final _linkRecognizers = <int, TapGestureRecognizer>{};
 
   @override
   void initState() {
@@ -374,6 +383,9 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
 
   @override
   void dispose() {
+    for (final recognizer in _linkRecognizers.values) {
+      recognizer.dispose();
+    }
     _scrollController
       ..removeListener(_reportPosition)
       ..dispose();
@@ -436,6 +448,7 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
                       context,
                       widget.chapter,
                       widget.preferences,
+                      _linkRecognizerFor,
                     ),
                   ),
                 ),
@@ -446,12 +459,22 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
       },
     );
   }
+
+  TapGestureRecognizer _linkRecognizerFor(int chapterIndex) {
+    final recognizer = _linkRecognizers.putIfAbsent(
+      chapterIndex,
+      TapGestureRecognizer.new,
+    );
+    recognizer.onTap = () => widget.onChapterSelected(chapterIndex);
+    return recognizer;
+  }
 }
 
 List<InlineSpan> _chapterTextSpans(
   BuildContext context,
   TextChapter chapter,
   TextReadingPreferences preferences,
+  TapGestureRecognizer Function(int chapterIndex) linkRecognizerFor,
 ) {
   final baseStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
     color: _foregroundColor(preferences.appearance),
@@ -465,11 +488,25 @@ List<InlineSpan> _chapterTextSpans(
     for (final segment in segments)
       TextSpan(
         text: segment.text,
-        style: segment.emphasized
-            ? baseStyle?.copyWith(fontStyle: FontStyle.italic)
-            : baseStyle,
+        style: _segmentTextStyle(baseStyle, segment),
+        recognizer: switch (segment.linkTargetChapterIndex) {
+          final chapterIndex? => linkRecognizerFor(chapterIndex),
+          null => null,
+        },
       ),
   ];
+}
+
+TextStyle? _segmentTextStyle(TextStyle? baseStyle, TextSegment segment) {
+  final emphasizedStyle = segment.emphasized
+      ? baseStyle?.copyWith(fontStyle: FontStyle.italic)
+      : baseStyle;
+  return segment.linkTargetChapterIndex == null
+      ? emphasizedStyle
+      : emphasizedStyle?.copyWith(
+          color: emphasizedStyle.color?.withValues(alpha: 0.8),
+          decoration: TextDecoration.underline,
+        );
 }
 
 Future<void> _showTextReadingSettings(BuildContext context, WidgetRef ref) {

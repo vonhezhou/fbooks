@@ -39,8 +39,15 @@ class TextChapter {
 
 /// A small inline style unit retained from EPUB spine markup.
 class TextSegment {
-  const TextSegment({required this.text, this.emphasized = false});
+  const TextSegment({
+    required this.text,
+    this.emphasized = false,
+    this.linkTargetChapterIndex,
+  });
 
   final String text;
   final bool emphasized;
+
+  /// The chapter targeted by an internal EPUB hyperlink, when available.
+  final int? linkTargetChapterIndex;
 }

@@ -43,13 +43,13 @@ void main() {
       ..addFile(
         _textArchiveFile(
           'OEBPS/first.xhtml',
-          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p>Second paragraph.</p></body></html>',
+          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p><a href="second.xhtml#afterword">Read the next chapter</a></p><p>Second paragraph.</p></body></html>',
         ),
       )
       ..addFile(
         _textArchiveFile(
           'OEBPS/second.xhtml',
-          '<html><body><h1>Second</h1><p>Goodbye world.</p></body></html>',
+          '<html><body><h1>Second</h1><p id="afterword">Goodbye world.</p></body></html>',
         ),
       );
     await file.writeAsBytes(ZipEncoder().encode(archive));
@@ -63,11 +63,19 @@ void main() {
       'Second',
     ]);
     final first = session.document.chapters.first;
-    expect(first.text, 'Hello world.\n\nSecond paragraph.');
+    expect(
+      first.text,
+      'Hello world.\n\nRead the next chapter\n\nSecond paragraph.',
+    );
     expect(
       first.segments.where((segment) => segment.emphasized).single.text,
       'world',
     );
+    final linkSegment = first.segments.singleWhere(
+      (segment) => segment.linkTargetChapterIndex != null,
+    );
+    expect(linkSegment.text, 'Read the next chapter');
+    expect(linkSegment.linkTargetChapterIndex, 1);
     expect(session.document.tableOfContents.map((entry) => entry.title), [
       'Beginning',
       'Ending',

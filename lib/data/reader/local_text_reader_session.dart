@@ -51,20 +51,32 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
 
   Future<TextDocument> _openEpub(String publicationId, String filePath) async {
     final book = await EpubReader.readBook(await File(filePath).readAsBytes());
+    final epubChapters = _flattenChapters(book.chapters).toList();
+    final readableChapters = <EpubChapter>[];
+    for (final chapter in epubChapters) {
+      final preview = _readEpubChapter(chapter, 0, const {});
+      if (preview.text.isNotEmpty) {
+        readableChapters.add(chapter);
+      }
+    }
+    final chapterIndexes = <String, int>{
+      for (final (index, chapter) in readableChapters.indexed)
+        if (chapter.contentFileName case final fileName?
+            when fileName.isNotEmpty)
+          _normalizeEpubPath(fileName): index,
+    };
     final chapters = <TextChapter>[];
     final contents = <TextTableOfContentsEntry>[];
-    for (final chapter in _flattenChapters(book.chapters)) {
-      final mapped = _readEpubChapter(chapter, chapters.length);
-      if (mapped.text.isNotEmpty) {
-        chapters.add(mapped);
-        if (chapter.title case final title? when title.trim().isNotEmpty) {
-          contents.add(
-            TextTableOfContentsEntry(
-              title: title.trim(),
-              chapterIndex: mapped.index,
-            ),
-          );
-        }
+    for (final (index, chapter) in readableChapters.indexed) {
+      final mapped = _readEpubChapter(chapter, index, chapterIndexes);
+      chapters.add(mapped);
+      if (chapter.title case final title? when title.trim().isNotEmpty) {
+        contents.add(
+          TextTableOfContentsEntry(
+            title: title.trim(),
+            chapterIndex: mapped.index,
+          ),
+        );
       }
     }
     if (chapters.isEmpty) {
@@ -85,12 +97,20 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     }
   }
 
-  TextChapter _readEpubChapter(EpubChapter chapter, int index) {
+  TextChapter _readEpubChapter(
+    EpubChapter chapter,
+    int index,
+    Map<String, int> chapterIndexes,
+  ) {
     final document = html.parse(chapter.htmlContent ?? '');
     document
         .querySelectorAll('script, style')
         .forEach((element) => element.remove());
-    final segments = _readSegments(document.body);
+    final segments = _readSegments(
+      document.body,
+      sourceFileName: chapter.contentFileName,
+      chapterIndexes: chapterIndexes,
+    );
     final body = segments.map((segment) => segment.text).join().trim();
     final title = document.querySelector('h1, h2, h3')?.text.trim();
     return TextChapter(
@@ -106,7 +126,11 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     );
   }
 
-  List<TextSegment> _readSegments(dom.Element? body) {
+  List<TextSegment> _readSegments(
+    dom.Element? body, {
+    required String? sourceFileName,
+    required Map<String, int> chapterIndexes,
+  }) {
     if (body == null) {
       return const [];
     }
@@ -115,7 +139,12 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     final content = blocks.isEmpty ? <dom.Element>[body] : blocks;
     for (final block in content) {
       final start = segments.length;
-      _appendNodeSegments(block, segments);
+      _appendNodeSegments(
+        block,
+        segments,
+        sourceFileName: sourceFileName,
+        chapterIndexes: chapterIndexes,
+      );
       if (segments.length > start) {
         segments.add(const TextSegment(text: '\n\n'));
       }
@@ -128,13 +157,22 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
 
   void _appendNodeSegments(
     dom.Node node,
-    List<TextSegment> segments, [
+    List<TextSegment> segments, {
+    required String? sourceFileName,
+    required Map<String, int> chapterIndexes,
     bool emphasized = false,
-  ]) {
+    int? linkTargetChapterIndex,
+  }) {
     if (node is dom.Text) {
       final text = node.data.replaceAll(RegExp(r'\s+'), ' ');
       if (text.isNotEmpty) {
-        segments.add(TextSegment(text: text, emphasized: emphasized));
+        segments.add(
+          TextSegment(
+            text: text,
+            emphasized: emphasized,
+            linkTargetChapterIndex: linkTargetChapterIndex,
+          ),
+        );
       }
       return;
     }
@@ -143,9 +181,43 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     }
     final nextEmphasis =
         emphasized || const {'em', 'i', 'strong', 'b'}.contains(node.localName);
+    final nextLinkTarget = node.localName == 'a'
+        ? _resolveInternalLink(
+            sourceFileName,
+            node.attributes['href'],
+            chapterIndexes,
+          )
+        : linkTargetChapterIndex;
     for (final child in node.nodes) {
-      _appendNodeSegments(child, segments, nextEmphasis);
+      _appendNodeSegments(
+        child,
+        segments,
+        sourceFileName: sourceFileName,
+        chapterIndexes: chapterIndexes,
+        emphasized: nextEmphasis,
+        linkTargetChapterIndex: nextLinkTarget,
+      );
     }
+  }
+
+  String _normalizeEpubPath(String value) => path.posix.normalize(value);
+
+  int? _resolveInternalLink(
+    String? sourceFileName,
+    String? href,
+    Map<String, int> chapterIndexes,
+  ) {
+    if (sourceFileName == null || href == null || href.isEmpty) {
+      return null;
+    }
+    final uri = Uri.tryParse(href);
+    if (uri == null || uri.hasScheme || uri.hasAuthority) {
+      return null;
+    }
+    final targetPath = uri.path.isEmpty
+        ? sourceFileName
+        : path.posix.join(path.posix.dirname(sourceFileName), uri.path);
+    return chapterIndexes[_normalizeEpubPath(targetPath)];
   }
 }
 
