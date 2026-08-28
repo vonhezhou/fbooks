@@ -112,7 +112,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                 onSelected: (section) => setState(() => _section = section),
               ),
               Expanded(
-                child: ColoredBox(
+                child: Material(
                   color: const Color(0xFFF8F7F3),
                   child: Column(
                     children: [

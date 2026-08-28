@@ -51,6 +51,42 @@ void main() {
     expect(find.text('Add books'), findsOneWidget);
   });
 
+  testWidgets('renders an imported book in a medium desktop window', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(900, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(const [
+              Publication(
+                id: 'local-comic',
+                source: LibrarySource(
+                  id: 'local-library',
+                  kind: LibrarySourceKind.local,
+                  name: 'Local library',
+                ),
+                title: 'Bobby Make-Believe',
+                format: PublicationFormat.comicArchive,
+              ),
+            ]),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _EmptyReadingProgressRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Bobby Make-Believe'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('shows the not-found page for an unknown named route', (
     tester,
   ) async {
