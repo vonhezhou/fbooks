@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
 
@@ -486,15 +487,41 @@ List<InlineSpan> _chapterTextSpans(
       : chapter.segments;
   return [
     for (final segment in segments)
-      TextSpan(
-        text: segment.text,
-        style: _segmentTextStyle(baseStyle, segment),
-        recognizer: switch (segment.linkTargetChapterIndex) {
-          final chapterIndex? => linkRecognizerFor(chapterIndex),
-          null => null,
-        },
-      ),
+      if (segment.isImage)
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: _InlineEpubImage(bytes: segment.imageBytes!),
+        )
+      else
+        TextSpan(
+          text: segment.text,
+          style: _segmentTextStyle(baseStyle, segment),
+          recognizer: switch (segment.linkTargetChapterIndex) {
+            final chapterIndex? => linkRecognizerFor(chapterIndex),
+            null => null,
+          },
+        ),
   ];
+}
+
+class _InlineEpubImage extends StatelessWidget {
+  const _InlineEpubImage({required this.bytes});
+
+  final Uint8List bytes;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 300, maxHeight: 320),
+      child: Image.memory(
+        bytes,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.broken_image_outlined),
+      ),
+    ),
+  );
 }
 
 TextStyle? _segmentTextStyle(TextStyle? baseStyle, TextSegment segment) {

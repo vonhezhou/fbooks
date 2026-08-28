@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/domain/library/library_source.dart';
@@ -37,7 +39,7 @@ void main() {
           ),
           textReaderSessionFactoryProvider.overrideWithValue(
             _TextReaderSessionFactory(
-              const TextDocument(
+              TextDocument(
                 publicationId: publicationId,
                 chapters: [
                   TextChapter(
@@ -48,6 +50,10 @@ void main() {
                       TextSegment(
                         text: 'Read the next chapter',
                         linkTargetChapterIndex: 1,
+                      ),
+                      TextSegment(
+                        text: '',
+                        imageBytes: Uint8List.fromList(_pixelGif),
                       ),
                     ],
                   ),
@@ -73,13 +79,54 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Read the next chapter'));
+    expect(find.byType(Image), findsOneWidget);
+    final readerText = find.byType(RichText).at(1);
+    await tester.tapAt(tester.getTopLeft(readerText) + const Offset(12, 12));
     await tester.pumpAndSettle();
 
     expect(find.text('Second'), findsOneWidget);
     expect(find.text('Arrival'), findsOneWidget);
   });
 }
+
+final _pixelGif = Uint8List.fromList(const [
+  71,
+  73,
+  70,
+  56,
+  57,
+  97,
+  1,
+  0,
+  1,
+  0,
+  128,
+  0,
+  0,
+  0,
+  0,
+  0,
+  255,
+  255,
+  255,
+  44,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  1,
+  0,
+  0,
+  2,
+  1,
+  76,
+  0,
+  59,
+]);
 
 class _PublicationRepository implements PublicationRepository {
   const _PublicationRepository(this.publication);

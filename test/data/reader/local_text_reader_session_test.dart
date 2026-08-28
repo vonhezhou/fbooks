@@ -28,6 +28,7 @@ void main() {
         _textArchiveFile('OEBPS/book.opf', '''<package xmlns="http://www.idpf.org/2007/opf" version="2.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Sample</dc:title></metadata><manifest>
               <item id="first" href="first.xhtml" media-type="application/xhtml+xml" />
               <item id="second" href="second.xhtml" media-type="application/xhtml+xml" />
+              <item id="pixel" href="images/pixel.gif" media-type="image/gif" />
               <item id="nav" href="nav.ncx" media-type="application/x-dtbncx+xml" />
             </manifest><spine toc="nav">
               <itemref idref="first" />
@@ -43,8 +44,11 @@ void main() {
       ..addFile(
         _textArchiveFile(
           'OEBPS/first.xhtml',
-          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p><a href="second.xhtml#afterword">Read the next chapter</a></p><p>Second paragraph.</p></body></html>',
+          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p><img src="images/pixel.gif" alt="A pixel" /></p><p><a href="second.xhtml#afterword">Read the next chapter</a></p><p>Second paragraph.</p></body></html>',
         ),
+      )
+      ..addFile(
+        ArchiveFile('OEBPS/images/pixel.gif', _pixelGif.length, _pixelGif),
       )
       ..addFile(
         _textArchiveFile(
@@ -76,6 +80,11 @@ void main() {
     );
     expect(linkSegment.text, 'Read the next chapter');
     expect(linkSegment.linkTargetChapterIndex, 1);
+    final imageSegment = first.segments.singleWhere(
+      (segment) => segment.isImage,
+    );
+    expect(imageSegment.imageMimeType, 'image/gif');
+    expect(imageSegment.imageBytes, _pixelGif);
     expect(session.document.tableOfContents.map((entry) => entry.title), [
       'Beginning',
       'Ending',
@@ -98,6 +107,10 @@ void main() {
     expect(session.document.chapters.single.text, 'A plain-text chapter.');
   });
 }
+
+final _pixelGif = base64Decode(
+  'R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
+);
 
 ArchiveFile _textArchiveFile(String name, String text) {
   final bytes = utf8.encode(text);

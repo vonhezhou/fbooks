@@ -128,7 +128,8 @@ complete.
 - [x] Use the maintained `epub_pro` Dart package for EPUB container, spine,
   and navigation parsing instead of a hand-written ZIP/OPF parser.
 - [x] Follow internal EPUB hyperlinks by jumping to their target chapter.
-- [ ] EPUB rendering improvements: images and tables.
+- [x] Render embedded EPUB spine images from packaged resources.
+- [ ] EPUB table rendering improvements.
 
 ## Deferred extensions
 

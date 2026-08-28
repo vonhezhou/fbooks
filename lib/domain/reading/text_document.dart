@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:fbooks/domain/publication/publication_id.dart';
 
 /// Extracted, reflowable text shared by the reader, TTS, and AI features.
@@ -43,6 +45,8 @@ class TextSegment {
     required this.text,
     this.emphasized = false,
     this.linkTargetChapterIndex,
+    this.imageBytes,
+    this.imageMimeType,
   });
 
   final String text;
@@ -50,4 +54,10 @@ class TextSegment {
 
   /// The chapter targeted by an internal EPUB hyperlink, when available.
   final int? linkTargetChapterIndex;
+
+  /// The image referenced by an EPUB spine document, when available.
+  final Uint8List? imageBytes;
+  final String? imageMimeType;
+
+  bool get isImage => imageBytes != null;
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:epub_pro/epub_pro.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
@@ -51,11 +52,14 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
 
   Future<TextDocument> _openEpub(String publicationId, String filePath) async {
     final book = await EpubReader.readBook(await File(filePath).readAsBytes());
+    final images =
+        book.content?.images ?? const <String, EpubByteContentFile>{};
     final epubChapters = _flattenChapters(book.chapters).toList();
     final readableChapters = <EpubChapter>[];
     for (final chapter in epubChapters) {
-      final preview = _readEpubChapter(chapter, 0, const {});
-      if (preview.text.isNotEmpty) {
+      final preview = _readEpubChapter(chapter, 0, const {}, images);
+      if (preview.text.isNotEmpty ||
+          preview.segments.any((segment) => segment.isImage)) {
         readableChapters.add(chapter);
       }
     }
@@ -68,7 +72,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     final chapters = <TextChapter>[];
     final contents = <TextTableOfContentsEntry>[];
     for (final (index, chapter) in readableChapters.indexed) {
-      final mapped = _readEpubChapter(chapter, index, chapterIndexes);
+      final mapped = _readEpubChapter(chapter, index, chapterIndexes, images);
       chapters.add(mapped);
       if (chapter.title case final title? when title.trim().isNotEmpty) {
         contents.add(
@@ -101,6 +105,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     EpubChapter chapter,
     int index,
     Map<String, int> chapterIndexes,
+    Map<String, EpubByteContentFile> images,
   ) {
     final document = html.parse(chapter.htmlContent ?? '');
     document
@@ -110,8 +115,14 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
       document.body,
       sourceFileName: chapter.contentFileName,
       chapterIndexes: chapterIndexes,
+      images: images,
     );
-    final body = segments.map((segment) => segment.text).join().trim();
+    final body = segments
+        .where((segment) => !segment.isImage)
+        .map((segment) => segment.text)
+        .join()
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
     final title = document.querySelector('h1, h2, h3')?.text.trim();
     return TextChapter(
       index: index,
@@ -130,12 +141,17 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     dom.Element? body, {
     required String? sourceFileName,
     required Map<String, int> chapterIndexes,
+    required Map<String, EpubByteContentFile> images,
   }) {
     if (body == null) {
       return const [];
     }
     final segments = <TextSegment>[];
-    final blocks = body.querySelectorAll('p, li, blockquote, pre');
+    const blockSelector = 'p, li, blockquote, pre, figure, img';
+    final blocks = body
+        .querySelectorAll(blockSelector)
+        .where((block) => !_hasBlockAncestor(block))
+        .toList();
     final content = blocks.isEmpty ? <dom.Element>[body] : blocks;
     for (final block in content) {
       final start = segments.length;
@@ -144,6 +160,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
         segments,
         sourceFileName: sourceFileName,
         chapterIndexes: chapterIndexes,
+        images: images,
       );
       if (segments.length > start) {
         segments.add(const TextSegment(text: '\n\n'));
@@ -155,11 +172,24 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     return segments;
   }
 
+  bool _hasBlockAncestor(dom.Element element) {
+    const blockElements = {'p', 'li', 'blockquote', 'pre', 'figure'};
+    dom.Node? ancestor = element.parent;
+    while (ancestor is dom.Element) {
+      if (blockElements.contains(ancestor.localName)) {
+        return true;
+      }
+      ancestor = ancestor.parent;
+    }
+    return false;
+  }
+
   void _appendNodeSegments(
     dom.Node node,
     List<TextSegment> segments, {
     required String? sourceFileName,
     required Map<String, int> chapterIndexes,
+    required Map<String, EpubByteContentFile> images,
     bool emphasized = false,
     int? linkTargetChapterIndex,
   }) {
@@ -179,6 +209,23 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     if (node is! dom.Element) {
       return;
     }
+    if (node.localName == 'img') {
+      final image = _resolveImage(
+        sourceFileName,
+        node.attributes['src'],
+        images,
+      );
+      if (image?.content case final content? when content.isNotEmpty) {
+        segments.add(
+          TextSegment(
+            text: '',
+            imageBytes: Uint8List.fromList(content),
+            imageMimeType: image?.contentMimeType,
+          ),
+        );
+      }
+      return;
+    }
     final nextEmphasis =
         emphasized || const {'em', 'i', 'strong', 'b'}.contains(node.localName);
     final nextLinkTarget = node.localName == 'a'
@@ -194,6 +241,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
         segments,
         sourceFileName: sourceFileName,
         chapterIndexes: chapterIndexes,
+        images: images,
         emphasized: nextEmphasis,
         linkTargetChapterIndex: nextLinkTarget,
       );
@@ -218,6 +266,24 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
         ? sourceFileName
         : path.posix.join(path.posix.dirname(sourceFileName), uri.path);
     return chapterIndexes[_normalizeEpubPath(targetPath)];
+  }
+
+  EpubByteContentFile? _resolveImage(
+    String? sourceFileName,
+    String? source,
+    Map<String, EpubByteContentFile> images,
+  ) {
+    if (sourceFileName == null || source == null || source.isEmpty) {
+      return null;
+    }
+    final uri = Uri.tryParse(source);
+    if (uri == null || uri.hasScheme || uri.hasAuthority) {
+      return null;
+    }
+    final imagePath = uri.path.isEmpty
+        ? sourceFileName
+        : path.posix.join(path.posix.dirname(sourceFileName), uri.path);
+    return images[_normalizeEpubPath(imagePath)];
   }
 }
 
