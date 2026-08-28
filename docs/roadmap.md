@@ -123,8 +123,9 @@ complete.
 - [ ] PDF reader with an independent PDF locator and progress persistence.
 - [ ] Additional comic containers (CBR, CBT, CB7) after selecting supported,
   maintained decoding libraries per target platform.
-- [ ] EPUB rendering improvements such as images, tables, internal links, and
-  table of contents.
+- [x] EPUB table of contents extraction and chapter jumps from navigation
+  documents.
+- [ ] EPUB rendering improvements: images, tables, and internal links.
 
 ## Deferred extensions
 

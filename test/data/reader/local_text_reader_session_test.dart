@@ -28,10 +28,17 @@ void main() {
         _textArchiveFile('OEBPS/book.opf', '''<package><manifest>
               <item id="first" href="first.xhtml" />
               <item id="second" href="second.xhtml" />
+              <item id="nav" href="nav.xhtml" properties="nav" />
             </manifest><spine>
               <itemref idref="first" />
               <itemref idref="second" />
             </spine></package>'''),
+      )
+      ..addFile(
+        _textArchiveFile(
+          'OEBPS/nav.xhtml',
+          '<html><body><nav epub:type="toc"><ol><li><a href="first.xhtml">Beginning</a></li><li><a href="second.xhtml">Ending</a></li></ol></nav></body></html>',
+        ),
       )
       ..addFile(
         _textArchiveFile(
@@ -61,6 +68,10 @@ void main() {
       first.segments.where((segment) => segment.emphasized).single.text,
       'world',
     );
+    expect(session.document.tableOfContents.map((entry) => entry.title), [
+      'Beginning',
+      'Ending',
+    ]);
   });
 
   test('opens a local text file as one chapter', () async {

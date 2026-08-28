@@ -2,10 +2,25 @@ import 'package:fbooks/domain/publication/publication_id.dart';
 
 /// Extracted, reflowable text shared by the reader, TTS, and AI features.
 class TextDocument {
-  const TextDocument({required this.publicationId, required this.chapters});
+  const TextDocument({
+    required this.publicationId,
+    required this.chapters,
+    this.tableOfContents = const [],
+  });
 
   final PublicationId publicationId;
   final List<TextChapter> chapters;
+  final List<TextTableOfContentsEntry> tableOfContents;
+}
+
+class TextTableOfContentsEntry {
+  const TextTableOfContentsEntry({
+    required this.title,
+    required this.chapterIndex,
+  });
+
+  final String title;
+  final int chapterIndex;
 }
 
 class TextChapter {

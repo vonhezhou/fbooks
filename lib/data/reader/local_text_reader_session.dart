@@ -62,11 +62,19 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     );
     final packageDocument = XmlDocument.parse(_readUtf8(files, packagePath));
     final manifest = <String, String>{};
+    String? navigationPath;
     for (final item in packageDocument.findAllElements('item')) {
       final id = item.getAttribute('id');
       final href = item.getAttribute('href');
       if (id != null && href != null) {
         manifest[id] = href;
+        if ((item.getAttribute('properties') ?? '')
+            .split(' ')
+            .contains('nav')) {
+          navigationPath = path.posix.normalize(
+            path.posix.join(path.posix.dirname(packagePath), href),
+          );
+        }
       }
     }
 
@@ -83,9 +91,11 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     }
 
     final chapters = <TextChapter>[];
+    final chapterIndexByPath = <String, int>{};
     for (final chapterPath in chapterPaths) {
       final chapter = _readChapter(files, chapterPath, chapters.length);
       if (chapter.text.isNotEmpty) {
+        chapterIndexByPath[chapterPath] = chapters.length;
         chapters.add(chapter);
       }
     }
@@ -93,7 +103,48 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
       throw FormatException('The EPUB contains no readable spine content');
     }
 
-    return TextDocument(publicationId: publicationId, chapters: chapters);
+    return TextDocument(
+      publicationId: publicationId,
+      chapters: chapters,
+      tableOfContents: navigationPath == null
+          ? const []
+          : _readTableOfContents(files, navigationPath, chapterIndexByPath),
+    );
+  }
+
+  List<TextTableOfContentsEntry> _readTableOfContents(
+    Map<String, ArchiveFile> files,
+    String navigationPath,
+    Map<String, int> chapterIndexByPath,
+  ) {
+    final document = html.parse(_readUtf8(files, navigationPath));
+    final navigation = document.querySelectorAll('nav').where((element) {
+      return element.attributes.entries.any(
+        (entry) =>
+            entry.key.toString().contains('type') &&
+            entry.value.split(' ').contains('toc'),
+      );
+    }).firstOrNull;
+    if (navigation == null) {
+      return const [];
+    }
+    return navigation
+        .querySelectorAll('a[href]')
+        .map((anchor) {
+          final target = anchor.attributes['href']!.split('#').first;
+          final chapterPath = path.posix.normalize(
+            path.posix.join(path.posix.dirname(navigationPath), target),
+          );
+          final index = chapterIndexByPath[chapterPath];
+          return index == null || anchor.text.trim().isEmpty
+              ? null
+              : TextTableOfContentsEntry(
+                  title: anchor.text.trim(),
+                  chapterIndex: index,
+                );
+        })
+        .whereType<TextTableOfContentsEntry>()
+        .toList(growable: false);
   }
 
   String _readPackagePath(String containerXml) {

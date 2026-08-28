@@ -150,6 +150,7 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
           currentChapter: _currentChapter,
           chapterCount: chapterCount,
           onChapterSelected: _goToChapter,
+          tableOfContents: widget.session.document.tableOfContents,
           appearance: widget.preferences.appearance,
         ),
       ],
@@ -225,12 +226,14 @@ class _TextChapterControls extends StatelessWidget {
     required this.currentChapter,
     required this.chapterCount,
     required this.onChapterSelected,
+    required this.tableOfContents,
     required this.appearance,
   });
 
   final int currentChapter;
   final int chapterCount;
   final ValueChanged<int> onChapterSelected;
+  final List<TextTableOfContentsEntry> tableOfContents;
   final TextReadingAppearance appearance;
 
   @override
@@ -245,6 +248,16 @@ class _TextChapterControls extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             children: [
+              if (tableOfContents.isNotEmpty)
+                IconButton(
+                  tooltip: 'Table of contents',
+                  onPressed: () => _showTableOfContents(
+                    context,
+                    tableOfContents,
+                    onChapterSelected,
+                  ),
+                  icon: const Icon(Icons.format_list_bulleted),
+                ),
               IconButton(
                 tooltip: 'Previous chapter',
                 onPressed: canGoBack
@@ -278,6 +291,32 @@ class _TextChapterControls extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _showTableOfContents(
+  BuildContext context,
+  List<TextTableOfContentsEntry> entries,
+  ValueChanged<int> onSelected,
+) {
+  return showModalBottomSheet<void>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const ListTile(title: Text('Table of contents')),
+          for (final entry in entries)
+            ListTile(
+              title: Text(entry.title),
+              onTap: () {
+                Navigator.of(context).pop();
+                onSelected(entry.chapterIndex);
+              },
+            ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _TextChapterView extends StatelessWidget {
