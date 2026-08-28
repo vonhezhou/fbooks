@@ -44,7 +44,7 @@ void main() {
             const _ComicReaderSessionFactory(),
           ),
           comicReadingPreferencesRepositoryProvider.overrideWithValue(
-            const _ComicReadingPreferencesRepository(),
+            _ComicReadingPreferencesRepository(),
           ),
           readingProgressRepositoryProvider.overrideWithValue(
             const _ReadingProgressRepository(),
@@ -87,7 +87,7 @@ void main() {
             const _ComicReaderSessionFactory(),
           ),
           comicReadingPreferencesRepositoryProvider.overrideWithValue(
-            const _ComicReadingPreferencesRepository(),
+            _ComicReadingPreferencesRepository(),
           ),
           readingProgressRepositoryProvider.overrideWithValue(
             _ReadingProgressRepository(
@@ -107,6 +107,57 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('2 / 3'), findsOneWidget);
+  });
+
+  testWidgets('disables double-page spreads in vertical mode', (tester) async {
+    const publication = Publication(
+      id: 'bobby',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Bobby Make-Believe',
+      format: PublicationFormat.comicArchive,
+    );
+    final preferences = _ComicReadingPreferencesRepository(
+      const ComicReadingPreferences(doublePage: true),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _PublicationRepository(publication),
+          ),
+          comicReaderSessionFactoryProvider.overrideWithValue(
+            const _ComicReaderSessionFactory(),
+          ),
+          comicReadingPreferencesRepositoryProvider.overrideWithValue(
+            preferences,
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            const _ReadingProgressRepository(),
+          ),
+        ],
+        child: const MaterialApp(
+          home: ComicReaderPage(publicationId: 'bobby', title: 'Bobby'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Reading settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownMenu<ComicReadingMode>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Vertical scroll').last);
+    await tester.pumpAndSettle();
+
+    final spreadToggle = tester.widget<SwitchListTile>(
+      find.byType(SwitchListTile),
+    );
+    expect(spreadToggle.onChanged, isNull);
+    expect(preferences.preferences.mode, ComicReadingMode.vertical);
   });
 }
 
@@ -235,14 +286,19 @@ class _ComicReaderSession implements ComicReaderSession {
 
 class _ComicReadingPreferencesRepository
     implements ComicReadingPreferencesRepository {
-  const _ComicReadingPreferencesRepository();
+  _ComicReadingPreferencesRepository([
+    this.preferences = ComicReadingPreferences.defaults,
+  ]);
+
+  ComicReadingPreferences preferences;
 
   @override
-  Future<ComicReadingPreferences> load() async =>
-      ComicReadingPreferences.defaults;
+  Future<ComicReadingPreferences> load() async => preferences;
 
   @override
-  Future<void> save(ComicReadingPreferences preferences) async {}
+  Future<void> save(ComicReadingPreferences preferences) async {
+    this.preferences = preferences;
+  }
 }
 
 class _ReadingProgressRepository implements ReadingProgressRepository {
