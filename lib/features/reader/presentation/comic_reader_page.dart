@@ -23,37 +23,42 @@ class ComicReaderPage extends ConsumerWidget {
   final String title;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(comicReaderSessionProvider(publicationId));
-    final preferences =
-        ref.watch(comicReadingPreferencesProvider).value ??
-        ComicReadingPreferences.defaults;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+  Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
+    builder: (context, constraints) {
+      final desktop = constraints.maxWidth >= 960;
+      final session = ref.watch(comicReaderSessionProvider(publicationId));
+      final preferences =
+          ref.watch(comicReadingPreferencesProvider).value ??
+          ComicReadingPreferences.defaults;
+      return Scaffold(
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        surfaceTintColor: Colors.black,
-        title: Text(title),
-        actions: [
-          IconButton(
-            tooltip: 'Reading settings',
-            onPressed: () => _showComicReadingSettings(context, ref),
-            icon: const Icon(Icons.tune),
-          ),
-        ],
-      ),
-      body: session.when(
-        data: (value) => _ComicPageView(
-          publicationId: publicationId,
-          session: value,
-          preferences: preferences,
+        appBar: AppBar(
+          toolbarHeight: desktop ? 64 : null,
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          surfaceTintColor: Colors.black,
+          title: Text(title, overflow: TextOverflow.ellipsis),
+          actions: [
+            IconButton(
+              tooltip: 'Reading settings',
+              onPressed: () => _showComicReadingSettings(context, ref),
+              icon: const Icon(Icons.tune),
+            ),
+          ],
         ),
-        error: (error, stackTrace) => _ReaderErrorView(error: error),
-        loading: () => const Center(child: CircularProgressIndicator()),
-      ),
-    );
-  }
+        body: session.when(
+          data: (value) => _ComicPageView(
+            publicationId: publicationId,
+            session: value,
+            preferences: preferences,
+            desktop: desktop,
+          ),
+          error: (error, stackTrace) => _ReaderErrorView(error: error),
+          loading: () => const Center(child: CircularProgressIndicator()),
+        ),
+      );
+    },
+  );
 }
 
 class _ComicPageView extends ConsumerStatefulWidget {
@@ -61,11 +66,13 @@ class _ComicPageView extends ConsumerStatefulWidget {
     required this.publicationId,
     required this.session,
     required this.preferences,
+    required this.desktop,
   });
 
   final PublicationId publicationId;
   final ComicReaderSession session;
   final ComicReadingPreferences preferences;
+  final bool desktop;
 
   @override
   ConsumerState<_ComicPageView> createState() => _ComicPageViewState();
@@ -124,29 +131,31 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
         message: 'This comic does not contain any readable image pages.',
       );
     }
+    final reader = widget.preferences.mode == ComicReadingMode.vertical
+        ? _buildVerticalReader(pageCount)
+        : PageView.builder(
+            controller: _pageController,
+            itemCount: _viewerCount,
+            reverse: widget.preferences.mode == ComicReadingMode.rightToLeft,
+            onPageChanged: (index) => _savePosition(_firstPageForViewer(index)),
+            itemBuilder: (context, index) {
+              return _ComicPageSpread(
+                session: widget.session,
+                firstPage: _firstPageForViewer(index),
+                doublePage: widget.preferences.usesDoublePage,
+                rightToLeft:
+                    widget.preferences.mode == ComicReadingMode.rightToLeft,
+              );
+            },
+          );
     return Column(
       children: [
         Expanded(
-          child: widget.preferences.mode == ComicReadingMode.vertical
-              ? _buildVerticalReader(pageCount)
-              : PageView.builder(
-                  controller: _pageController,
-                  itemCount: _viewerCount,
-                  reverse:
-                      widget.preferences.mode == ComicReadingMode.rightToLeft,
-                  onPageChanged: (index) =>
-                      _savePosition(_firstPageForViewer(index)),
-                  itemBuilder: (context, index) {
-                    return _ComicPageSpread(
-                      session: widget.session,
-                      firstPage: _firstPageForViewer(index),
-                      doublePage: widget.preferences.usesDoublePage,
-                      rightToLeft:
-                          widget.preferences.mode ==
-                          ComicReadingMode.rightToLeft,
-                    );
-                  },
-                ),
+          child: _ComicReaderStage(
+            desktop: widget.desktop,
+            vertical: widget.preferences.mode == ComicReadingMode.vertical,
+            child: reader,
+          ),
         ),
         _ComicPageControls(
           currentPage: _currentPage,
@@ -155,6 +164,7 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
           onPrevious: _goToPrevious,
           onNext: _goToNext,
           doublePage: widget.preferences.usesDoublePage,
+          desktop: widget.desktop,
         ),
       ],
     );
@@ -379,6 +389,7 @@ class _ComicPageControls extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.doublePage,
+    required this.desktop,
   });
 
   final int currentPage;
@@ -387,6 +398,7 @@ class _ComicPageControls extends StatelessWidget {
   final VoidCallback onPrevious;
   final VoidCallback onNext;
   final bool doublePage;
+  final bool desktop;
 
   @override
   Widget build(BuildContext context) {
@@ -398,38 +410,96 @@ class _ComicPageControls extends StatelessWidget {
     final pageLabel = lastVisiblePage == currentPage
         ? '${currentPage + 1} / $pageCount'
         : '${currentPage + 1}–${lastVisiblePage + 1} / $pageCount';
+    final controls = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'Previous page',
+            onPressed: canGoBack ? onPrevious : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Expanded(
+            child: Slider(
+              value: currentPage.toDouble(),
+              min: 0,
+              max: (pageCount - 1).toDouble(),
+              divisions: pageCount > 1 ? pageCount - 1 : null,
+              label: pageLabel,
+              onChanged: pageCount > 1
+                  ? (value) => onPageSelected(value.round())
+                  : null,
+            ),
+          ),
+          Text(pageLabel),
+          IconButton(
+            tooltip: 'Next page',
+            onPressed: canGoForward ? onNext : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+    if (!desktop) {
+      return SafeArea(
+        top: false,
+        child: Material(color: const Color(0xFF161616), child: controls),
+      );
+    }
     return SafeArea(
       top: false,
-      child: Material(
-        color: const Color(0xFF161616),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: 'Previous page',
-                onPressed: canGoBack ? onPrevious : null,
-                icon: const Icon(Icons.chevron_left),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 0, 32, 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Material(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(14),
+              child: controls,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ComicReaderStage extends StatelessWidget {
+  const _ComicReaderStage({
+    required this.desktop,
+    required this.vertical,
+    required this.child,
+  });
+
+  final bool desktop;
+  final bool vertical;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!desktop) {
+      return child;
+    }
+    return ColoredBox(
+      color: const Color(0xFF101010),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(48, 28, 48, 24),
+        child: Center(
+          child: ConstrainedBox(
+            key: const Key('comic-reader-desktop-stage'),
+            constraints: BoxConstraints(maxWidth: vertical ? 920 : 1480),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black,
+                border: Border.all(color: const Color(0xFF2C2C2C)),
+                borderRadius: BorderRadius.circular(12),
               ),
-              Expanded(
-                child: Slider(
-                  value: currentPage.toDouble(),
-                  min: 0,
-                  max: (pageCount - 1).toDouble(),
-                  divisions: pageCount > 1 ? pageCount - 1 : null,
-                  label: pageLabel,
-                  onChanged: pageCount > 1
-                      ? (value) => onPageSelected(value.round())
-                      : null,
-                ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(11),
+                child: child,
               ),
-              Text(pageLabel),
-              IconButton(
-                tooltip: 'Next page',
-                onPressed: canGoForward ? onNext : null,
-                icon: const Icon(Icons.chevron_right),
-              ),
-            ],
+            ),
           ),
         ),
       ),
