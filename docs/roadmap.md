@@ -125,6 +125,8 @@ complete.
   maintained decoding libraries per target platform.
 - [x] EPUB table of contents extraction and chapter jumps from navigation
   documents.
+- [x] Use the maintained `epub_pro` Dart package for EPUB container, spine,
+  and navigation parsing instead of a hand-written ZIP/OPF parser.
 - [ ] EPUB rendering improvements: images, tables, and internal links.
 
 ## Deferred extensions

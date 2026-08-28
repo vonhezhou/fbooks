@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:archive/archive_io.dart';
+import 'package:epub_pro/epub_pro.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -9,7 +8,6 @@ import 'package:fbooks/domain/reading/text_document.dart';
 import 'package:html/parser.dart' as html;
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart' as path;
-import 'package:xml/xml.dart';
 
 class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
   @override
@@ -52,51 +50,21 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
   }
 
   Future<TextDocument> _openEpub(String publicationId, String filePath) async {
-    final archive = ZipDecoder().decodeStream(InputFileStream(filePath));
-    final files = {
-      for (final file in archive.files.where((file) => file.isFile))
-        file.name: file,
-    };
-    final packagePath = _readPackagePath(
-      _readUtf8(files, 'META-INF/container.xml'),
-    );
-    final packageDocument = XmlDocument.parse(_readUtf8(files, packagePath));
-    final manifest = <String, String>{};
-    String? navigationPath;
-    for (final item in packageDocument.findAllElements('item')) {
-      final id = item.getAttribute('id');
-      final href = item.getAttribute('href');
-      if (id != null && href != null) {
-        manifest[id] = href;
-        if ((item.getAttribute('properties') ?? '')
-            .split(' ')
-            .contains('nav')) {
-          navigationPath = path.posix.normalize(
-            path.posix.join(path.posix.dirname(packagePath), href),
+    final book = await EpubReader.readBook(await File(filePath).readAsBytes());
+    final chapters = <TextChapter>[];
+    final contents = <TextTableOfContentsEntry>[];
+    for (final chapter in _flattenChapters(book.chapters)) {
+      final mapped = _readEpubChapter(chapter, chapters.length);
+      if (mapped.text.isNotEmpty) {
+        chapters.add(mapped);
+        if (chapter.title case final title? when title.trim().isNotEmpty) {
+          contents.add(
+            TextTableOfContentsEntry(
+              title: title.trim(),
+              chapterIndex: mapped.index,
+            ),
           );
         }
-      }
-    }
-
-    final chapterPaths = <String>[];
-    for (final itemRef in packageDocument.findAllElements('itemref')) {
-      final href = manifest[itemRef.getAttribute('idref')];
-      if (href != null) {
-        chapterPaths.add(
-          path.posix.normalize(
-            path.posix.join(path.posix.dirname(packagePath), href),
-          ),
-        );
-      }
-    }
-
-    final chapters = <TextChapter>[];
-    final chapterIndexByPath = <String, int>{};
-    for (final chapterPath in chapterPaths) {
-      final chapter = _readChapter(files, chapterPath, chapters.length);
-      if (chapter.text.isNotEmpty) {
-        chapterIndexByPath[chapterPath] = chapters.length;
-        chapters.add(chapter);
       }
     }
     if (chapters.isEmpty) {
@@ -106,64 +74,19 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     return TextDocument(
       publicationId: publicationId,
       chapters: chapters,
-      tableOfContents: navigationPath == null
-          ? const []
-          : _readTableOfContents(files, navigationPath, chapterIndexByPath),
+      tableOfContents: contents,
     );
   }
 
-  List<TextTableOfContentsEntry> _readTableOfContents(
-    Map<String, ArchiveFile> files,
-    String navigationPath,
-    Map<String, int> chapterIndexByPath,
-  ) {
-    final document = html.parse(_readUtf8(files, navigationPath));
-    final navigation = document.querySelectorAll('nav').where((element) {
-      return element.attributes.entries.any(
-        (entry) =>
-            entry.key.toString().contains('type') &&
-            entry.value.split(' ').contains('toc'),
-      );
-    }).firstOrNull;
-    if (navigation == null) {
-      return const [];
+  Iterable<EpubChapter> _flattenChapters(Iterable<EpubChapter> chapters) sync* {
+    for (final chapter in chapters) {
+      yield chapter;
+      yield* _flattenChapters(chapter.subChapters);
     }
-    return navigation
-        .querySelectorAll('a[href]')
-        .map((anchor) {
-          final target = anchor.attributes['href']!.split('#').first;
-          final chapterPath = path.posix.normalize(
-            path.posix.join(path.posix.dirname(navigationPath), target),
-          );
-          final index = chapterIndexByPath[chapterPath];
-          return index == null || anchor.text.trim().isEmpty
-              ? null
-              : TextTableOfContentsEntry(
-                  title: anchor.text.trim(),
-                  chapterIndex: index,
-                );
-        })
-        .whereType<TextTableOfContentsEntry>()
-        .toList(growable: false);
   }
 
-  String _readPackagePath(String containerXml) {
-    final document = XmlDocument.parse(containerXml);
-    for (final rootFile in document.findAllElements('rootfile')) {
-      final fullPath = rootFile.getAttribute('full-path');
-      if (fullPath != null && fullPath.isNotEmpty) {
-        return fullPath;
-      }
-    }
-    throw FormatException('The EPUB container has no package document');
-  }
-
-  TextChapter _readChapter(
-    Map<String, ArchiveFile> files,
-    String chapterPath,
-    int index,
-  ) {
-    final document = html.parse(_readUtf8(files, chapterPath));
+  TextChapter _readEpubChapter(EpubChapter chapter, int index) {
+    final document = html.parse(chapter.htmlContent ?? '');
     document
         .querySelectorAll('script, style')
         .forEach((element) => element.remove());
@@ -173,7 +96,10 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     return TextChapter(
       index: index,
       title: title == null || title.isEmpty
-          ? path.posix.basenameWithoutExtension(chapterPath)
+          ? chapter.title ??
+                path.posix.basenameWithoutExtension(
+                  chapter.contentFileName ?? 'Chapter ${index + 1}',
+                )
           : title,
       text: body,
       segments: segments,
@@ -220,14 +146,6 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     for (final child in node.nodes) {
       _appendNodeSegments(child, segments, nextEmphasis);
     }
-  }
-
-  String _readUtf8(Map<String, ArchiveFile> files, String fileName) {
-    final bytes = files[fileName]?.readBytes();
-    if (bytes == null) {
-      throw FormatException('The EPUB is missing $fileName');
-    }
-    return utf8.decode(bytes, allowMalformed: true);
   }
 }
 

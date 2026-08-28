@@ -21,23 +21,23 @@ void main() {
         _textArchiveFile(
           'META-INF/container.xml',
           '''<?xml version="1.0"?>
-            <container><rootfiles><rootfile full-path="OEBPS/book.opf" /></rootfiles></container>''',
+            <container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/book.opf" /></rootfiles></container>''',
         ),
       )
       ..addFile(
-        _textArchiveFile('OEBPS/book.opf', '''<package><manifest>
-              <item id="first" href="first.xhtml" />
-              <item id="second" href="second.xhtml" />
-              <item id="nav" href="nav.xhtml" properties="nav" />
-            </manifest><spine>
+        _textArchiveFile('OEBPS/book.opf', '''<package xmlns="http://www.idpf.org/2007/opf" version="2.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Sample</dc:title></metadata><manifest>
+              <item id="first" href="first.xhtml" media-type="application/xhtml+xml" />
+              <item id="second" href="second.xhtml" media-type="application/xhtml+xml" />
+              <item id="nav" href="nav.ncx" media-type="application/x-dtbncx+xml" />
+            </manifest><spine toc="nav">
               <itemref idref="first" />
               <itemref idref="second" />
             </spine></package>'''),
       )
       ..addFile(
         _textArchiveFile(
-          'OEBPS/nav.xhtml',
-          '<html><body><nav epub:type="toc"><ol><li><a href="first.xhtml">Beginning</a></li><li><a href="second.xhtml">Ending</a></li></ol></nav></body></html>',
+          'OEBPS/nav.ncx',
+          '<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/"><head></head><docTitle><text>Sample</text></docTitle><navMap><navPoint id="first" playOrder="1"><navLabel><text>Beginning</text></navLabel><content src="first.xhtml" /></navPoint><navPoint id="second" playOrder="2"><navLabel><text>Ending</text></navLabel><content src="second.xhtml" /></navPoint></navMap></ncx>',
         ),
       )
       ..addFile(
