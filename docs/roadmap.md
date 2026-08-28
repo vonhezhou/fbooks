@@ -110,7 +110,8 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 - [x] OPDS catalog management: edit/remove an unused catalog, retry catalog
   requests, and authenticate with Basic Auth credentials held in system secure
   storage rather than SQLite.
-- [ ] Show download progress and allow cancelling an OPDS acquisition.
+- [x] Show download progress and allow cancelling an OPDS acquisition without
+  creating a library record or leaving a temporary file behind.
 - [ ] Refresh downloaded or remote metadata without creating duplicates.
 
 ## Later: format expansion

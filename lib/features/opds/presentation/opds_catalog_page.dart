@@ -1,5 +1,6 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_request.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:fbooks/domain/library/library_source.dart';
@@ -267,6 +268,8 @@ class _OpdsPublicationTile extends ConsumerStatefulWidget {
 
 class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
   bool _isDownloading = false;
+  OpdsDownloadCancellation? _cancellation;
+  double? _downloadFraction;
 
   @override
   Widget build(BuildContext context) {
@@ -281,22 +284,34 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
       ),
       trailing: acquisition == null
           ? null
+          : _isDownloading
+          ? IconButton(
+              tooltip: 'Cancel download',
+              onPressed: _cancellation?.cancel,
+              icon: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  value: _downloadFraction,
+                  strokeWidth: 2,
+                ),
+              ),
+            )
           : IconButton(
               tooltip: 'Download to library',
-              onPressed: _isDownloading ? null : () => _download(acquisition),
-              icon: _isDownloading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.download_outlined),
+              onPressed: () => _download(acquisition),
+              icon: const Icon(Icons.download_outlined),
             ),
     );
   }
 
   Future<void> _download(OpdsAcquisition acquisition) async {
-    setState(() => _isDownloading = true);
+    final cancellation = OpdsDownloadCancellation();
+    setState(() {
+      _isDownloading = true;
+      _cancellation = cancellation;
+      _downloadFraction = null;
+    });
     try {
       final publication = await ref
           .read(opdsAcquisitionImporterProvider)
@@ -304,6 +319,12 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
             source: widget.source,
             publication: widget.publication,
             acquisition: acquisition,
+            cancellation: cancellation,
+            onProgress: (progress) {
+              if (mounted) {
+                setState(() => _downloadFraction = progress.fraction);
+              }
+            },
           );
       if (!mounted) {
         return;
@@ -311,6 +332,12 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${publication.title} added to the library.')),
       );
+    } on OpdsDownloadCancelled {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Download cancelled.')));
     } catch (error) {
       if (!mounted) {
         return;
@@ -320,7 +347,11 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isDownloading = false);
+        setState(() {
+          _isDownloading = false;
+          _cancellation = null;
+          _downloadFraction = null;
+        });
       }
     }
   }

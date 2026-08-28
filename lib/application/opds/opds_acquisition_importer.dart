@@ -16,11 +16,36 @@ class RemoteAssetResponse {
     required this.bytes,
     required this.fileName,
     this.mediaType,
+    this.contentLength,
   });
 
   final Stream<Uint8List> bytes;
   final String fileName;
   final String? mediaType;
+  final int? contentLength;
+}
+
+class OpdsDownloadProgress {
+  const OpdsDownloadProgress({required this.receivedBytes, this.totalBytes});
+
+  final int receivedBytes;
+  final int? totalBytes;
+
+  double? get fraction => totalBytes == null || totalBytes == 0
+      ? null
+      : receivedBytes / totalBytes!;
+}
+
+class OpdsDownloadCancellation {
+  var _isCancelled = false;
+
+  bool get isCancelled => _isCancelled;
+
+  void cancel() => _isCancelled = true;
+}
+
+class OpdsDownloadCancelled implements Exception {
+  const OpdsDownloadCancelled();
 }
 
 abstract interface class RemoteAssetFetcher {
@@ -56,6 +81,8 @@ class OpdsAcquisitionImporter {
     required LibrarySource source,
     required OpdsPublication publication,
     required OpdsAcquisition acquisition,
+    void Function(OpdsDownloadProgress progress)? onProgress,
+    OpdsDownloadCancellation? cancellation,
   }) async {
     final existing = await _publicationRepository.findByAssetLocation(
       acquisition.href,
@@ -84,7 +111,12 @@ class OpdsAcquisitionImporter {
       localLocation = await _managedAssetStore.save(
         assetId: localAssetId,
         fileName: _safeFileName(response.fileName, acquisition.href),
-        bytes: response.bytes,
+        bytes: _reportProgress(
+          response.bytes,
+          totalBytes: response.contentLength,
+          onProgress: onProgress,
+          cancellation: cancellation,
+        ),
       );
       final acquired = Publication(
         id: publicationId,
@@ -118,6 +150,31 @@ class OpdsAcquisitionImporter {
         await _managedAssetStore.delete(localLocation);
       }
       rethrow;
+    }
+  }
+
+  Stream<Uint8List> _reportProgress(
+    Stream<Uint8List> bytes, {
+    required int? totalBytes,
+    required void Function(OpdsDownloadProgress progress)? onProgress,
+    required OpdsDownloadCancellation? cancellation,
+  }) async* {
+    var receivedBytes = 0;
+    await for (final chunk in bytes) {
+      if (cancellation?.isCancelled ?? false) {
+        throw const OpdsDownloadCancelled();
+      }
+      receivedBytes += chunk.length;
+      onProgress?.call(
+        OpdsDownloadProgress(
+          receivedBytes: receivedBytes,
+          totalBytes: totalBytes,
+        ),
+      );
+      yield chunk;
+    }
+    if (cancellation?.isCancelled ?? false) {
+      throw const OpdsDownloadCancelled();
     }
   }
 

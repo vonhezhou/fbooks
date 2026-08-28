@@ -31,6 +31,7 @@ class HttpRemoteAssetFetcher implements RemoteAssetFetcher {
       bytes: response.stream.map(Uint8List.fromList),
       fileName: _fileName(response.headers['content-disposition'], uri),
       mediaType: response.headers['content-type']?.split(';').first.trim(),
+      contentLength: int.tryParse(response.headers['content-length'] ?? ''),
     );
   }
 

@@ -29,6 +29,7 @@ void main() {
         mediaType: 'application/epub+zip',
       );
 
+      final progress = <OpdsDownloadProgress>[];
       final imported = await importer.acquire(
         source: _source,
         publication: OpdsPublication(
@@ -39,6 +40,7 @@ void main() {
           acquisitions: [],
         ),
         acquisition: acquisition,
+        onProgress: progress.add,
       );
       final duplicate = await importer.acquire(
         source: _source,
@@ -61,9 +63,39 @@ void main() {
       expect(store.savedBytes, [1, 2, 3]);
       expect(fetcher.fetchCount, 1);
       expect(fetcher.credentials, credentials.value);
+      expect(progress.single.fraction, 1);
       expect(duplicate.id, imported.id);
     },
   );
+
+  test('cancels an acquisition before it is persisted', () async {
+    final repository = _MemoryPublicationRepository();
+    final cancellation = OpdsDownloadCancellation()..cancel();
+    final importer = OpdsAcquisitionImporter(
+      repository,
+      _FakeRemoteAssetFetcher(),
+      _FakeManagedAssetStore(),
+      credentialsRepository: _FixedCredentialsRepository(),
+    );
+
+    await expectLater(
+      importer.acquire(
+        source: _source,
+        publication: const OpdsPublication(
+          title: 'Remote book',
+          authors: [],
+          acquisitions: [],
+        ),
+        acquisition: OpdsAcquisition(
+          href: Uri.parse('https://books.example.org/book.epub'),
+          mediaType: 'application/epub+zip',
+        ),
+        cancellation: cancellation,
+      ),
+      throwsA(isA<OpdsDownloadCancelled>()),
+    );
+    expect(await repository.listPublications(), isEmpty);
+  });
 }
 
 final _source = LibrarySource(
@@ -88,6 +120,7 @@ class _FakeRemoteAssetFetcher implements RemoteAssetFetcher {
       bytes: Stream.value(Uint8List.fromList([1, 2, 3])),
       fileName: 'book.epub',
       mediaType: 'application/epub+zip',
+      contentLength: 3,
     );
   }
 }
