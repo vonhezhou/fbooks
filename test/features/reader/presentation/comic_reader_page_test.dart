@@ -10,6 +10,7 @@ import 'package:fbooks/domain/reading/comic_document.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
+import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,49 @@ void main() {
     expect(find.text('1 / 3'), findsOneWidget);
     expect(find.byTooltip('Reading settings'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('restores a saved comic page', (tester) async {
+    const publication = Publication(
+      id: 'bobby',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Bobby Make-Believe',
+      format: PublicationFormat.comicArchive,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _PublicationRepository(publication),
+          ),
+          comicReaderSessionFactoryProvider.overrideWithValue(
+            const _ComicReaderSessionFactory(),
+          ),
+          comicReadingPreferencesRepositoryProvider.overrideWithValue(
+            const _ComicReadingPreferencesRepository(),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _ReadingProgressRepository(
+              ReadingProgress(
+                publicationId: 'bobby',
+                locator: ComicPageLocator(1),
+                updatedAt: DateTime(2026),
+              ),
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: ComicReaderPage(publicationId: 'bobby', title: 'Bobby'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 / 3'), findsOneWidget);
   });
 }
 
@@ -202,10 +246,12 @@ class _ComicReadingPreferencesRepository
 }
 
 class _ReadingProgressRepository implements ReadingProgressRepository {
-  const _ReadingProgressRepository();
+  const _ReadingProgressRepository([this.progress]);
+
+  final ReadingProgress? progress;
 
   @override
-  Future<ReadingProgress?> load(PublicationId publicationId) async => null;
+  Future<ReadingProgress?> load(PublicationId publicationId) async => progress;
 
   @override
   Future<void> save(ReadingProgress progress) async {}

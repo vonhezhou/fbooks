@@ -83,8 +83,8 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   string.
 - [x] Give every reader a clear loading, missing-file, corrupt-file, and empty
   content state.
-- [ ] Add widget/integration coverage for restoring positions, mode changes,
-  and double-page page mapping.
+- [ ] Complete widget coverage for comic mode changes. Position restoration and
+  double-page page mapping are covered by widget and unit tests.
 
 ### Definition of done for basic reading
 

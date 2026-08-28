@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
+import 'package:fbooks/application/reader/comic_spread_index.dart';
 import 'package:fbooks/application/reader/vertical_comic_page_position.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
@@ -343,25 +344,24 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
   }
 
   int get _viewerCount {
-    final pages = widget.session.document.pages.length;
-    if (!widget.preferences.usesDoublePage || pages <= 1) {
-      return pages;
-    }
-    return 1 + (pages - 1 + 1) ~/ 2;
+    return ComicSpreadIndex.viewerCount(
+      pageCount: widget.session.document.pages.length,
+      doublePage: widget.preferences.usesDoublePage,
+    );
   }
 
   int _viewerIndexForPage(int pageIndex) {
-    if (!widget.preferences.usesDoublePage || pageIndex == 0) {
-      return pageIndex;
-    }
-    return 1 + (pageIndex - 1) ~/ 2;
+    return ComicSpreadIndex.viewerIndexForPage(
+      pageIndex: pageIndex,
+      doublePage: widget.preferences.usesDoublePage,
+    );
   }
 
   int _firstPageForViewer(int viewerIndex) {
-    if (!widget.preferences.usesDoublePage || viewerIndex == 0) {
-      return viewerIndex;
-    }
-    return 1 + (viewerIndex - 1) * 2;
+    return ComicSpreadIndex.firstPageForViewer(
+      viewerIndex: viewerIndex,
+      doublePage: widget.preferences.usesDoublePage,
+    );
   }
 
   Future<void> _persistPosition(int pageIndex) async {
