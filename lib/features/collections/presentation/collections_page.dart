@@ -277,12 +277,24 @@ class _CollectionDetailView extends ConsumerWidget {
   final List<Publication> allPublications;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
+    builder: (context, constraints) {
+      final desktop = constraints.maxWidth >= 960;
+      return _buildScrollView(context, ref, desktop: desktop);
+    },
+  );
+
+  Widget _buildScrollView(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool desktop,
+  }) {
     final canStartReading = books.any(_isReadable);
     return CustomScrollView(
       slivers: [
         SliverAppBar(
           pinned: true,
+          toolbarHeight: desktop ? 64 : kToolbarHeight,
           title: Text(collection.name),
           actions: [
             IconButton(
@@ -301,64 +313,98 @@ class _CollectionDetailView extends ConsumerWidget {
         SliverToBoxAdapter(
           child: Container(
             color: _coverColor(collection.id),
-            padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 560;
-                final cover = _CollectionCover(
-                  collection: collection,
-                  size: 196,
-                );
-                final details = _CollectionDetails(
-                  collection: collection,
-                  bookCount: books.length,
-                  canStartReading: canStartReading,
-                  onStartReading: () => _openFirstReadable(context, books),
-                );
-                return isWide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          cover,
-                          const SizedBox(width: 28),
-                          Expanded(child: details),
-                        ],
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [cover, const SizedBox(height: 20), details],
+            child: Center(
+              child: ConstrainedBox(
+                key: desktop
+                    ? const Key('collection-detail-desktop-content')
+                    : null,
+                constraints: const BoxConstraints(maxWidth: 1180),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    desktop ? 48 : 28,
+                    desktop ? 36 : 24,
+                    desktop ? 48 : 28,
+                    desktop ? 40 : 28,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth >= 560;
+                      final cover = _CollectionCover(
+                        collection: collection,
+                        size: desktop ? 232 : 196,
                       );
-              },
+                      final details = _CollectionDetails(
+                        collection: collection,
+                        bookCount: books.length,
+                        canStartReading: canStartReading,
+                        onStartReading: () =>
+                            _openFirstReadable(context, books),
+                      );
+                      return isWide
+                          ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                cover,
+                                SizedBox(width: desktop ? 40 : 28),
+                                Expanded(child: details),
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                cover,
+                                const SizedBox(height: 20),
+                                details,
+                              ],
+                            );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(28, 28, 28, 36),
-          sliver: books.isEmpty
-              ? SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _EmptyCollectionDetail(
-                    onAdd: () => _showMembershipEditor(
-                      context,
-                      ref,
-                      collection,
-                      allPublications,
-                      const {},
+        SliverLayoutBuilder(
+          builder: (context, constraints) {
+            final horizontal = desktop
+                ? ((constraints.crossAxisExtent - 1180) / 2)
+                      .clamp(28, double.infinity)
+                      .toDouble()
+                : 28.0;
+            return SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                horizontal,
+                desktop ? 36 : 28,
+                horizontal,
+                desktop ? 48 : 36,
+              ),
+              sliver: books.isEmpty
+                  ? SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyCollectionDetail(
+                        onAdd: () => _showMembershipEditor(
+                          context,
+                          ref,
+                          collection,
+                          allPublications,
+                          const {},
+                        ),
+                      ),
+                    )
+                  : SliverGrid(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _BookCard(book: books[index]),
+                        childCount: books.length,
+                      ),
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: desktop ? 220 : 200,
+                        mainAxisExtent: desktop ? 304 : 280,
+                        mainAxisSpacing: desktop ? 20 : 16,
+                        crossAxisSpacing: desktop ? 20 : 16,
+                      ),
                     ),
-                  ),
-                )
-              : SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _BookCard(book: books[index]),
-                    childCount: books.length,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 200,
-                    mainAxisExtent: 280,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                ),
+            );
+          },
         ),
       ],
     );
