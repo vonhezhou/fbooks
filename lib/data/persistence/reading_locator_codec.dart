@@ -20,6 +20,10 @@ class ReadingLocatorCodec {
         type: 'epub-cfi',
         value: cfi,
       ),
+      PdfPageLocator(:final pageNumber) => StoredReadingLocator(
+        type: 'pdf-page',
+        value: '$pageNumber',
+      ),
       TextOffsetLocator(:final chapterIndex, :final offset) =>
         StoredReadingLocator(
           type: 'text-offset',
@@ -32,6 +36,7 @@ class ReadingLocatorCodec {
     return switch (type) {
       'comic-page' => ComicPageLocator(int.parse(value)),
       'epub-cfi' => EpubCfiLocator(value),
+      'pdf-page' => PdfPageLocator(int.parse(value)),
       'text-offset' => _decodeTextOffset(value),
       _ => throw FormatException('Unknown reading locator type: $type'),
     };

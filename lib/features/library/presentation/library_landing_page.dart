@@ -10,6 +10,7 @@ import 'package:fbooks/features/library/presentation/publication_details_page.da
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
 import 'package:fbooks/features/settings/presentation/settings_page.dart';
 import 'package:flutter/material.dart';
@@ -900,6 +901,19 @@ class _PublicationList extends ConsumerWidget {
           ),
         );
         return;
+      case PublicationFormat.pdf:
+        _openReader(
+          context,
+          ref,
+          publication.id,
+          MaterialPageRoute<void>(
+            builder: (context) => PdfReaderPage(
+              publicationId: publication.id,
+              title: publication.title,
+            ),
+          ),
+        );
+        return;
       default:
         return;
     }
@@ -1031,6 +1045,7 @@ class _PublicationCard extends StatelessWidget {
 
   String _resumeLabel(ReadingProgress progress) => switch (progress.locator) {
     ComicPageLocator(:final pageIndex) => 'Page ${pageIndex + 1}',
+    PdfPageLocator(:final pageNumber) => 'Page $pageNumber',
     TextOffsetLocator(:final chapterIndex) => 'Chapter ${chapterIndex + 1}',
     EpubCfiLocator() => 'Resume reading',
   };
@@ -1052,6 +1067,7 @@ class _PublicationSubtitle extends StatelessWidget {
         : publication.authors.join(', ');
     final resumeLabel = switch (progress?.locator) {
       ComicPageLocator(:final pageIndex) => 'Resume at page ${pageIndex + 1}',
+      PdfPageLocator(:final pageNumber) => 'Resume at page $pageNumber',
       TextOffsetLocator(:final chapterIndex) =>
         'Resume at chapter ${chapterIndex + 1}',
       EpubCfiLocator() => 'Resume reading',

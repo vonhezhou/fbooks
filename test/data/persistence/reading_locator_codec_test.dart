@@ -30,4 +30,17 @@ void main() {
     expect(textLocator.chapterIndex, 2);
     expect(textLocator.offset, 640);
   });
+
+  test('round-trips a PDF page locator', () {
+    const original = PdfPageLocator(12);
+
+    final stored = ReadingLocatorCodec.encode(original);
+    final restored = ReadingLocatorCodec.decode(
+      type: stored.type,
+      value: stored.value,
+    );
+
+    expect(restored, isA<PdfPageLocator>());
+    expect((restored as PdfPageLocator).pageNumber, 12);
+  });
 }

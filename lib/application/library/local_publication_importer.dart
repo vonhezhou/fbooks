@@ -96,12 +96,13 @@ class LocalPublicationImporter {
 class PublicationFormatDetector {
   const PublicationFormatDetector._();
 
-  static const supportedExtensions = <String>['cbz', 'epub', 'txt'];
+  static const supportedExtensions = <String>['cbz', 'epub', 'pdf', 'txt'];
 
   static PublicationFormat? fromFileName(String fileName) {
     return switch (path.extension(fileName).toLowerCase()) {
       '.cbz' => PublicationFormat.comicArchive,
       '.epub' => PublicationFormat.epub,
+      '.pdf' => PublicationFormat.pdf,
       '.txt' => PublicationFormat.text,
       _ => null,
     };
@@ -121,9 +122,13 @@ class PublicationFormatDetector {
     return switch (format) {
       PublicationFormat.comicArchive => 'cbz',
       PublicationFormat.epub => 'epub',
+      PublicationFormat.pdf => 'pdf',
       PublicationFormat.text => 'txt',
-      PublicationFormat.comicDirectory || PublicationFormat.pdf =>
-        throw ArgumentError.value(format, 'format', 'is not locally supported'),
+      PublicationFormat.comicDirectory => throw ArgumentError.value(
+        format,
+        'format',
+        'is not locally supported',
+      ),
     };
   }
 }

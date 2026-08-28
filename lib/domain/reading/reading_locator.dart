@@ -18,6 +18,12 @@ class EpubCfiLocator extends ReadingLocator {
   final String cfi;
 }
 
+class PdfPageLocator extends ReadingLocator {
+  const PdfPageLocator(this.pageNumber) : assert(pageNumber >= 1);
+
+  final int pageNumber;
+}
+
 class TextOffsetLocator extends ReadingLocator {
   const TextOffsetLocator({required this.chapterIndex, required this.offset})
     : assert(chapterIndex >= 0),

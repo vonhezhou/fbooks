@@ -40,8 +40,8 @@ Fbooks is a local-first reader for comics and ebooks.
 
 | Source | Readable now | Deliberately not offered yet |
 | --- | --- | --- |
-| Local import | CBZ, EPUB, TXT | CBR, CBT, CB7, PDF |
-| OPDS acquisition | CBZ, EPUB, TXT when detectable | PDF and unrecognised formats |
+| Local import | CBZ, EPUB, PDF, TXT | CBR, CBT, CB7 |
+| OPDS acquisition | CBZ, EPUB, PDF, TXT when detectable | Unrecognised formats |
 
 ## Design implementation (active)
 
@@ -120,7 +120,8 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 No format enters the import picker or OPDS acquisition flow before this work is
 complete.
 
-- [ ] PDF reader with an independent PDF locator and progress persistence.
+- [x] PDF reader with an independent page locator and progress persistence,
+  using cross-platform `pdfrx` rendering.
 - [ ] Additional comic containers (CBR, CBT, CB7) after selecting supported,
   maintained decoding libraries per target platform.
 - [x] EPUB table of contents extraction and chapter jumps from navigation

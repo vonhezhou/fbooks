@@ -5,6 +5,7 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -371,8 +372,9 @@ class _DetailRow extends StatelessWidget {
 bool _isReadable(Publication publication) => switch (publication.format) {
   PublicationFormat.comicArchive ||
   PublicationFormat.epub ||
+  PublicationFormat.pdf ||
   PublicationFormat.text => true,
-  PublicationFormat.comicDirectory || PublicationFormat.pdf => false,
+  PublicationFormat.comicDirectory => false,
 };
 
 void _openReader(BuildContext context, Publication publication) {
@@ -389,7 +391,13 @@ void _openReader(BuildContext context, Publication publication) {
         title: publication.title,
       ),
     ),
-    PublicationFormat.comicDirectory || PublicationFormat.pdf => null,
+    PublicationFormat.pdf => MaterialPageRoute<void>(
+      builder: (context) => PdfReaderPage(
+        publicationId: publication.id,
+        title: publication.title,
+      ),
+    ),
+    PublicationFormat.comicDirectory => null,
   };
   if (route != null) {
     Navigator.of(context).push(route);
@@ -414,6 +422,7 @@ String _sourceLabel(Publication publication) {
 String _readingPositionLabel(ReadingProgress? progress) =>
     switch (progress?.locator) {
       ComicPageLocator(:final pageIndex) => 'Page ${pageIndex + 1}',
+      PdfPageLocator(:final pageNumber) => 'Page $pageNumber',
       TextOffsetLocator(:final chapterIndex) => 'Chapter ${chapterIndex + 1}',
       EpubCfiLocator() => 'Resume reading',
       null => 'Not opened yet',

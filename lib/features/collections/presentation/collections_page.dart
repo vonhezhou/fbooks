@@ -3,6 +3,7 @@ import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -786,8 +787,8 @@ bool _isReadable(Publication publication) => switch (publication.format) {
   PublicationFormat.comicArchive ||
   PublicationFormat.comicDirectory ||
   PublicationFormat.epub ||
+  PublicationFormat.pdf ||
   PublicationFormat.text => true,
-  PublicationFormat.pdf => false,
 };
 
 void _openPublication(BuildContext context, Publication publication) {
@@ -798,14 +799,11 @@ void _openPublication(BuildContext context, Publication publication) {
       publicationId: publication.id,
       title: publication.title,
     ),
-    PublicationFormat.pdf => null,
+    PublicationFormat.pdf => PdfReaderPage(
+      publicationId: publication.id,
+      title: publication.title,
+    ),
   };
-  if (page == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('PDF reading is not supported yet.')),
-    );
-    return;
-  }
   Navigator.of(context)
       .push(MaterialPageRoute<void>(builder: (context) => page));
 }

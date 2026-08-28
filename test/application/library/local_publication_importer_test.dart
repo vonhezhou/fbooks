@@ -77,10 +77,9 @@ void main() {
 
     final result = await importer.importCandidates(candidates.toList());
 
-    expect(result.imported, hasLength(3));
+    expect(result.imported, hasLength(4));
     expect(result.unsupported.map((candidate) => candidate.fileName), [
       'Comic.cbr',
-      'Book.pdf',
     ]);
   });
 }
