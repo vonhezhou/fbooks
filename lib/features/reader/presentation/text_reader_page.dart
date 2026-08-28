@@ -25,45 +25,50 @@ class TextReaderPage extends ConsumerWidget {
   final String title;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(textReaderSessionProvider(publicationId));
-    final preferences =
-        ref.watch(textReadingPreferencesProvider).asData?.value ??
-        TextReadingPreferences.defaults;
-    return Scaffold(
-      backgroundColor: _backgroundColor(preferences.appearance),
-      appBar: AppBar(
+  Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
+    builder: (context, constraints) {
+      final desktop = constraints.maxWidth >= 960;
+      final session = ref.watch(textReaderSessionProvider(publicationId));
+      final preferences =
+          ref.watch(textReadingPreferencesProvider).asData?.value ??
+          TextReadingPreferences.defaults;
+      return Scaffold(
         backgroundColor: _backgroundColor(preferences.appearance),
-        foregroundColor: _foregroundColor(preferences.appearance),
-        title: Text(title),
-        centerTitle: MediaQuery.sizeOf(context).width < 720,
-        actions: [
-          IconButton(
-            tooltip: 'Reading settings',
-            onPressed: () => _showTextReadingSettings(context, ref),
-            icon: const Icon(Icons.tune),
-          ),
-        ],
-      ),
-      body: session.when(
-        data: (value) => _TextChapterPager(
-          publicationId: publicationId,
-          session: value,
-          preferences: preferences,
+        appBar: AppBar(
+          toolbarHeight: desktop ? 64 : null,
+          backgroundColor: _backgroundColor(preferences.appearance),
+          foregroundColor: _foregroundColor(preferences.appearance),
+          title: Text(title, overflow: TextOverflow.ellipsis),
+          centerTitle: !desktop && constraints.maxWidth < 720,
+          actions: [
+            IconButton(
+              tooltip: 'Reading settings',
+              onPressed: () => _showTextReadingSettings(context, ref),
+              icon: const Icon(Icons.tune),
+            ),
+          ],
         ),
-        error: (error, stackTrace) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Unable to open this publication.\n$error',
-              textAlign: TextAlign.center,
+        body: session.when(
+          data: (value) => _TextChapterPager(
+            publicationId: publicationId,
+            session: value,
+            preferences: preferences,
+            desktop: desktop,
+          ),
+          error: (error, stackTrace) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'Unable to open this publication.\n$error',
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
+          loading: () => const Center(child: CircularProgressIndicator()),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-      ),
-    );
-  }
+      );
+    },
+  );
 }
 
 class _TextChapterPager extends ConsumerStatefulWidget {
@@ -71,11 +76,13 @@ class _TextChapterPager extends ConsumerStatefulWidget {
     required this.publicationId,
     required this.session,
     required this.preferences,
+    required this.desktop,
   });
 
   final PublicationId publicationId;
   final TextReaderSession session;
   final TextReadingPreferences preferences;
+  final bool desktop;
 
   @override
   ConsumerState<_TextChapterPager> createState() => _TextChapterPagerState();
@@ -156,6 +163,7 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
           onChapterSelected: _goToChapter,
           tableOfContents: widget.session.document.tableOfContents,
           appearance: widget.preferences.appearance,
+          desktop: widget.desktop,
         ),
       ],
     );
@@ -232,6 +240,7 @@ class _TextChapterControls extends StatelessWidget {
     required this.onChapterSelected,
     required this.tableOfContents,
     required this.appearance,
+    required this.desktop,
   });
 
   final int currentChapter;
@@ -239,57 +248,75 @@ class _TextChapterControls extends StatelessWidget {
   final ValueChanged<int> onChapterSelected;
   final List<TextTableOfContentsEntry> tableOfContents;
   final TextReadingAppearance appearance;
+  final bool desktop;
 
   @override
   Widget build(BuildContext context) {
     final canGoBack = currentChapter > 0;
     final canGoForward = currentChapter < chapterCount - 1;
+    final controls = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: [
+          if (tableOfContents.isNotEmpty)
+            IconButton(
+              tooltip: 'Table of contents',
+              onPressed: () => _showTableOfContents(
+                context,
+                tableOfContents,
+                onChapterSelected,
+              ),
+              icon: const Icon(Icons.format_list_bulleted),
+            ),
+          IconButton(
+            tooltip: 'Previous chapter',
+            onPressed: canGoBack
+                ? () => onChapterSelected(currentChapter - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Expanded(
+            child: Slider(
+              value: currentChapter.toDouble(),
+              min: 0,
+              max: (chapterCount - 1).toDouble(),
+              divisions: chapterCount > 1 ? chapterCount - 1 : null,
+              label: 'Chapter ${currentChapter + 1} of $chapterCount',
+              onChanged: chapterCount > 1
+                  ? (value) => onChapterSelected(value.round())
+                  : null,
+            ),
+          ),
+          Text('${currentChapter + 1} / $chapterCount'),
+          IconButton(
+            tooltip: 'Next chapter',
+            onPressed: canGoForward
+                ? () => onChapterSelected(currentChapter + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+    if (!desktop) {
+      return SafeArea(
+        top: false,
+        child: Material(color: _controlsColor(appearance), child: controls),
+      );
+    }
     return SafeArea(
       top: false,
-      child: Material(
-        color: _controlsColor(appearance),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(
-            children: [
-              if (tableOfContents.isNotEmpty)
-                IconButton(
-                  tooltip: 'Table of contents',
-                  onPressed: () => _showTableOfContents(
-                    context,
-                    tableOfContents,
-                    onChapterSelected,
-                  ),
-                  icon: const Icon(Icons.format_list_bulleted),
-                ),
-              IconButton(
-                tooltip: 'Previous chapter',
-                onPressed: canGoBack
-                    ? () => onChapterSelected(currentChapter - 1)
-                    : null,
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Expanded(
-                child: Slider(
-                  value: currentChapter.toDouble(),
-                  min: 0,
-                  max: (chapterCount - 1).toDouble(),
-                  divisions: chapterCount > 1 ? chapterCount - 1 : null,
-                  label: 'Chapter ${currentChapter + 1} of $chapterCount',
-                  onChanged: chapterCount > 1
-                      ? (value) => onChapterSelected(value.round())
-                      : null,
-                ),
-              ),
-              Text('${currentChapter + 1} / $chapterCount'),
-              IconButton(
-                tooltip: 'Next chapter',
-                onPressed: canGoForward
-                    ? () => onChapterSelected(currentChapter + 1)
-                    : null,
-                icon: const Icon(Icons.chevron_right),
-              ),
-            ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 0, 32, 20),
+        child: Center(
+          child: ConstrainedBox(
+            key: const Key('text-reader-desktop-controls'),
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Material(
+              color: _controlsColor(appearance),
+              borderRadius: BorderRadius.circular(14),
+              child: controls,
+            ),
           ),
         ),
       ),

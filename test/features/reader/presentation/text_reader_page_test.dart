@@ -86,6 +86,27 @@ void main() {
     expect(find.byType(Table), findsOneWidget);
     expect(find.text('Sales'), findsOneWidget);
   });
+
+  testWidgets('uses floating controls on desktop', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 820));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      _readerApp(
+        const TextDocument(
+          publicationId: _publicationId,
+          chapters: [TextChapter(index: 0, title: 'First', text: 'Read')],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('text-reader-desktop-controls')),
+      findsOneWidget,
+    );
+    expect(find.byTooltip('Reading settings'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 const _publicationId = 'linked-book';
