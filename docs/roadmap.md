@@ -129,7 +129,7 @@ complete.
   and navigation parsing instead of a hand-written ZIP/OPF parser.
 - [x] Follow internal EPUB hyperlinks by jumping to their target chapter.
 - [x] Render embedded EPUB spine images from packaged resources.
-- [ ] EPUB table rendering improvements.
+- [x] Render EPUB tables as horizontally scrollable table blocks.
 
 ## Deferred extensions
 

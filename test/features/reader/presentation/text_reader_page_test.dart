@@ -20,74 +20,106 @@ void main() {
   testWidgets('follows an internal EPUB link to its target chapter', (
     tester,
   ) async {
-    const publicationId = 'linked-book';
-    const publication = Publication(
-      id: publicationId,
-      source: LibrarySource(
-        id: 'local-library',
-        kind: LibrarySourceKind.local,
-        name: 'Local library',
-      ),
-      title: 'Linked book',
-      format: PublicationFormat.epub,
-    );
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          publicationRepositoryProvider.overrideWithValue(
-            _PublicationRepository(publication),
-          ),
-          textReaderSessionFactoryProvider.overrideWithValue(
-            _TextReaderSessionFactory(
-              TextDocument(
-                publicationId: publicationId,
-                chapters: [
-                  TextChapter(
-                    index: 0,
-                    title: 'First',
-                    text: 'Read the next chapter',
-                    segments: [
-                      TextSegment(
-                        text: 'Read the next chapter',
-                        linkTargetChapterIndex: 1,
-                      ),
-                      TextSegment(
-                        text: '',
-                        imageBytes: Uint8List.fromList(_pixelGif),
-                      ),
+      _readerApp(
+        const TextDocument(
+          publicationId: _publicationId,
+          chapters: [
+            TextChapter(
+              index: 0,
+              title: 'First',
+              text: 'Read the next chapter',
+              segments: [
+                TextSegment(
+                  text: 'Read the next chapter',
+                  linkTargetChapterIndex: 1,
+                ),
+              ],
+            ),
+            TextChapter(index: 1, title: 'Second', text: 'Arrival'),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Read the next chapter'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Second'), findsOneWidget);
+    expect(find.text('Arrival'), findsOneWidget);
+  });
+
+  testWidgets('renders embedded EPUB images and tables', (tester) async {
+    await tester.pumpWidget(
+      _readerApp(
+        TextDocument(
+          publicationId: _publicationId,
+          chapters: [
+            TextChapter(
+              index: 0,
+              title: 'Illustrated data',
+              text: '',
+              segments: [
+                TextSegment(
+                  text: '',
+                  imageBytes: Uint8List.fromList(_pixelGif),
+                ),
+                const TextSegment(
+                  text: '',
+                  table: TextTable(
+                    rows: [
+                      ['Year', 'Sales'],
+                      ['2025', '42'],
                     ],
                   ),
-                  TextChapter(index: 1, title: 'Second', text: 'Arrival'),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-          readingProgressRepositoryProvider.overrideWithValue(
-            _ReadingProgressRepository(),
-          ),
-          textReadingPreferencesRepositoryProvider.overrideWithValue(
-            _TextReadingPreferencesRepository(),
-          ),
-        ],
-        child: const MaterialApp(
-          home: TextReaderPage(
-            publicationId: publicationId,
-            title: 'Linked book',
-          ),
+          ],
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.byType(Image), findsOneWidget);
-    final readerText = find.byType(RichText).at(1);
-    await tester.tapAt(tester.getTopLeft(readerText) + const Offset(12, 12));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Second'), findsOneWidget);
-    expect(find.text('Arrival'), findsOneWidget);
+    expect(find.byType(Table), findsOneWidget);
+    expect(find.text('Sales'), findsOneWidget);
   });
 }
+
+const _publicationId = 'linked-book';
+
+const _publication = Publication(
+  id: _publicationId,
+  source: LibrarySource(
+    id: 'local-library',
+    kind: LibrarySourceKind.local,
+    name: 'Local library',
+  ),
+  title: 'Linked book',
+  format: PublicationFormat.epub,
+);
+
+Widget _readerApp(TextDocument document) => ProviderScope(
+  overrides: [
+    publicationRepositoryProvider.overrideWithValue(
+      _PublicationRepository(_publication),
+    ),
+    textReaderSessionFactoryProvider.overrideWithValue(
+      _TextReaderSessionFactory(document),
+    ),
+    readingProgressRepositoryProvider.overrideWithValue(
+      _ReadingProgressRepository(),
+    ),
+    textReadingPreferencesRepositoryProvider.overrideWithValue(
+      _TextReadingPreferencesRepository(),
+    ),
+  ],
+  child: const MaterialApp(
+    home: TextReaderPage(publicationId: _publicationId, title: 'Linked book'),
+  ),
+);
 
 final _pixelGif = Uint8List.fromList(const [
   71,

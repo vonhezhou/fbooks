@@ -44,7 +44,7 @@ void main() {
       ..addFile(
         _textArchiveFile(
           'OEBPS/first.xhtml',
-          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p><img src="images/pixel.gif" alt="A pixel" /></p><p><a href="second.xhtml#afterword">Read the next chapter</a></p><p>Second paragraph.</p></body></html>',
+          '<html><body><h1>First</h1><p>Hello <em>world</em>.</p><p><img src="images/pixel.gif" alt="A pixel" /></p><table><tr><th>Year</th><th>Sales</th></tr><tr><td>2025</td><td>42</td></tr></table><p><a href="second.xhtml#afterword">Read the next chapter</a></p><p>Second paragraph.</p></body></html>',
         ),
       )
       ..addFile(
@@ -85,6 +85,13 @@ void main() {
     );
     expect(imageSegment.imageMimeType, 'image/gif');
     expect(imageSegment.imageBytes, _pixelGif);
+    expect(
+      first.segments.singleWhere((segment) => segment.isTable).table?.rows,
+      [
+        ['Year', 'Sales'],
+        ['2025', '42'],
+      ],
+    );
     expect(session.document.tableOfContents.map((entry) => entry.title), [
       'Beginning',
       'Ending',

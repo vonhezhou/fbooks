@@ -492,6 +492,11 @@ List<InlineSpan> _chapterTextSpans(
           alignment: PlaceholderAlignment.middle,
           child: _InlineEpubImage(bytes: segment.imageBytes!),
         )
+      else if (segment.isTable)
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: _InlineEpubTable(table: segment.table!),
+        )
       else
         TextSpan(
           text: segment.text,
@@ -522,6 +527,45 @@ class _InlineEpubImage extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _InlineEpubTable extends StatelessWidget {
+  const _InlineEpubTable({required this.table});
+
+  final TextTable table;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = DefaultTextStyle.of(context).style.color;
+    final columnCount = table.rows.fold<int>(
+      0,
+      (count, row) => count > row.length ? count : row.length,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+          border: TableBorder.all(
+            color: foreground?.withValues(alpha: 0.3) ?? Colors.black26,
+          ),
+          defaultColumnWidth: const IntrinsicColumnWidth(),
+          children: [
+            for (final row in table.rows)
+              TableRow(
+                children: [
+                  for (var index = 0; index < columnCount; index++)
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Text(index < row.length ? row[index] : ''),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 TextStyle? _segmentTextStyle(TextStyle? baseStyle, TextSegment segment) {

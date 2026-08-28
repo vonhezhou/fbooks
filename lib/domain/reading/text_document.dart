@@ -47,6 +47,7 @@ class TextSegment {
     this.linkTargetChapterIndex,
     this.imageBytes,
     this.imageMimeType,
+    this.table,
   });
 
   final String text;
@@ -58,6 +59,15 @@ class TextSegment {
   /// The image referenced by an EPUB spine document, when available.
   final Uint8List? imageBytes;
   final String? imageMimeType;
+  final TextTable? table;
 
   bool get isImage => imageBytes != null;
+  bool get isTable => table != null;
+}
+
+/// A reflowable table extracted from an EPUB spine document.
+class TextTable {
+  const TextTable({required this.rows});
+
+  final List<List<String>> rows;
 }

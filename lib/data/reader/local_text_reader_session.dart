@@ -59,7 +59,9 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     for (final chapter in epubChapters) {
       final preview = _readEpubChapter(chapter, 0, const {}, images);
       if (preview.text.isNotEmpty ||
-          preview.segments.any((segment) => segment.isImage)) {
+          preview.segments.any(
+            (segment) => segment.isImage || segment.isTable,
+          )) {
         readableChapters.add(chapter);
       }
     }
@@ -118,7 +120,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
       images: images,
     );
     final body = segments
-        .where((segment) => !segment.isImage)
+        .where((segment) => !segment.isImage && !segment.isTable)
         .map((segment) => segment.text)
         .join()
         .replaceAll(RegExp(r'\n{3,}'), '\n\n')
@@ -147,7 +149,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
       return const [];
     }
     final segments = <TextSegment>[];
-    const blockSelector = 'p, li, blockquote, pre, figure, img';
+    const blockSelector = 'p, li, blockquote, pre, figure, img, table';
     final blocks = body
         .querySelectorAll(blockSelector)
         .where((block) => !_hasBlockAncestor(block))
@@ -173,7 +175,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
   }
 
   bool _hasBlockAncestor(dom.Element element) {
-    const blockElements = {'p', 'li', 'blockquote', 'pre', 'figure'};
+    const blockElements = {'p', 'li', 'blockquote', 'pre', 'figure', 'table'};
     dom.Node? ancestor = element.parent;
     while (ancestor is dom.Element) {
       if (blockElements.contains(ancestor.localName)) {
@@ -221,6 +223,18 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
             text: '',
             imageBytes: Uint8List.fromList(content),
             imageMimeType: image?.contentMimeType,
+          ),
+        );
+      }
+      return;
+    }
+    if (node.localName == 'table') {
+      final rows = _readTableRows(node);
+      if (rows.isNotEmpty) {
+        segments.add(
+          TextSegment(
+            text: '',
+            table: TextTable(rows: rows),
           ),
         );
       }
@@ -285,6 +299,14 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
         : path.posix.join(path.posix.dirname(sourceFileName), uri.path);
     return images[_normalizeEpubPath(imagePath)];
   }
+
+  List<List<String>> _readTableRows(dom.Element table) => [
+    for (final row in table.querySelectorAll('tr'))
+      [
+        for (final cell in row.querySelectorAll('th, td'))
+          cell.text.replaceAll(RegExp(r'\s+'), ' ').trim(),
+      ]..removeWhere((cell) => cell.isEmpty),
+  ]..removeWhere((row) => row.isEmpty);
 }
 
 class _LocalTextReaderSession implements TextReaderSession {
