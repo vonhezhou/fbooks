@@ -45,8 +45,9 @@ void main() {
       final duplicate = await importer.acquire(
         source: _source,
         publication: const OpdsPublication(
-          title: 'Remote book',
-          authors: ['Ada'],
+          title: 'Remote book, revised',
+          authors: ['Ada', 'Grace'],
+          description: 'Updated catalog metadata.',
           acquisitions: [],
         ),
         acquisition: acquisition,
@@ -65,6 +66,10 @@ void main() {
       expect(fetcher.credentials, credentials.value);
       expect(progress.single.fraction, 1);
       expect(duplicate.id, imported.id);
+      expect(duplicate.title, 'Remote book, revised');
+      expect(duplicate.authors, ['Ada', 'Grace']);
+      expect(duplicate.description, 'Updated catalog metadata.');
+      expect(duplicate.assets, imported.assets);
     },
   );
 

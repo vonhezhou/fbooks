@@ -112,7 +112,8 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   storage rather than SQLite.
 - [x] Show download progress and allow cancelling an OPDS acquisition without
   creating a library record or leaving a temporary file behind.
-- [ ] Refresh downloaded or remote metadata without creating duplicates.
+- [x] Refresh downloaded metadata from the matching OPDS acquisition without
+  creating duplicates, redownloading its local file, or changing its ID.
 
 ## Later: format expansion
 

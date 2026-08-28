@@ -88,7 +88,7 @@ class OpdsAcquisitionImporter {
       acquisition.href,
     );
     if (existing != null) {
-      return existing;
+      return _refreshMetadata(existing, source, publication);
     }
 
     final format = _detectFormat(acquisition);
@@ -151,6 +151,25 @@ class OpdsAcquisitionImporter {
       }
       rethrow;
     }
+  }
+
+  Future<Publication> _refreshMetadata(
+    Publication existing,
+    LibrarySource source,
+    OpdsPublication remote,
+  ) async {
+    final refreshed = Publication(
+      id: existing.id,
+      source: source,
+      title: remote.title,
+      authors: remote.authors,
+      format: existing.format,
+      description: remote.description,
+      coverUri: remote.coverUri,
+      assets: existing.assets,
+    );
+    await _publicationRepository.save(refreshed);
+    return refreshed;
   }
 
   Stream<Uint8List> _reportProgress(

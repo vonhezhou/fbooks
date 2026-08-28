@@ -298,7 +298,7 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
               ),
             )
           : IconButton(
-              tooltip: 'Download to library',
+              tooltip: 'Download to library or refresh metadata',
               onPressed: () => _download(acquisition),
               icon: const Icon(Icons.download_outlined),
             ),
