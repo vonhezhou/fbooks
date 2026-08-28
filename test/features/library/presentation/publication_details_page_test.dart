@@ -60,6 +60,46 @@ void main() {
     expect(find.text('An illustrated story about a garden.'), findsOneWidget);
     expect(find.text('Continue reading'), findsOneWidget);
   });
+
+  testWidgets('uses a constrained two-column layout on desktop', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const publicationId = 'the-garden';
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          readingProgressRepositoryProvider.overrideWithValue(
+            _FixedProgressRepository(null),
+          ),
+        ],
+        child: MaterialApp(
+          home: PublicationDetailsPage(
+            publication: const Publication(
+              id: publicationId,
+              source: LibrarySource(
+                id: 'local-library',
+                kind: LibrarySourceKind.local,
+                name: 'Local library',
+              ),
+              title: 'The Garden',
+              authors: ['Ada Lovelace'],
+              format: PublicationFormat.epub,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const Key('publication-details-desktop-content')),
+      findsOneWidget,
+    );
+    expect(find.text('Start reading'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _FixedProgressRepository implements ReadingProgressRepository {

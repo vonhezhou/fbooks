@@ -35,60 +35,85 @@ class PublicationDetailsPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: SafeArea(
+      body: LayoutBuilder(
+        builder: (context, constraints) => _PublicationDetailsContent(
+          publication: publication,
+          progress: progress,
+          desktop: constraints.maxWidth >= 960,
+        ),
+      ),
+    );
+  }
+}
+
+class _PublicationDetailsContent extends StatelessWidget {
+  const _PublicationDetailsContent({
+    required this.publication,
+    required this.progress,
+    required this.desktop,
+  });
+
+  final Publication publication;
+  final AsyncValue<ReadingProgress?> progress;
+  final bool desktop;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = Text(
+      publication.title,
+      style: Theme.of(context).textTheme.headlineMedium
+          ?.copyWith(fontWeight: FontWeight.w800),
+    );
+    final author = Text(
+      publication.authors.isEmpty
+          ? 'Unknown author'
+          : publication.authors.join(', '),
+      style: Theme.of(context).textTheme.titleMedium
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    );
+    final readingAction = FilledButton.icon(
+      onPressed: _isReadable(publication)
+          ? () => _openReader(context, publication)
+          : null,
+      icon: const Icon(Icons.menu_book_outlined),
+      label: Text(
+        progress.asData?.value == null ? 'Start reading' : 'Continue reading',
+      ),
+    );
+    final details = _DetailsCard(
+      children: [
+        _DetailRow(label: 'Format', value: _formatLabel(publication.format)),
+        _DetailRow(label: 'Source', value: _sourceLabel(publication)),
+        _DetailRow(
+          label: 'Last reading position',
+          value: progress.when(
+            data: _readingPositionLabel,
+            loading: () => 'Loading…',
+            error: (_, _) => 'Unavailable',
+          ),
+        ),
+      ],
+    );
+    final description = publication.description;
+
+    if (!desktop) {
+      return SafeArea(
         top: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 36),
           children: [
             Center(child: _PublicationCover(publication: publication)),
             const SizedBox(height: 28),
-            Text(
-              publication.title,
-              style: Theme.of(context).textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
+            title,
             const SizedBox(height: 8),
-            Text(
-              publication.authors.isEmpty
-                  ? 'Unknown author'
-                  : publication.authors.join(', '),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+            author,
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _isReadable(publication)
-                  ? () => _openReader(context, publication)
-                  : null,
-              icon: const Icon(Icons.menu_book_outlined),
-              label: Text(
-                progress.asData?.value == null
-                    ? 'Start reading'
-                    : 'Continue reading',
-              ),
-            ),
+            readingAction,
             const SizedBox(height: 28),
             Text('ABOUT', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
-            _DetailsCard(
-              children: [
-                _DetailRow(
-                  label: 'Format',
-                  value: _formatLabel(publication.format),
-                ),
-                _DetailRow(label: 'Source', value: _sourceLabel(publication)),
-                _DetailRow(
-                  label: 'Last reading position',
-                  value: progress.when(
-                    data: _readingPositionLabel,
-                    loading: () => 'Loading…',
-                    error: (_, _) => 'Unavailable',
-                  ),
-                ),
-              ],
-            ),
-            if (publication.description case final description?) ...[
+            details,
+            if (description != null) ...[
               const SizedBox(height: 28),
               Text(
                 'DESCRIPTION',
@@ -98,6 +123,56 @@ class PublicationDetailsPage extends ConsumerWidget {
               _DetailsCard(children: [Text(description)]),
             ],
           ],
+        ),
+      );
+    }
+
+    return SafeArea(
+      top: false,
+      child: Center(
+        child: ConstrainedBox(
+          key: const Key('publication-details-desktop-content'),
+          constraints: const BoxConstraints(maxWidth: 1080),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(48, 40, 48, 56),
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _PublicationCover(publication: publication, desktop: true),
+                  const SizedBox(width: 40),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          title,
+                          const SizedBox(height: 8),
+                          author,
+                          const SizedBox(height: 28),
+                          SizedBox(width: 220, child: readingAction),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+              Text('ABOUT', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              details,
+              if (description != null) ...[
+                const SizedBox(height: 28),
+                Text(
+                  'DESCRIPTION',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                _DetailsCard(children: [Text(description)]),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -211,9 +286,10 @@ Future<void> _confirmRemoval(
 }
 
 class _PublicationCover extends StatelessWidget {
-  const _PublicationCover({required this.publication});
+  const _PublicationCover({required this.publication, this.desktop = false});
 
   final Publication publication;
+  final bool desktop;
 
   @override
   Widget build(BuildContext context) {
@@ -222,8 +298,8 @@ class _PublicationCover extends StatelessWidget {
         coverUri != null &&
         (coverUri.scheme == 'http' || coverUri.scheme == 'https');
     return Container(
-      width: 184,
-      height: 260,
+      width: desktop ? 230 : 184,
+      height: desktop ? 326 : 260,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: _coverColor(publication.format),
