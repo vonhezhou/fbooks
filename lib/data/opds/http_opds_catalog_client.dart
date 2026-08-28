@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
+import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart';
 
@@ -11,12 +12,17 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
   final http.Client _client;
 
   @override
-  Future<OpdsCatalog> fetch(Uri endpoint) async {
+  Future<OpdsCatalog> fetch(
+    Uri endpoint, {
+    OpdsCredentials? credentials,
+  }) async {
     final response = await _client.get(
       endpoint,
-      headers: const {
+      headers: {
         'Accept':
             'application/opds+json, application/atom+xml, application/xml',
+        if (credentials != null)
+          'Authorization': credentials.authorizationHeader,
       },
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {

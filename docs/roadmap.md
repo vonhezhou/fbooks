@@ -107,8 +107,10 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   memberships, or reading state.
 - [x] Search titles and authors; filter local and OPDS publications by source
   and format; sort the library alphabetically.
-- [ ] OPDS catalog management: edit/remove a catalog, authentication strategy,
-  retries, download progress, and cancellation.
+- [x] OPDS catalog management: edit/remove an unused catalog, retry catalog
+  requests, and authenticate with Basic Auth credentials held in system secure
+  storage rather than SQLite.
+- [ ] Show download progress and allow cancelling an OPDS acquisition.
 - [ ] Refresh downloaded or remote metadata without creating duplicates.
 
 ## Later: format expansion

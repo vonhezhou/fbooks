@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/application/opds/opds_credentials.dart';
+import 'package:fbooks/application/opds/opds_credentials_repository.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -15,7 +17,13 @@ void main() {
       final repository = _MemoryPublicationRepository();
       final fetcher = _FakeRemoteAssetFetcher();
       final store = _FakeManagedAssetStore();
-      final importer = OpdsAcquisitionImporter(repository, fetcher, store);
+      final credentials = _FixedCredentialsRepository();
+      final importer = OpdsAcquisitionImporter(
+        repository,
+        fetcher,
+        store,
+        credentialsRepository: credentials,
+      );
       final acquisition = OpdsAcquisition(
         href: Uri.parse('https://books.example.org/book.epub'),
         mediaType: 'application/epub+zip',
@@ -52,6 +60,7 @@ void main() {
       );
       expect(store.savedBytes, [1, 2, 3]);
       expect(fetcher.fetchCount, 1);
+      expect(fetcher.credentials, credentials.value);
       expect(duplicate.id, imported.id);
     },
   );
@@ -66,16 +75,34 @@ final _source = LibrarySource(
 
 class _FakeRemoteAssetFetcher implements RemoteAssetFetcher {
   var fetchCount = 0;
+  OpdsCredentials? credentials;
 
   @override
-  Future<RemoteAssetResponse> fetch(Uri uri) async {
+  Future<RemoteAssetResponse> fetch(
+    Uri uri, {
+    OpdsCredentials? credentials,
+  }) async {
     fetchCount++;
+    this.credentials = credentials;
     return RemoteAssetResponse(
       bytes: Stream.value(Uint8List.fromList([1, 2, 3])),
       fileName: 'book.epub',
       mediaType: 'application/epub+zip',
     );
   }
+}
+
+class _FixedCredentialsRepository implements OpdsCredentialsRepository {
+  final value = const OpdsCredentials(username: 'ada', password: 'secret');
+
+  @override
+  Future<void> delete(String sourceId) async {}
+
+  @override
+  Future<OpdsCredentials?> load(String sourceId) async => value;
+
+  @override
+  Future<void> save(String sourceId, OpdsCredentials credentials) async {}
 }
 
 class _FakeManagedAssetStore implements ManagedAssetStore {

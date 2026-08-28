@@ -2,6 +2,8 @@ import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/library/local_publication_repairer.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/application/opds/opds_catalog_request.dart';
+import 'package:fbooks/application/opds/opds_credentials_repository.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
@@ -10,6 +12,7 @@ import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_text_reading_preferences_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_app_settings_repository.dart';
+import 'package:fbooks/data/preferences/secure_opds_credentials_repository.dart';
 import 'package:fbooks/data/persistence/drift_publication_repository.dart';
 import 'package:fbooks/data/persistence/drift_book_collection_repository.dart';
 import 'package:fbooks/data/persistence/drift_reading_progress_repository.dart';
@@ -75,6 +78,10 @@ final managedAssetStoreProvider = Provider<ManagedAssetStore>(
   (ref) => AppSupportManagedAssetStore(),
 );
 
+final opdsCredentialsRepositoryProvider = Provider<OpdsCredentialsRepository>(
+  (ref) => SecureOpdsCredentialsRepository(),
+);
+
 final opdsAcquisitionImporterProvider = Provider<OpdsAcquisitionImporter>((
   ref,
 ) {
@@ -82,6 +89,7 @@ final opdsAcquisitionImporterProvider = Provider<OpdsAcquisitionImporter>((
     ref.watch(publicationRepositoryProvider),
     ref.watch(remoteAssetFetcherProvider),
     ref.watch(managedAssetStoreProvider),
+    credentialsRepository: ref.watch(opdsCredentialsRepositoryProvider),
   );
 });
 
@@ -197,6 +205,15 @@ final textReaderSessionProvider =
       return ref.watch(textReaderSessionFactoryProvider).open(publication);
     });
 
-final opdsCatalogProvider = FutureProvider.family<OpdsCatalog, Uri>(
-  (ref, endpoint) => ref.watch(opdsCatalogClientProvider).fetch(endpoint),
-);
+final opdsCatalogProvider =
+    FutureProvider.family<OpdsCatalog, OpdsCatalogRequest>((
+      ref,
+      request,
+    ) async {
+      final credentials = await ref
+          .watch(opdsCredentialsRepositoryProvider)
+          .load(request.sourceId);
+      return ref
+          .watch(opdsCatalogClientProvider)
+          .fetch(request.endpoint, credentials: credentials);
+    });

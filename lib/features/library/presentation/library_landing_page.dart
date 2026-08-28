@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -240,19 +241,43 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   }
 
   Future<void> _connectOpdsCatalog() async {
-    final controller = TextEditingController();
-    final endpointText = await showDialog<String>(
+    final endpointController = TextEditingController();
+    final usernameController = TextEditingController();
+    final passwordController = TextEditingController();
+    final connect = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Connect OPDS catalog'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'https://example.com/opds',
-            labelText: 'Catalog URL',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: endpointController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'https://example.com/opds',
+                  labelText: 'Catalog URL',
+                ),
+                keyboardType: TextInputType.url,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username (optional)',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password (optional)',
+                ),
+                obscureText: true,
+              ),
+            ],
           ),
-          keyboardType: TextInputType.url,
         ),
         actions: [
           TextButton(
@@ -260,14 +285,19 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
+            onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Connect'),
           ),
         ],
       ),
     );
-    controller.dispose();
-    if (endpointText == null || !mounted) {
+    final endpointText = endpointController.text;
+    final username = usernameController.text.trim();
+    final password = passwordController.text;
+    endpointController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    if (connect != true || !mounted) {
       return;
     }
 
@@ -281,22 +311,33 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       return;
     }
 
-    await ref
-        .read(librarySourceRepositoryProvider)
-        .save(
-          LibrarySource(
-            id: 'opds:$endpoint',
-            kind: LibrarySourceKind.opds,
-            name: endpoint.host,
-            endpoint: endpoint,
-          ),
-        );
+    if (username.isNotEmpty != password.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter both a username and password.')),
+      );
+      return;
+    }
+    final source = LibrarySource(
+      id: 'opds:$endpoint',
+      kind: LibrarySourceKind.opds,
+      name: endpoint.host,
+      endpoint: endpoint,
+    );
+    await ref.read(librarySourceRepositoryProvider).save(source);
+    if (username.isNotEmpty) {
+      await ref
+          .read(opdsCredentialsRepositoryProvider)
+          .save(
+            source.id,
+            OpdsCredentials(username: username, password: password),
+          );
+    }
     if (!mounted) {
       return;
     }
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => OpdsCatalogPage(endpoint: endpoint),
+        builder: (context) => OpdsCatalogPage(source: source),
       ),
     );
   }
@@ -318,7 +359,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       return;
     }
 
-    final endpoint = await showModalBottomSheet<Uri>(
+    final selectedSource = await showModalBottomSheet<LibrarySource>(
       context: context,
       builder: (context) => ListView(
         children: [
@@ -328,17 +369,17 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
               leading: const Icon(Icons.cloud_outlined),
               title: Text(source.name),
               subtitle: Text(source.endpoint.toString()),
-              onTap: () => Navigator.of(context).pop(source.endpoint),
+              onTap: () => Navigator.of(context).pop(source),
             ),
         ],
       ),
     );
-    if (endpoint == null || !mounted) {
+    if (selectedSource == null || !mounted) {
       return;
     }
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (context) => OpdsCatalogPage(endpoint: endpoint),
+        builder: (context) => OpdsCatalogPage(source: selectedSource),
       ),
     );
   }

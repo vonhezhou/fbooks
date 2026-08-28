@@ -1,4 +1,5 @@
 import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
+import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -72,6 +73,20 @@ void main() {
     expect(
       catalog.publications.single.coverUri,
       Uri.parse('https://books.example.org/opds/covers/book.jpg'),
+    );
+  });
+
+  test('sends Basic credentials when a catalog requires them', () async {
+    final client = HttpOpdsCatalogClient(
+      MockClient((request) async {
+        expect(request.headers['authorization'], 'Basic YWRhOnNlY3JldA==');
+        return http.Response('{"metadata": {"title": "Library"}}', 200);
+      }),
+    );
+
+    await client.fetch(
+      Uri.parse('https://books.example.org/opds/root.json'),
+      credentials: const OpdsCredentials(username: 'ada', password: 'secret'),
     );
   });
 }

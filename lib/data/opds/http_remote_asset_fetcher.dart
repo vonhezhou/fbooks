@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -10,8 +11,15 @@ class HttpRemoteAssetFetcher implements RemoteAssetFetcher {
   final http.Client _client;
 
   @override
-  Future<RemoteAssetResponse> fetch(Uri uri) async {
-    final response = await _client.send(http.Request('GET', uri));
+  Future<RemoteAssetResponse> fetch(
+    Uri uri, {
+    OpdsCredentials? credentials,
+  }) async {
+    final request = http.Request('GET', uri);
+    if (credentials != null) {
+      request.headers['Authorization'] = credentials.authorizationHeader;
+    }
+    final response = await _client.send(request);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw http.ClientException(
         'Download returned ${response.statusCode}',

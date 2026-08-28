@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
+import 'package:fbooks/application/opds/opds_credentials.dart';
+import 'package:fbooks/application/opds/opds_credentials_repository.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -22,7 +24,7 @@ class RemoteAssetResponse {
 }
 
 abstract interface class RemoteAssetFetcher {
-  Future<RemoteAssetResponse> fetch(Uri uri);
+  Future<RemoteAssetResponse> fetch(Uri uri, {OpdsCredentials? credentials});
 }
 
 abstract interface class ManagedAssetStore {
@@ -40,12 +42,14 @@ class OpdsAcquisitionImporter {
     this._publicationRepository,
     this._remoteAssetFetcher,
     this._managedAssetStore, {
+    required this._credentialsRepository,
     Uuid? uuid,
   }) : _uuid = uuid ?? const Uuid();
 
   final PublicationRepository _publicationRepository;
   final RemoteAssetFetcher _remoteAssetFetcher;
   final ManagedAssetStore _managedAssetStore;
+  final OpdsCredentialsRepository _credentialsRepository;
   final Uuid _uuid;
 
   Future<Publication> acquire({
@@ -70,7 +74,11 @@ class OpdsAcquisitionImporter {
     final publicationId = _uuid.v4();
     final remoteAssetId = _uuid.v4();
     final localAssetId = _uuid.v4();
-    final response = await _remoteAssetFetcher.fetch(acquisition.href);
+    final credentials = await _credentialsRepository.load(source.id);
+    final response = await _remoteAssetFetcher.fetch(
+      acquisition.href,
+      credentials: credentials,
+    );
     Uri? localLocation;
     try {
       localLocation = await _managedAssetStore.save(
