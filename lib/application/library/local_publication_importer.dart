@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/reader/comic_archive_metadata.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -44,6 +45,7 @@ class LocalPublicationImporter {
   LocalPublicationImporter(
     this._repository,
     this._managedAssetStore, {
+    this.comicArchiveMetadataReader,
     Uuid? uuid,
   }) : _uuid = uuid ?? const Uuid();
 
@@ -55,6 +57,7 @@ class LocalPublicationImporter {
 
   final PublicationRepository _repository;
   final ManagedAssetStore _managedAssetStore;
+  final ComicArchiveMetadataReader? comicArchiveMetadataReader;
   final Uuid _uuid;
 
   Future<LocalPublicationImportResult> importCandidates(
@@ -88,7 +91,7 @@ class LocalPublicationImporter {
               .openRead()
               .map(Uint8List.fromList),
         );
-        final publication = Publication(
+        var publication = Publication(
           id: publicationId,
           source: _localSource,
           title: path.basenameWithoutExtension(candidate.fileName),
@@ -110,6 +113,14 @@ class LocalPublicationImporter {
             ),
           ],
         );
+        if (format == PublicationFormat.comicArchive) {
+          final metadata = await comicArchiveMetadataReader?.read(
+            candidate.location,
+          );
+          if (metadata != null) {
+            publication = metadata.applyTo(publication);
+          }
+        }
         await _repository.save(publication);
         imported.add(publication);
         _logger.info('Local import completed: format=${format.name}.');

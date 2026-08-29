@@ -7,6 +7,8 @@ abstract interface class ComicReaderSession {
   ComicDocument get document;
 
   Future<Uint8List> readPage(int pageIndex);
+
+  Future<void> close();
 }
 
 abstract interface class ComicReaderSessionFactory {

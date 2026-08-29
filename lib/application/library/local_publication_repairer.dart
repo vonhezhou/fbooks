@@ -8,6 +8,7 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
@@ -18,11 +19,14 @@ class LocalPublicationRepairer {
   LocalPublicationRepairer(
     this._repository,
     this._managedAssetStore, {
+    required this.comicArchiveFileNameEncodingRepository,
     Uuid? uuid,
   }) : _uuid = uuid ?? const Uuid();
 
   final PublicationRepository _repository;
   final ManagedAssetStore _managedAssetStore;
+  final ComicArchiveFileNameEncodingRepository
+  comicArchiveFileNameEncodingRepository;
   final Uuid _uuid;
 
   Future<Publication> repair({
@@ -116,6 +120,7 @@ class LocalPublicationRepairer {
         assets: repairedAssets,
       );
       await _repository.save(repaired);
+      await comicArchiveFileNameEncodingRepository.delete(publicationId);
       if (previousAsset.kind.isManagedByFbooks) {
         try {
           await _managedAssetStore.delete(previousAsset.location);

@@ -25,3 +25,12 @@
 - For responsive window chrome, add a widget test that resizes from the wide
   desktop shell to the compact shell and asserts that no layout exception is
   reported.
+
+## 2026-08-29 — Compare legacy reader support by executable path
+
+- When auditing whether a reader capability was inherited, follow the complete
+  picker → importer → provider → session path; an enum value, presentation
+  label, or archived helper alone is not evidence that the format is usable.
+- For archive-memory claims, inspect the archive package's actual file-backed
+  and lazy-decompression behavior before proposing a replacement; distinguish
+  lazy ZIP entry access from caching decompressed page bytes in the session.

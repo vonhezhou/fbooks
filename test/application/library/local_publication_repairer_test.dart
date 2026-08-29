@@ -8,6 +8,7 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -37,9 +38,11 @@ void main() {
           ],
         );
         final repository = _MemoryPublicationRepository([original]);
+        final encodingRepository = _EncodingRepository();
         final repairer = LocalPublicationRepairer(
           repository,
           _FakeManagedAssetStore(),
+          comicArchiveFileNameEncodingRepository: encodingRepository,
         );
 
         final repaired = await repairer.repair(
@@ -71,6 +74,7 @@ void main() {
               .path,
           startsWith('/managed/'),
         );
+        expect(encodingRepository.deletedPublicationIds, [original.id]);
       },
     );
 
@@ -79,6 +83,7 @@ void main() {
       final repairer = LocalPublicationRepairer(
         repository,
         _FakeManagedAssetStore(),
+        comicArchiveFileNameEncodingRepository: _EncodingRepository(),
       );
 
       expect(
@@ -118,6 +123,7 @@ void main() {
         final repairer = LocalPublicationRepairer(
           repository,
           _FakeManagedAssetStore(),
+          comicArchiveFileNameEncodingRepository: _EncodingRepository(),
         );
 
         expect(
@@ -204,4 +210,19 @@ class _FakeManagedAssetStore implements ManagedAssetStore {
     required String fileName,
     required Stream<Uint8List> bytes,
   }) async => Uri.file('/managed/$assetId.$fileName');
+}
+
+class _EncodingRepository implements ComicArchiveFileNameEncodingRepository {
+  final deletedPublicationIds = <PublicationId>[];
+
+  @override
+  Future<void> delete(PublicationId publicationId) async {
+    deletedPublicationIds.add(publicationId);
+  }
+
+  @override
+  Future<String?> load(PublicationId publicationId) async => null;
+
+  @override
+  Future<void> save(PublicationId publicationId, String? encodingName) async {}
 }

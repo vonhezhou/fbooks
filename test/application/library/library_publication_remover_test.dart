@@ -7,6 +7,7 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -14,12 +15,18 @@ void main() {
     test('retains a locally imported original file', () async {
       final repository = _MemoryPublicationRepository(_localPublication);
       final store = _RecordingManagedAssetStore();
-      final remover = LibraryPublicationRemover(repository, store);
+      final encodingRepository = _EncodingRepository();
+      final remover = LibraryPublicationRemover(
+        repository,
+        store,
+        encodingRepository,
+      );
 
       await remover.remove(_localPublication.id, deleteManagedFiles: true);
 
       expect(await repository.findById(_localPublication.id), isNull);
       expect(store.deletedLocations, isEmpty);
+      expect(encodingRepository.deletedPublicationIds, [_localPublication.id]);
     });
 
     test(
@@ -47,7 +54,11 @@ void main() {
         );
         final repository = _MemoryPublicationRepository(publication);
         final store = _RecordingManagedAssetStore();
-        final remover = LibraryPublicationRemover(repository, store);
+        final remover = LibraryPublicationRemover(
+          repository,
+          store,
+          _EncodingRepository(),
+        );
 
         await remover.remove(publication.id, deleteManagedFiles: false);
 
@@ -58,7 +69,11 @@ void main() {
     test('can delete only the managed file for an OPDS download', () async {
       final repository = _MemoryPublicationRepository(_opdsPublication);
       final store = _RecordingManagedAssetStore();
-      final remover = LibraryPublicationRemover(repository, store);
+      final remover = LibraryPublicationRemover(
+        repository,
+        store,
+        _EncodingRepository(),
+      );
 
       final result = await remover.remove(
         _opdsPublication.id,
@@ -73,7 +88,11 @@ void main() {
     test('reports a managed file that could not be deleted', () async {
       final repository = _MemoryPublicationRepository(_opdsPublication);
       final store = _RecordingManagedAssetStore(throwOnDelete: true);
-      final remover = LibraryPublicationRemover(repository, store);
+      final remover = LibraryPublicationRemover(
+        repository,
+        store,
+        _EncodingRepository(),
+      );
 
       final result = await remover.remove(
         _opdsPublication.id,
@@ -83,6 +102,21 @@ void main() {
       expect(result.filesNotDeleted, [Uri.file('/managed/download.epub')]);
     });
   });
+}
+
+class _EncodingRepository implements ComicArchiveFileNameEncodingRepository {
+  final deletedPublicationIds = <String>[];
+
+  @override
+  Future<void> delete(String publicationId) async {
+    deletedPublicationIds.add(publicationId);
+  }
+
+  @override
+  Future<String?> load(String publicationId) async => null;
+
+  @override
+  Future<void> save(String publicationId, String? encodingName) async {}
 }
 
 final _localPublication = Publication(

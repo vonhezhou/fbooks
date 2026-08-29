@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/library/local_publication_repairer.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
@@ -7,10 +9,12 @@ import 'package:fbooks/application/opds/opds_credentials_repository.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
+import 'package:fbooks/application/reader/comic_archive_metadata.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/app/window/window_controller.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
+import 'package:fbooks/data/preferences/shared_preferences_comic_archive_file_name_encoding_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_text_reading_preferences_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_app_settings_repository.dart';
 import 'package:fbooks/data/preferences/secure_opds_credentials_repository.dart';
@@ -22,6 +26,7 @@ import 'package:fbooks/data/persistence/local_database.dart';
 import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
 import 'package:fbooks/data/opds/http_remote_asset_fetcher.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
+import 'package:fbooks/data/reader/archive_comic_metadata_reader.dart';
 import 'package:fbooks/data/reader/local_flow_reading_session.dart';
 import 'package:fbooks/data/storage/managed_asset_store.dart';
 import 'package:fbooks/domain/publication/publication.dart';
@@ -34,6 +39,7 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences_repository.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences_repository.dart';
 import 'package:fbooks/domain/settings/app_settings.dart';
@@ -115,6 +121,15 @@ final appSettingsRepositoryProvider = Provider<AppSettingsRepository>((ref) {
   return SharedPreferencesAppSettingsRepository();
 });
 
+final comicArchiveFileNameEncodingRepositoryProvider =
+    Provider<ComicArchiveFileNameEncodingRepository>((ref) {
+      return SharedPreferencesComicArchiveFileNameEncodingRepository();
+    });
+
+final comicArchiveMetadataReaderProvider = Provider<ComicArchiveMetadataReader>(
+  (ref) => ArchiveComicMetadataReader(),
+);
+
 final textReadingPreferencesRepositoryProvider =
     Provider<TextReadingPreferencesRepository>((ref) {
       return SharedPreferencesTextReadingPreferencesRepository();
@@ -130,6 +145,7 @@ final localPublicationImporterProvider = Provider<LocalPublicationImporter>((
   return LocalPublicationImporter(
     ref.watch(publicationRepositoryProvider),
     ref.watch(managedAssetStoreProvider),
+    comicArchiveMetadataReader: ref.watch(comicArchiveMetadataReaderProvider),
   );
 });
 
@@ -137,6 +153,7 @@ final libraryPublicationRemoverProvider = Provider<LibraryPublicationRemover>(
   (ref) => LibraryPublicationRemover(
     ref.watch(publicationRepositoryProvider),
     ref.watch(managedAssetStoreProvider),
+    ref.watch(comicArchiveFileNameEncodingRepositoryProvider),
   ),
 );
 
@@ -144,11 +161,16 @@ final localPublicationRepairerProvider = Provider<LocalPublicationRepairer>(
   (ref) => LocalPublicationRepairer(
     ref.watch(publicationRepositoryProvider),
     ref.watch(managedAssetStoreProvider),
+    comicArchiveFileNameEncodingRepository: ref.watch(
+      comicArchiveFileNameEncodingRepositoryProvider,
+    ),
   ),
 );
 
 final comicReaderSessionFactoryProvider = Provider<ComicReaderSessionFactory>(
-  (ref) => ArchiveComicReaderSessionFactory(),
+  (ref) => ArchiveComicReaderSessionFactory(
+    ref.watch(comicArchiveFileNameEncodingRepositoryProvider),
+  ),
 );
 
 final flowReadingSessionFactoryProvider = Provider<FlowReadingSessionFactory>(
@@ -181,7 +203,11 @@ final comicReaderSessionProvider =
       if (publication == null) {
         throw StateError('Publication $publicationId was not found');
       }
-      return ref.watch(comicReaderSessionFactoryProvider).open(publication);
+      final session = await ref
+          .watch(comicReaderSessionFactoryProvider)
+          .open(publication);
+      ref.onDispose(() => unawaited(session.close()));
+      return session;
     });
 
 final readingProgressProvider =

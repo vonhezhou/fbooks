@@ -7,6 +7,8 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:fbooks/domain/reading/comic_document.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
@@ -24,6 +26,7 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(1200, 820));
     addTearDown(() => tester.binding.setSurfaceSize(null));
+    final archiveEncodingRepository = _ArchiveEncodingRepository();
 
     const publication = Publication(
       id: 'bobby',
@@ -46,6 +49,9 @@ void main() {
           ),
           comicReadingPreferencesRepositoryProvider.overrideWithValue(
             _ComicReadingPreferencesRepository(),
+          ),
+          comicArchiveFileNameEncodingRepositoryProvider.overrideWithValue(
+            archiveEncodingRepository,
           ),
           readingProgressRepositoryProvider.overrideWithValue(
             const _ReadingProgressRepository(),
@@ -85,6 +91,13 @@ void main() {
       find.byKey(const Key('comic-reading-settings-surface')),
     );
     expect(surface.color, const Color(0xFF202124));
+    await tester.tap(
+      find.byType(DropdownButtonFormField<ComicArchiveFileNameEncoding>),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('GBK / GB18030').last);
+    await tester.pumpAndSettle();
+    expect(archiveEncodingRepository.values['bobby'], 'gbk');
     expect(tester.takeException(), isNull);
   });
 
@@ -313,6 +326,9 @@ class _ComicReaderSession implements ComicReaderSession {
     96,
     130,
   ]);
+
+  @override
+  Future<void> close() async {}
 }
 
 class _ComicReadingPreferencesRepository
@@ -329,6 +345,29 @@ class _ComicReadingPreferencesRepository
   @override
   Future<void> save(ComicReadingPreferences preferences) async {
     this.preferences = preferences;
+  }
+}
+
+class _ArchiveEncodingRepository
+    implements ComicArchiveFileNameEncodingRepository {
+  final values = <String, String>{};
+
+  @override
+  Future<void> delete(PublicationId publicationId) async {
+    values.remove(publicationId);
+  }
+
+  @override
+  Future<String?> load(PublicationId publicationId) async =>
+      values[publicationId];
+
+  @override
+  Future<void> save(PublicationId publicationId, String? encodingName) async {
+    if (encodingName == null) {
+      values.remove(publicationId);
+    } else {
+      values[publicationId] = encodingName;
+    }
   }
 }
 

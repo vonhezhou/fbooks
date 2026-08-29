@@ -122,6 +122,11 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 No format enters the import picker or OPDS acquisition flow before this work is
 complete.
 
+- [ ] Add lightweight image-directory import: recursively package a selected
+  local image directory into an app-managed CBZ while preserving ordinary files
+  and relative paths, then reuse the CBZ import and reader flow. The original
+  directory remains unchanged; do not introduce direct `comicDirectory`
+  reading as a long-term format.
 - [x] PDF reader with an independent page locator and progress persistence,
   using cross-platform `pdfrx` rendering.
 - [ ] Defer additional comic containers (CBR, CBT, CB7). CBZ is the primary

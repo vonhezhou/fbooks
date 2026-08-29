@@ -113,6 +113,14 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "1.4.0"
+  charset:
+    dependency: "direct main"
+    description:
+      name: charset
+      sha256: "27802032a581e01ac565904ece8c8962564b1070690794f0072f6865958ce8b9"
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
+    source: hosted
+    version: "2.0.1"
   checked_yaml:
     dependency: transitive
     description:
@@ -209,6 +217,14 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "1.0.9"
+  dart_big5:
+    dependency: "direct main"
+    description:
+      name: dart_big5
+      sha256: "40fd488d730318d182a6cc063255221e62313caeee4e19dc7ef6567b7318d824"
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
+    source: hosted
+    version: "0.0.5"
   dart_style:
     dependency: transitive
     description:
@@ -1138,6 +1154,15 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "1.4.0"
+  uchardet:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "6231123c0fb96c0c9f560605022d9f9da9e488d3"
+      url: "https://github.com/vonhezhou/uchardet.git"
+    source: git
+    version: "0.0.8"
   url_launcher:
     dependency: transitive
     description:

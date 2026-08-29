@@ -4,16 +4,23 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('library.removal');
 
 /// Removes a library record and, when requested, its app-managed OPDS download.
 class LibraryPublicationRemover {
-  LibraryPublicationRemover(this._repository, this._managedAssetStore);
+  LibraryPublicationRemover(
+    this._repository,
+    this._managedAssetStore,
+    this._comicArchiveFileNameEncodingRepository,
+  );
 
   final PublicationRepository _repository;
   final ManagedAssetStore _managedAssetStore;
+  final ComicArchiveFileNameEncodingRepository
+  _comicArchiveFileNameEncodingRepository;
 
   Future<PublicationRemovalResult> remove(
     PublicationId publicationId, {
@@ -29,6 +36,7 @@ class LibraryPublicationRemover {
       deleteManagedFiles: deleteManagedFiles,
     );
     await _repository.delete(publicationId);
+    await _comicArchiveFileNameEncodingRepository.delete(publicationId);
 
     final filesNotDeleted = <Uri>[];
     for (final location in filesToDelete) {

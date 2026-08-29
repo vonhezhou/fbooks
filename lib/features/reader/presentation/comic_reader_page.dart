@@ -11,6 +11,7 @@ import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding.dart';
 import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -45,8 +46,12 @@ class ComicReaderPage extends ConsumerWidget {
           actions: [
             IconButton(
               tooltip: AppLocalizations.of(context).readingSettings,
-              onPressed: () =>
-                  _showComicReadingSettings(context, ref, desktop: desktop),
+              onPressed: () => _showComicReadingSettings(
+                context,
+                ref,
+                publicationId: publicationId,
+                desktop: desktop,
+              ),
               icon: const Icon(Icons.tune),
             ),
           ],
@@ -605,20 +610,30 @@ class _ComicImage extends StatelessWidget {
 Future<void> _showComicReadingSettings(
   BuildContext context,
   WidgetRef ref, {
+  required PublicationId publicationId,
   required bool desktop,
 }) {
   return showReaderSettingsSurface(
     context,
     desktop: desktop,
     desktopKey: const Key('comic-reader-desktop-settings'),
-    child: _ComicReadingSettingsPanel(ref: ref, desktop: desktop),
+    child: _ComicReadingSettingsPanel(
+      ref: ref,
+      publicationId: publicationId,
+      desktop: desktop,
+    ),
   );
 }
 
 class _ComicReadingSettingsPanel extends StatefulWidget {
-  const _ComicReadingSettingsPanel({required this.ref, required this.desktop});
+  const _ComicReadingSettingsPanel({
+    required this.ref,
+    required this.publicationId,
+    required this.desktop,
+  });
 
   final WidgetRef ref;
+  final PublicationId publicationId;
   final bool desktop;
 
   @override
@@ -629,6 +644,7 @@ class _ComicReadingSettingsPanel extends StatefulWidget {
 class _ComicReadingSettingsPanelState
     extends State<_ComicReadingSettingsPanel> {
   late ComicReadingPreferences preferences;
+  var fileNameEncoding = ComicArchiveFileNameEncoding.auto;
 
   @override
   void initState() {
@@ -636,12 +652,35 @@ class _ComicReadingSettingsPanelState
     preferences =
         widget.ref.read(comicReadingPreferencesProvider).asData?.value ??
         ComicReadingPreferences.defaults;
+    _loadFileNameEncoding();
+  }
+
+  Future<void> _loadFileNameEncoding() async {
+    final value = await widget.ref
+        .read(comicArchiveFileNameEncodingRepositoryProvider)
+        .load(widget.publicationId);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      fileNameEncoding = ComicArchiveFileNameEncodingX.fromStorageName(value);
+    });
   }
 
   Future<void> _update(ComicReadingPreferences next) async {
     setState(() => preferences = next);
     await widget.ref.read(comicReadingPreferencesRepositoryProvider).save(next);
     widget.ref.invalidate(comicReadingPreferencesProvider);
+  }
+
+  Future<void> _updateFileNameEncoding(
+    ComicArchiveFileNameEncoding next,
+  ) async {
+    setState(() => fileNameEncoding = next);
+    await widget.ref
+        .read(comicArchiveFileNameEncodingRepositoryProvider)
+        .save(widget.publicationId, next.storageName);
+    widget.ref.invalidate(comicReaderSessionProvider(widget.publicationId));
   }
 
   @override
@@ -715,6 +754,30 @@ class _ComicReadingSettingsPanelState
                       ? null
                       : (value) =>
                             _update(preferences.copyWith(doublePage: value)),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: 300,
+                  child: DropdownButtonFormField<ComicArchiveFileNameEncoding>(
+                    key: ValueKey(fileNameEncoding),
+                    initialValue: fileNameEncoding,
+                    decoration: const InputDecoration(
+                      labelText: 'Archive file name encoding',
+                    ),
+                    items: [
+                      for (final encoding
+                          in ComicArchiveFileNameEncoding.values)
+                        DropdownMenuItem(
+                          value: encoding,
+                          child: Text(encoding.displayName),
+                        ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        _updateFileNameEncoding(value);
+                      }
+                    },
+                  ),
                 ),
               ],
             ),

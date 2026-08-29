@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/reader/comic_archive_metadata.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -92,6 +93,26 @@ void main() {
     ]);
 
     expect(store.savedBytes, [70, 98, 111, 111, 107, 115]);
+  });
+
+  test('uses ComicInfo metadata when importing a CBZ', () async {
+    final repository = _MemoryPublicationRepository();
+    final importer = LocalPublicationImporter(
+      repository,
+      _FakeManagedAssetStore(),
+      comicArchiveMetadataReader: _ComicMetadataReader(),
+    );
+
+    final result = await importer.importCandidates([
+      LocalPublicationCandidate(
+        fileName: 'fallback.cbz',
+        location: Uri.file('/books/fallback.cbz'),
+      ),
+    ]);
+
+    expect(result.imported.single.title, 'ComicInfo title');
+    expect(result.imported.single.authors, ['Writer']);
+    expect(result.imported.single.description, 'Summary');
   });
 
   test(
@@ -201,4 +222,14 @@ class _RecordingManagedAssetStore implements ManagedAssetStore {
     savedBytes = await bytes.expand((chunk) => chunk).toList();
     return Uri.file('/managed/$assetId.$fileName');
   }
+}
+
+class _ComicMetadataReader implements ComicArchiveMetadataReader {
+  @override
+  Future<ComicArchiveMetadata?> read(Uri location) async =>
+      const ComicArchiveMetadata(
+        title: 'ComicInfo title',
+        author: 'Writer',
+        description: 'Summary',
+      );
 }

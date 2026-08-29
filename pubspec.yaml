@@ -38,6 +38,8 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   archive: ^4.0.7
+  charset: ^2.0.1
+  dart_big5: ^0.0.5
   drift: ^2.30.0
   drift_flutter: ^0.2.7
   file_picker: ^10.3.3
@@ -57,6 +59,10 @@ dependencies:
   flutter_html_table: ^3.0.0
   pdfrx: 2.4.8
   window_manager: ^0.5.2
+  uchardet:
+    git:
+      url: https://github.com/vonhezhou/uchardet.git
+      ref: main
 
 dev_dependencies:
   flutter_test:

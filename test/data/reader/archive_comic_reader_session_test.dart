@@ -5,6 +5,8 @@ import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
+import 'package:fbooks/domain/publication/publication_id.dart';
+import 'package:fbooks/domain/reading/comic_archive_file_name_encoding_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -38,7 +40,9 @@ void main() {
       ],
     );
 
-    final session = await ArchiveComicReaderSessionFactory().open(publication);
+    final session = await ArchiveComicReaderSessionFactory(
+      _MemoryEncodingRepository(),
+    ).open(publication);
 
     expect(session.document.pages.map((page) => page.name), [
       'chapter/1.jpg',
@@ -46,5 +50,18 @@ void main() {
       'chapter/10.jpg',
     ]);
     expect(await session.readPage(1), [2]);
+    await session.close();
   });
+}
+
+class _MemoryEncodingRepository
+    implements ComicArchiveFileNameEncodingRepository {
+  @override
+  Future<void> delete(PublicationId publicationId) async {}
+
+  @override
+  Future<String?> load(PublicationId publicationId) async => null;
+
+  @override
+  Future<void> save(PublicationId publicationId, String? encodingName) async {}
 }
