@@ -133,7 +133,21 @@ complete.
 - [x] Render embedded EPUB spine images from packaged resources.
 - [x] Render EPUB tables as horizontally scrollable table blocks.
 
-## Deferred extensions
+## Next: reading performance
+
+- [ ] Load EPUB chapters on demand: open the navigation and current chapter
+  first, then parse later chapters only when they are needed and cache the
+  result. Keep the main isolate responsive throughout; the current background
+  isolate parsing is an interim step, not the final loading model.
+
+## After performance: extensible book sources
+
+- [ ] Define a stable book-source plugin interface so local libraries and OPDS
+  remain first-class sources while new catalogs can be added independently.
+- [ ] Provide source plugin configuration, credential handling, failure states,
+  and an availability policy without exposing unreadable formats to users.
+
+## Later distinctive features
 
 ### Background TTS
 

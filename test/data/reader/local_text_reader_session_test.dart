@@ -9,7 +9,7 @@ import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('opens an EPUB spine as ordered text chapters', () async {
+  test('opens an EPUB spine parsed in a background isolate', () async {
     final directory = await Directory.systemTemp.createTemp(
       'fbooks-epub-test-',
     );

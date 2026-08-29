@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:epub_pro/epub_pro.dart';
@@ -50,7 +51,14 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     return _LocalTextReaderSession(document);
   }
 
-  Future<TextDocument> _openEpub(String publicationId, String filePath) async {
+  Future<TextDocument> _openEpub(String publicationId, String filePath) {
+    return Isolate.run(
+      () => _parseEpubInBackground(publicationId, filePath),
+      debugName: 'parse-epub',
+    );
+  }
+
+  Future<TextDocument> _parseEpub(String publicationId, String filePath) async {
     final book = await EpubReader.readBook(await File(filePath).readAsBytes());
     final images =
         book.content?.images ?? const <String, EpubByteContentFile>{};
@@ -308,6 +316,11 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
       ]..removeWhere((cell) => cell.isEmpty),
   ]..removeWhere((row) => row.isEmpty);
 }
+
+Future<TextDocument> _parseEpubInBackground(
+  String publicationId,
+  String filePath,
+) => LocalTextReaderSessionFactory()._parseEpub(publicationId, filePath);
 
 class _LocalTextReaderSession implements TextReaderSession {
   const _LocalTextReaderSession(this.document);
