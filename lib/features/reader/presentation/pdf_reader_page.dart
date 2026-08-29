@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
@@ -39,7 +40,7 @@ class _PdfReaderPageState extends ConsumerState<PdfReaderPage> {
     final publication = ref.watch(publicationRepositoryProvider);
     final progress = ref.watch(readingProgressProvider(widget.publicationId));
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: fbooksAppBar(title: Text(widget.title)),
       body: FutureBuilder(
         future: publication.findById(widget.publicationId),
         builder: (context, snapshot) {

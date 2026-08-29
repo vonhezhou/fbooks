@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -234,8 +235,10 @@ class BookCollectionDetailPage extends ConsumerWidget {
   final BookCollection collection;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) =>
-      Scaffold(body: BookCollectionDetailContent(collection: collection));
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+    appBar: const DesktopWindowCaption(),
+    body: BookCollectionDetailContent(collection: collection),
+  );
 }
 
 /// Renders a collection inside either a standalone route or the desktop shell.

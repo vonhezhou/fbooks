@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/domain/library/library_source.dart';
@@ -17,6 +18,7 @@ import 'package:fbooks/features/settings/presentation/settings_page.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 enum _AppSection { library, collections, plugins, settings }
 
 enum _LibrarySourceFilter { all, local, opds }
@@ -92,7 +94,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       builder: (context, constraints) {
         if (constraints.maxWidth < 840) {
           return Scaffold(
-            appBar: AppBar(
+            appBar: fbooksAppBar(
               title: Text(_sectionLabel(context)),
               actions: _section == _AppSection.library
                   ? _compactActions(context)
@@ -150,6 +152,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                   color: colorScheme.surface,
                   child: Column(
                     children: [
+                      const DesktopWindowCaption(),
                       if (_section == _AppSection.library)
                         _DesktopHeader(
                           isImporting: _isImporting,
@@ -262,7 +265,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
           ),
         ),
       );
-    } catch (_) {
+    } catch (error) {
       if (!mounted) {
         return;
       }

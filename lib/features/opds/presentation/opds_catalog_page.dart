@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_request.dart';
@@ -7,6 +8,7 @@ import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class OpdsCatalogPage extends ConsumerWidget {
   const OpdsCatalogPage({super.key, required this.source, this.endpoint});
 
@@ -24,7 +26,7 @@ class OpdsCatalogPage extends ConsumerWidget {
       ),
     );
     return Scaffold(
-      appBar: AppBar(
+      appBar: fbooksAppBar(
         title: Text(source.name),
         actions: [
           IconButton(
@@ -336,7 +338,7 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
       }
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.downloadCancelled)));
-    } catch (_) {
+    } catch (error) {
       if (!mounted) {
         return;
       }

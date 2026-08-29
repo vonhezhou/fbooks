@@ -8,6 +8,7 @@ import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
+import 'package:fbooks/app/window/window_controller.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_text_reading_preferences_repository.dart';
@@ -41,6 +42,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 final appLogDirectoryProvider = Provider<String?>((ref) => null);
+
+final appWindowControllerProvider = Provider<AppWindowController>((ref) {
+  final controller = NoopWindowController();
+  ref.onDispose(controller.dispose);
+  return controller;
+});
 
 final localDatabaseProvider = Provider<LocalDatabase>((ref) {
   final database = LocalDatabase();

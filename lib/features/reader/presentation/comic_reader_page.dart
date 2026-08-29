@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/comic_spread_index.dart';
 import 'package:fbooks/application/reader/vertical_comic_page_position.dart';
@@ -14,6 +15,7 @@ import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart
 import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class ComicReaderPage extends ConsumerWidget {
   const ComicReaderPage({
     super.key,
@@ -34,7 +36,7 @@ class ComicReaderPage extends ConsumerWidget {
           ComicReadingPreferences.defaults;
       return Scaffold(
         backgroundColor: Colors.black,
-        appBar: AppBar(
+        appBar: fbooksAppBar(
           toolbarHeight: desktop ? 64 : null,
           backgroundColor: Colors.black,
           foregroundColor: Colors.white,

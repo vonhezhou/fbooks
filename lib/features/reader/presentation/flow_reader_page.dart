@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
@@ -16,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html_table/flutter_html_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class FlowReaderPage extends ConsumerWidget {
   const FlowReaderPage({
     super.key,
@@ -36,7 +38,7 @@ class FlowReaderPage extends ConsumerWidget {
           TextReadingPreferences.defaults;
       return Scaffold(
         backgroundColor: _backgroundColor(preferences.appearance),
-        appBar: AppBar(
+        appBar: fbooksAppBar(
           toolbarHeight: desktop ? 64 : null,
           backgroundColor: _backgroundColor(preferences.appearance),
           foregroundColor: _foregroundColor(preferences.appearance),

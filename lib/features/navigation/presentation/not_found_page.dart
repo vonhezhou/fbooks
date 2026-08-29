@@ -1,4 +1,5 @@
 import 'package:fbooks/l10n/app_localizations.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:flutter/material.dart';
 
 /// Shown when a named navigation request does not match the application.
@@ -9,6 +10,7 @@ class NotFoundPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    appBar: const DesktopWindowCaption(),
     body: Center(
       child: Padding(
         padding: const EdgeInsets.all(24),

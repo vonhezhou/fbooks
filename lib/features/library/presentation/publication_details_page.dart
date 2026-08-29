@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
@@ -23,7 +24,7 @@ class PublicationDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(readingProgressProvider(publication.id));
     return Scaffold(
-      appBar: AppBar(
+      appBar: fbooksAppBar(
         title: const Text('Publication details'),
         actions: [
           if (publication.source.kind == LibrarySourceKind.local)
