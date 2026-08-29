@@ -10,6 +10,7 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/settings/app_settings.dart';
 import 'package:fbooks/domain/settings/app_settings_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -88,6 +89,41 @@ void main() {
     expect(find.byKey(const Key('brand-logo')), findsOneWidget);
     expect(find.text('Collections'), findsOneWidget);
     expect(find.text('Add books'), findsOneWidget);
+  });
+
+  testWidgets('switches between desktop and compact library layouts', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() {
+      tester.binding.setSurfaceSize(null);
+    });
+    try {
+      await tester.binding.setSurfaceSize(const Size(1200, 800));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            publicationRepositoryProvider.overrideWithValue(
+              _EmptyPublicationRepository(),
+            ),
+            bookCollectionRepositoryProvider.overrideWithValue(
+              _EmptyBookCollectionRepository(),
+            ),
+          ],
+          child: const FbooksApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.binding.setSurfaceSize(const Size(800, 800));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('window-close')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('shows the local diagnostics directory in settings', (

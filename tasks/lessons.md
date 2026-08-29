@@ -16,3 +16,12 @@
   visibly inconsistent.
 - Add a widget test for the in-app brand mark and displayed name at the layout
   where the mark is visible.
+
+## 2026-08-29 — Desktop caption must own its height outside an app bar
+
+- `PreferredSizeWidget.preferredSize` is only applied automatically by
+  `Scaffold.appBar`. When a desktop caption is embedded directly in a `Column`,
+  constrain its height in the widget itself before using any expanding child.
+- For responsive window chrome, add a widget test that resizes from the wide
+  desktop shell to the compact shell and asserts that no layout exception is
+  reported.

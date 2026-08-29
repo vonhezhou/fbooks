@@ -24,13 +24,16 @@ class DesktopWindowCaption extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     if (!isDesktopTargetPlatform) return const SizedBox.shrink();
-    return DecoratedBox(
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
-      child: Row(
-        children: [
-          const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
-          const DesktopWindowControls(),
-        ],
+    return SizedBox(
+      height: height,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
+        child: Row(
+          children: [
+            const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
+            const DesktopWindowControls(),
+          ],
+        ),
       ),
     );
   }
