@@ -11,6 +11,7 @@ import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/settings/app_settings.dart';
 import 'package:fbooks/domain/settings/app_settings_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -309,6 +310,88 @@ void main() {
 
     expect(find.text('Bobby Make-Believe'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('long press selects a book and enters selection mode', (
+    tester,
+  ) async {
+    const book = Publication(
+      id: 'gesture-book',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Gesture Book',
+      format: PublicationFormat.epub,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(const [book]),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _EmptyReadingProgressRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(
+      find.byKey(const Key('publication-card-gesture-book')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 selected'), findsOneWidget);
+    expect(find.byType(Checkbox), findsOneWidget);
+  });
+
+  testWidgets('secondary click opens the single-book action menu', (
+    tester,
+  ) async {
+    const book = Publication(
+      id: 'context-book',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Context Book',
+      format: PublicationFormat.epub,
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(const [book]),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _EmptyReadingProgressRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tapAt(
+      tester.getCenter(find.byKey(const Key('publication-card-context-book'))),
+      buttons: kSecondaryMouseButton,
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Open / continue reading'), findsOneWidget);
+    expect(find.text('Details'), findsOneWidget);
   });
 
   testWidgets('aligns desktop library content and keeps details compact', (

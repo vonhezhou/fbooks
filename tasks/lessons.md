@@ -46,6 +46,15 @@
   management surface that lets users select existing collections, create one,
   and delete custom collections while protecting system collections.
 
+## 2026-08-29 — Preserve legacy pointer gesture semantics
+
+- When a legacy book-library interaction is the reference, do not rely only on
+  an overflow button: long press on a book must enter selection mode and select
+  that book, while a pointer secondary click must open that book's single-item
+  action menu at the pointer location.
+- Apply the same gesture contract to both card and list representations; a
+  display-mode switch must not silently remove selection or context-menu access.
+
 ## 2026-08-29 — Dark theme must cover the whole primary screen
 
 - Do not combine a theme-aware sidebar or card with hard-coded light page

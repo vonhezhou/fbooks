@@ -101,6 +101,13 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
               _selectedPublicationIds.remove(id);
             }
           }),
+          onSelectionStarted: (id) => setState(() {
+            if (!_selectionMode) {
+              _selectionMode = true;
+              _selectedPublicationIds.clear();
+            }
+            _selectedPublicationIds.add(id);
+          }),
           onSelectAll: () => setState(
             () => _selectedPublicationIds
               ..clear()
@@ -936,6 +943,7 @@ class _LibraryContent extends StatelessWidget {
     required this.selectedPublicationIds,
     required this.onSelectionModeChanged,
     required this.onSelectionChanged,
+    required this.onSelectionStarted,
     required this.onSelectAll,
     required this.onManageCollections,
     required this.onDeleteSelected,
@@ -958,6 +966,7 @@ class _LibraryContent extends StatelessWidget {
   final Set<PublicationId> selectedPublicationIds;
   final ValueChanged<bool> onSelectionModeChanged;
   final ValueChanged<PublicationId> onSelectionChanged;
+  final ValueChanged<PublicationId> onSelectionStarted;
   final VoidCallback onSelectAll;
   final VoidCallback onManageCollections;
   final Future<void> Function() onDeleteSelected;
@@ -998,6 +1007,7 @@ class _LibraryContent extends StatelessWidget {
                 selectionMode: selectionMode,
                 selectedPublicationIds: selectedPublicationIds,
                 onSelectionChanged: onSelectionChanged,
+                onSelectionStarted: onSelectionStarted,
               ),
       ),
     ],
@@ -1235,6 +1245,7 @@ class _PublicationList extends ConsumerWidget {
     required this.selectionMode,
     required this.selectedPublicationIds,
     required this.onSelectionChanged,
+    required this.onSelectionStarted,
   });
 
   final List<Publication> publications;
@@ -1242,6 +1253,7 @@ class _PublicationList extends ConsumerWidget {
   final bool selectionMode;
   final Set<PublicationId> selectedPublicationIds;
   final ValueChanged<PublicationId> onSelectionChanged;
+  final ValueChanged<PublicationId> onSelectionStarted;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1275,6 +1287,17 @@ class _PublicationList extends ConsumerWidget {
               selected: selectedPublicationIds.contains(publications[index].id),
               selectionMode: selectionMode,
               onSelected: () => onSelectionChanged(publications[index].id),
+              onLongPress: () => onSelectionStarted(publications[index].id),
+              onSecondaryTapUp: (details) => _showPublicationActionMenu(
+                context: context,
+                ref: ref,
+                publication: publications[index],
+                onOpen: () =>
+                    _openPublication(context, ref, publications[index]),
+                onDetails: () =>
+                    _showPublicationDetails(context, publications[index]),
+                position: _menuPosition(context, details.globalPosition),
+              ),
             ),
           );
         }
@@ -1284,33 +1307,45 @@ class _PublicationList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final publication = publications[index];
             final progress = ref.watch(readingProgressProvider(publication.id));
-            return ListTile(
-              leading: selectionMode
-                  ? Checkbox(
-                      value: selectedPublicationIds.contains(publication.id),
-                      onChanged: (_) => onSelectionChanged(publication.id),
-                    )
-                  : Icon(_iconFor(publication.format)),
-              title: Text(publication.title),
-              subtitle: _PublicationSubtitle(
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: () => onSelectionStarted(publication.id),
+              onSecondaryTapUp: (details) => _showPublicationActionMenu(
+                context: context,
+                ref: ref,
                 publication: publication,
-                progress: progress.asData?.value,
+                onOpen: () => _openPublication(context, ref, publication),
+                onDetails: () => _showPublicationDetails(context, publication),
+                position: _menuPosition(context, details.globalPosition),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_formatLabel(publication.format)),
-                  _PublicationActionsButton(
-                    publication: publication,
-                    onOpen: () => _openPublication(context, ref, publication),
-                    onDetails: () =>
-                        _showPublicationDetails(context, publication),
-                  ),
-                ],
+              child: ListTile(
+                leading: selectionMode
+                    ? Checkbox(
+                        value: selectedPublicationIds.contains(publication.id),
+                        onChanged: (_) => onSelectionChanged(publication.id),
+                      )
+                    : Icon(_iconFor(publication.format)),
+                title: Text(publication.title),
+                subtitle: _PublicationSubtitle(
+                  publication: publication,
+                  progress: progress.asData?.value,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_formatLabel(publication.format)),
+                    _PublicationActionsButton(
+                      publication: publication,
+                      onOpen: () => _openPublication(context, ref, publication),
+                      onDetails: () =>
+                          _showPublicationDetails(context, publication),
+                    ),
+                  ],
+                ),
+                onTap: selectionMode
+                    ? () => onSelectionChanged(publication.id)
+                    : () => _openPublication(context, ref, publication),
               ),
-              onTap: selectionMode
-                  ? () => onSelectionChanged(publication.id)
-                  : () => _openPublication(context, ref, publication),
             );
           },
           separatorBuilder: (context, index) => const Divider(height: 1),
@@ -1419,6 +1454,8 @@ class _PublicationCard extends StatelessWidget {
     required this.selected,
     required this.selectionMode,
     required this.onSelected,
+    required this.onLongPress,
+    required this.onSecondaryTapUp,
   });
 
   final Publication publication;
@@ -1430,6 +1467,8 @@ class _PublicationCard extends StatelessWidget {
   final bool selected;
   final bool selectionMode;
   final VoidCallback onSelected;
+  final VoidCallback onLongPress;
+  final ValueChanged<TapUpDetails> onSecondaryTapUp;
 
   @override
   Widget build(BuildContext context) {
@@ -1440,6 +1479,8 @@ class _PublicationCard extends StatelessWidget {
         children: [
           InkWell(
             onTap: selectionMode ? onSelected : onTap,
+            onLongPress: onLongPress,
+            onSecondaryTapUp: onSecondaryTapUp,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1548,124 +1589,174 @@ class _PublicationActionsButton extends ConsumerWidget {
               )
             : null,
         onSelected: (action) async {
-          if (action == _PublicationAction.open) {
-            onOpen();
-            return;
-          }
-          if (action == _PublicationAction.details) {
-            onDetails();
-            return;
-          }
-          if (action == _PublicationAction.collection) {
-            await showCollectionMembershipManager(context, ref, {
-              publication.id,
-            });
-            return;
-          }
-          if (action == _PublicationAction.repair) {
-            await repairLocalPublication(
-              context,
-              ref,
-              publication,
-              closePageOnSuccess: false,
-            );
-            return;
-          }
-          if (action == _PublicationAction.delete) {
-            await confirmPublicationRemoval(
-              context,
-              ref,
-              publication,
-              closePageOnSuccess: false,
-            );
-            return;
-          }
-          final collectionId = switch (action) {
-            _PublicationAction.favorite => SystemBookCollections.favorites,
-            _PublicationAction.readLater => SystemBookCollections.readLater,
-            _PublicationAction.finished => SystemBookCollections.finished,
-            _PublicationAction.collection ||
-            _PublicationAction.repair ||
-            _PublicationAction.delete => throw StateError('Handled above.'),
-            _PublicationAction.open => throw StateError('Handled above.'),
-            _PublicationAction.details => throw StateError('Handled above.'),
-          };
-          final repository = ref.read(bookCollectionRepositoryProvider);
-          final ids = await repository.listPublicationIds(collectionId);
-          if (ids.contains(publication.id)) {
-            await repository.removePublication(collectionId, publication.id);
-          } else {
-            await repository.addPublication(collectionId, publication.id);
-          }
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Added “${publication.title}”.')),
-            );
-          }
+          await _handlePublicationAction(
+            context: context,
+            ref: ref,
+            publication: publication,
+            onOpen: onOpen,
+            onDetails: onDetails,
+            action: action,
+          );
         },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: _PublicationAction.open,
-            child: ListTile(
-              leading: Icon(Icons.menu_book_outlined),
-              title: Text('Open / continue reading'),
-            ),
-          ),
-          PopupMenuItem(
-            value: _PublicationAction.details,
-            child: ListTile(
-              leading: Icon(Icons.info_outline),
-              title: Text('Details'),
-            ),
-          ),
-          PopupMenuDivider(),
-          PopupMenuItem(
-            value: _PublicationAction.favorite,
-            child: ListTile(
-              leading: Icon(Icons.favorite_border),
-              title: Text('Toggle favorite'),
-            ),
-          ),
-          PopupMenuItem(
-            value: _PublicationAction.readLater,
-            child: ListTile(
-              leading: Icon(Icons.schedule_outlined),
-              title: Text('Toggle Read later'),
-            ),
-          ),
-          PopupMenuItem(
-            value: _PublicationAction.finished,
-            child: ListTile(
-              leading: Icon(Icons.check_circle_outline),
-              title: Text('Toggle finished'),
-            ),
-          ),
-          PopupMenuItem(
-            value: _PublicationAction.collection,
-            child: ListTile(
-              leading: Icon(Icons.playlist_add),
-              title: Text('Add to collection'),
-            ),
-          ),
-          if (publication.source.kind == LibrarySourceKind.local)
-            PopupMenuItem(
-              value: _PublicationAction.repair,
-              child: ListTile(
-                leading: Icon(Icons.build_outlined),
-                title: Text('Repair local file'),
-              ),
-            ),
-          PopupMenuDivider(),
-          PopupMenuItem(
-            value: _PublicationAction.delete,
-            child: ListTile(
-              leading: Icon(Icons.delete_outline),
-              title: Text('Remove from library'),
-            ),
-          ),
-        ],
+        itemBuilder: (context) => _publicationActionMenuItems(publication),
       );
 }
+
+RelativeRect _menuPosition(BuildContext context, Offset globalPosition) {
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+  return RelativeRect.fromRect(
+    Rect.fromCircle(center: globalPosition, radius: 1),
+    Offset.zero & overlay.size,
+  );
+}
+
+Future<void> _showPublicationActionMenu({
+  required BuildContext context,
+  required WidgetRef ref,
+  required Publication publication,
+  required VoidCallback onOpen,
+  required VoidCallback onDetails,
+  required RelativeRect position,
+}) async {
+  final action = await showMenu<_PublicationAction>(
+    context: context,
+    position: position,
+    items: _publicationActionMenuItems(publication),
+  );
+  if (action == null || !context.mounted) {
+    return;
+  }
+  await _handlePublicationAction(
+    context: context,
+    ref: ref,
+    publication: publication,
+    onOpen: onOpen,
+    onDetails: onDetails,
+    action: action,
+  );
+}
+
+Future<void> _handlePublicationAction({
+  required BuildContext context,
+  required WidgetRef ref,
+  required Publication publication,
+  required VoidCallback onOpen,
+  required VoidCallback onDetails,
+  required _PublicationAction action,
+}) async {
+  if (action == _PublicationAction.open) {
+    onOpen();
+    return;
+  }
+  if (action == _PublicationAction.details) {
+    onDetails();
+    return;
+  }
+  if (action == _PublicationAction.collection) {
+    await showCollectionMembershipManager(context, ref, {publication.id});
+    return;
+  }
+  if (action == _PublicationAction.repair) {
+    await repairLocalPublication(
+      context,
+      ref,
+      publication,
+      closePageOnSuccess: false,
+    );
+    return;
+  }
+  if (action == _PublicationAction.delete) {
+    await confirmPublicationRemoval(
+      context,
+      ref,
+      publication,
+      closePageOnSuccess: false,
+    );
+    return;
+  }
+  final collectionId = switch (action) {
+    _PublicationAction.favorite => SystemBookCollections.favorites,
+    _PublicationAction.readLater => SystemBookCollections.readLater,
+    _PublicationAction.finished => SystemBookCollections.finished,
+    _PublicationAction.collection ||
+    _PublicationAction.repair ||
+    _PublicationAction.delete => throw StateError('Handled above.'),
+    _PublicationAction.open => throw StateError('Handled above.'),
+    _PublicationAction.details => throw StateError('Handled above.'),
+  };
+  final repository = ref.read(bookCollectionRepositoryProvider);
+  final ids = await repository.listPublicationIds(collectionId);
+  if (ids.contains(publication.id)) {
+    await repository.removePublication(collectionId, publication.id);
+  } else {
+    await repository.addPublication(collectionId, publication.id);
+  }
+  if (context.mounted) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Added “${publication.title}”.')));
+  }
+}
+
+List<PopupMenuEntry<_PublicationAction>> _publicationActionMenuItems(
+  Publication publication,
+) => [
+  PopupMenuItem(
+    value: _PublicationAction.open,
+    child: ListTile(
+      leading: Icon(Icons.menu_book_outlined),
+      title: Text('Open / continue reading'),
+    ),
+  ),
+  PopupMenuItem(
+    value: _PublicationAction.details,
+    child: ListTile(leading: Icon(Icons.info_outline), title: Text('Details')),
+  ),
+  PopupMenuDivider(),
+  PopupMenuItem(
+    value: _PublicationAction.favorite,
+    child: ListTile(
+      leading: Icon(Icons.favorite_border),
+      title: Text('Toggle favorite'),
+    ),
+  ),
+  PopupMenuItem(
+    value: _PublicationAction.readLater,
+    child: ListTile(
+      leading: Icon(Icons.schedule_outlined),
+      title: Text('Toggle Read later'),
+    ),
+  ),
+  PopupMenuItem(
+    value: _PublicationAction.finished,
+    child: ListTile(
+      leading: Icon(Icons.check_circle_outline),
+      title: Text('Toggle finished'),
+    ),
+  ),
+  PopupMenuItem(
+    value: _PublicationAction.collection,
+    child: ListTile(
+      leading: Icon(Icons.playlist_add),
+      title: Text('Add to collection'),
+    ),
+  ),
+  if (publication.source.kind == LibrarySourceKind.local)
+    PopupMenuItem(
+      value: _PublicationAction.repair,
+      child: ListTile(
+        leading: Icon(Icons.build_outlined),
+        title: Text('Repair local file'),
+      ),
+    ),
+  PopupMenuDivider(),
+  PopupMenuItem(
+    value: _PublicationAction.delete,
+    child: ListTile(
+      leading: Icon(Icons.delete_outline),
+      title: Text('Remove from library'),
+    ),
+  ),
+];
 
 class _PublicationSubtitle extends StatelessWidget {
   const _PublicationSubtitle({
