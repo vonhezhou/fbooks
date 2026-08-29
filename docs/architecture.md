@@ -31,6 +31,20 @@ presentation -> application -> domain <- data / infrastructure
   version changes; an unimplemented migration fails loudly instead of risking
   the user's library data.
 
+## Local diagnostics
+
+- The app records structured local diagnostics in the application-support
+  `fbooks/logs` directory. Logs rotate at 10 MB and retain the active file plus
+  three historical files.
+- Debug builds also write colourized records to the development console. The
+  user chooses the minimum level retained locally; the default is `INFO` and
+  the available levels are `DEBUG`, `INFO`, `WARNING`, and `ERROR`.
+- Diagnostics must never include book content or titles, local absolute paths,
+  OPDS credentials, authorization headers, or complete remote URLs. Prefer
+  format, operation outcome, counts, and HTTP status over user data.
+- Logs are local support artifacts only. Sending them off-device needs an
+  explicit product, privacy, and consent decision.
+
 ## Reflowable reading
 
 TXT, EPUB and future reflowable formats should converge on the bounded

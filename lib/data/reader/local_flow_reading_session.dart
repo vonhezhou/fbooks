@@ -10,7 +10,10 @@ import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as html;
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+
+final _logger = Logger('reader.flow');
 
 class LocalFlowReadingSessionFactory implements FlowReadingSessionFactory {
   @override
@@ -58,6 +61,7 @@ class LocalFlowReadingSessionFactory implements FlowReadingSessionFactory {
     String filePath,
   ) async {
     final opened = await _EpubWorkerClient.open(publicationId, filePath);
+    _logger.info('EPUB reader session opened.');
     return _LazyEpubFlowReadingSession(
       document: opened.index.document,
       chapters: opened.index.chapters,
@@ -182,9 +186,17 @@ class _EpubWorkerClient {
     responsePort.close();
     return switch (response) {
       _EpubWorkerSuccess(:final value) => value as T,
-      _EpubWorkerFailure(:final message) => throw FormatException(message),
+      _EpubWorkerFailure(:final message) => _workerFailure(message),
       _ => throw StateError('The EPUB worker returned an invalid response'),
     };
+  }
+
+  T _workerFailure<T>(String message) {
+    final error = FormatException(message);
+    _logger.severe(
+      'EPUB worker request failed: errorType=${error.runtimeType}.',
+    );
+    throw error;
   }
 }
 

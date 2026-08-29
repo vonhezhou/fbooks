@@ -4,6 +4,9 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('library.removal');
 
 /// Removes a library record and, when requested, its app-managed OPDS download.
 class LibraryPublicationRemover {
@@ -31,10 +34,19 @@ class LibraryPublicationRemover {
     for (final location in filesToDelete) {
       try {
         await _managedAssetStore.delete(location);
-      } catch (_) {
+      } catch (error, stackTrace) {
+        _logger.warning(
+          'Managed download cleanup failed during removal: '
+          'errorType=${error.runtimeType}.',
+          null,
+          stackTrace,
+        );
         filesNotDeleted.add(location);
       }
     }
+    _logger.info(
+      'Publication removed: managedFilesNotDeleted=${filesNotDeleted.length}.',
+    );
     return PublicationRemovalResult(
       publication: publication,
       filesNotDeleted: filesNotDeleted,

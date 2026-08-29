@@ -23,6 +23,8 @@ Fbooks is a local-first reader for comics and ebooks.
 
 - [x] Clean Flutter implementation, dependency boundaries, and migratable
   SQLite metadata store (`d0f7e13`).
+- [x] Local structured diagnostics with rolling files, global error capture,
+  and privacy-safe operational context.
 - [x] Persistent local library, importing, and duplicate detection
   (`2e708ed`, `3a723a1`).
 - [x] Read local CBZ comics with natural page ordering and persisted page

@@ -9,6 +9,9 @@ import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('ui.publication_details');
 
 /// Displays the metadata and saved reading state for a library publication.
 class PublicationDetailsPage extends ConsumerWidget {
@@ -208,7 +211,12 @@ Future<void> _repairLocalFile(
         content: Text('“${publication.title}” now uses the selected file.'),
       ),
     );
-  } catch (error) {
+  } catch (error, stackTrace) {
+    _logger.severe(
+      'Local file repair action failed: errorType=${error.runtimeType}.',
+      null,
+      stackTrace,
+    );
     if (!context.mounted) {
       return;
     }
@@ -276,7 +284,12 @@ Future<void> _confirmRemoval(
         ),
       ),
     );
-  } catch (error) {
+  } catch (error, stackTrace) {
+    _logger.severe(
+      'Publication removal action failed: errorType=${error.runtimeType}.',
+      null,
+      stackTrace,
+    );
     if (!context.mounted) {
       return;
     }

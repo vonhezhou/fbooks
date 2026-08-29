@@ -7,7 +7,10 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:path/path.dart' as path;
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
+
+final _logger = Logger('library.import');
 
 class LocalPublicationCandidate {
   const LocalPublicationCandidate({
@@ -57,6 +60,7 @@ class LocalPublicationImporter {
   Future<LocalPublicationImportResult> importCandidates(
     List<LocalPublicationCandidate> candidates,
   ) async {
+    _logger.info('Local import started: candidates=${candidates.length}.');
     final imported = <Publication>[];
     final duplicates = <LocalPublicationCandidate>[];
     final unsupported = <LocalPublicationCandidate>[];
@@ -108,13 +112,34 @@ class LocalPublicationImporter {
         );
         await _repository.save(publication);
         imported.add(publication);
-      } catch (_) {
+        _logger.info('Local import completed: format=${format.name}.');
+      } catch (error, stackTrace) {
+        _logger.severe(
+          'Local import failed: format=${format.name}, '
+          'errorType=${error.runtimeType}.',
+          null,
+          stackTrace,
+        );
         if (managedLocation != null) {
-          await _managedAssetStore.delete(managedLocation);
+          try {
+            await _managedAssetStore.delete(managedLocation);
+          } catch (cleanupError, cleanupStackTrace) {
+            _logger.warning(
+              'Local import cleanup failed: '
+              'errorType=${cleanupError.runtimeType}.',
+              null,
+              cleanupStackTrace,
+            );
+          }
         }
-        rethrow;
+        Error.throwWithStackTrace(error, stackTrace);
       }
     }
+
+    _logger.info(
+      'Local import finished: imported=${imported.length}, '
+      'duplicates=${duplicates.length}, unsupported=${unsupported.length}.',
+    );
 
     return LocalPublicationImportResult(
       imported: imported,

@@ -7,7 +7,10 @@ import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/reading/comic_document.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+
+final _logger = Logger('reader.comic');
 
 class ArchiveComicReaderSessionFactory implements ComicReaderSessionFactory {
   @override
@@ -48,6 +51,7 @@ class ArchiveComicReaderSessionFactory implements ComicReaderSessionFactory {
     }
 
     final archiveFiles = {for (final file in archive.files) file.name: file};
+    _logger.info('Comic reader session opened: pages=${pageIndex.length}.');
     return _ArchiveComicReaderSession(
       document: ComicDocument(publicationId: publication.id, pages: pageIndex),
       archiveFiles: archiveFiles,
@@ -72,10 +76,19 @@ class _ArchiveComicReaderSession implements ComicReaderSession {
     }
 
     final page = document.pages[pageIndex];
-    final bytes = archiveFiles[page.name]?.readBytes();
-    if (bytes == null || bytes.isEmpty) {
-      throw FormatException('Unable to read comic page ${page.name}');
+    try {
+      final bytes = archiveFiles[page.name]?.readBytes();
+      if (bytes == null || bytes.isEmpty) {
+        throw FormatException('Unable to read comic page ${page.name}');
+      }
+      return bytes;
+    } catch (error, stackTrace) {
+      _logger.severe(
+        'Comic page read failed: errorType=${error.runtimeType}.',
+        null,
+        stackTrace,
+      );
+      Error.throwWithStackTrace(error, stackTrace);
     }
-    return bytes;
   }
 }

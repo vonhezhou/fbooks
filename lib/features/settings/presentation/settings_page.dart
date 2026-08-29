@@ -1,6 +1,8 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/logging/app_logging.dart';
 import 'package:fbooks/domain/settings/app_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -13,6 +15,7 @@ class SettingsPage extends ConsumerWidget {
         ref.watch(libraryPublicationsProvider).asData?.value.length ?? 0;
     final collections =
         ref.watch(bookCollectionsProvider).asData?.value.length ?? 0;
+    final logDirectory = ref.watch(appLogDirectoryProvider);
     return ListView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
       children: [
@@ -68,6 +71,17 @@ class SettingsPage extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         _SettingsSection(
+          title: 'DIAGNOSTICS',
+          child: Column(
+            children: [
+              _LogLevelSelector(settings: settings.asData?.value),
+              const Divider(height: 1),
+              _LogDirectoryTile(directory: logDirectory),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _SettingsSection(
           title: 'ABOUT',
           child: const ListTile(
             leading: Icon(Icons.info_outline),
@@ -77,6 +91,80 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LogLevelSelector extends ConsumerWidget {
+  const _LogLevelSelector({required this.settings});
+
+  final AppSettings? settings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = settings?.logLevel ?? AppLogLevel.info;
+    return ListTile(
+      leading: const Icon(Icons.tune_outlined),
+      title: const Text('Log level'),
+      subtitle: const Text(
+        'Choose how much local diagnostic detail to retain.',
+      ),
+      trailing: DropdownButton<AppLogLevel>(
+        value: current,
+        onChanged: settings == null
+            ? null
+            : (next) async {
+                if (next == null) {
+                  return;
+                }
+                final updated = settings!.copyWith(logLevel: next);
+                await ref.read(appSettingsRepositoryProvider).save(updated);
+                applyAppLogLevel(next);
+                ref.invalidate(appSettingsProvider);
+              },
+        items: const [
+          DropdownMenuItem(value: AppLogLevel.debug, child: Text('Debug')),
+          DropdownMenuItem(value: AppLogLevel.info, child: Text('Info')),
+          DropdownMenuItem(value: AppLogLevel.warning, child: Text('Warning')),
+          DropdownMenuItem(
+            value: AppLogLevel.error,
+            child: Text('Errors only'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LogDirectoryTile extends StatelessWidget {
+  const _LogDirectoryTile({required this.directory});
+
+  final String? directory;
+
+  @override
+  Widget build(BuildContext context) {
+    final available = directory != null;
+    return ListTile(
+      enabled: available,
+      leading: const Icon(Icons.article_outlined),
+      title: const Text('Log directory'),
+      subtitle: Text(
+        available
+            ? 'Tap to copy the path for local diagnostics.'
+            : 'Local diagnostics are unavailable for this session.',
+      ),
+      trailing: available ? const Icon(Icons.content_copy_outlined) : null,
+      onTap: !available
+          ? null
+          : () async {
+              await Clipboard.setData(ClipboardData(text: directory!));
+              if (!context.mounted) {
+                return;
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Log directory copied.')),
+              );
+            },
     );
   }
 }
@@ -125,7 +213,7 @@ class _ThemeModeSelector extends ConsumerWidget {
             final next = modes.single;
             await ref
                 .read(appSettingsRepositoryProvider)
-                .save(AppSettings(themeMode: next));
+                .save(settings.copyWith(themeMode: next));
             ref.invalidate(appSettingsProvider);
           },
         ),

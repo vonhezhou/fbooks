@@ -40,6 +40,8 @@ import 'package:fbooks/domain/settings/app_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+final appLogDirectoryProvider = Provider<String?>((ref) => null);
+
 final localDatabaseProvider = Provider<LocalDatabase>((ref) {
   final database = LocalDatabase();
   ref.onDispose(database.close);

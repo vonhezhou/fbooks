@@ -4,7 +4,10 @@ import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:xml/xml.dart';
+
+final _logger = Logger('opds.catalog');
 
 class HttpOpdsCatalogClient implements OpdsCatalogClient {
   HttpOpdsCatalogClient(this._client);
@@ -16,32 +19,45 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
     Uri endpoint, {
     OpdsCredentials? credentials,
   }) async {
-    final response = await _client.get(
-      endpoint,
-      headers: {
-        'Accept':
-            'application/opds+json, application/atom+xml, application/xml',
-        if (credentials != null)
-          'Authorization': credentials.authorizationHeader,
-      },
-    );
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw http.ClientException(
-        'OPDS server returned ${response.statusCode}',
+    _logger.info('OPDS catalog request started.');
+    try {
+      final response = await _client.get(
         endpoint,
+        headers: {
+          'Accept':
+              'application/opds+json, application/atom+xml, application/xml',
+          if (credentials != null)
+            'Authorization': credentials.authorizationHeader,
+        },
       );
-    }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        _logger.warning(
+          'OPDS catalog request returned status=${response.statusCode}.',
+        );
+        throw http.ClientException(
+          'OPDS server returned ${response.statusCode}',
+          endpoint,
+        );
+      }
 
-    final body = utf8.decode(response.bodyBytes, allowMalformed: true).trim();
-    if (body.startsWith('{')) {
-      return _parseJsonCatalog(body, endpoint);
+      final body = utf8.decode(response.bodyBytes, allowMalformed: true).trim();
+      final catalog = switch (body) {
+        _ when body.startsWith('{') => _parseJsonCatalog(body, endpoint),
+        _ when body.startsWith('<') => _parseAtomCatalog(body, endpoint),
+        _ => throw const FormatException(
+          'The OPDS response is neither JSON nor Atom XML',
+        ),
+      };
+      _logger.info('OPDS catalog request completed.');
+      return catalog;
+    } catch (error, stackTrace) {
+      _logger.severe(
+        'OPDS catalog request failed: errorType=${error.runtimeType}.',
+        null,
+        stackTrace,
+      );
+      Error.throwWithStackTrace(error, stackTrace);
     }
-    if (body.startsWith('<')) {
-      return _parseAtomCatalog(body, endpoint);
-    }
-    throw const FormatException(
-      'The OPDS response is neither JSON nor Atom XML',
-    );
   }
 
   OpdsCatalog _parseJsonCatalog(String body, Uri endpoint) {

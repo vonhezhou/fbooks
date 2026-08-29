@@ -8,8 +8,11 @@ import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
+
+final _logger = Logger('opds.acquisition');
 
 class RemoteAssetResponse {
   const RemoteAssetResponse({
@@ -88,6 +91,7 @@ class OpdsAcquisitionImporter {
       acquisition.href,
     );
     if (existing != null) {
+      _logger.info('OPDS acquisition refreshed existing metadata.');
       return _refreshMetadata(existing, source, publication);
     }
 
@@ -97,6 +101,7 @@ class OpdsAcquisitionImporter {
         'Unsupported OPDS acquisition: ${acquisition.href}',
       );
     }
+    _logger.info('OPDS acquisition started: format=${format.name}.');
 
     final publicationId = _uuid.v4();
     final remoteAssetId = _uuid.v4();
@@ -144,12 +149,27 @@ class OpdsAcquisitionImporter {
         ],
       );
       await _publicationRepository.save(acquired);
+      _logger.info('OPDS acquisition completed: format=${format.name}.');
       return acquired;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _logger.severe(
+        'OPDS acquisition failed: errorType=${error.runtimeType}.',
+        null,
+        stackTrace,
+      );
       if (localLocation != null) {
-        await _managedAssetStore.delete(localLocation);
+        try {
+          await _managedAssetStore.delete(localLocation);
+        } catch (cleanupError, cleanupStackTrace) {
+          _logger.warning(
+            'OPDS acquisition cleanup failed: '
+            'errorType=${cleanupError.runtimeType}.',
+            null,
+            cleanupStackTrace,
+          );
+        }
       }
-      rethrow;
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 
@@ -181,6 +201,7 @@ class OpdsAcquisitionImporter {
     var receivedBytes = 0;
     await for (final chunk in bytes) {
       if (cancellation?.isCancelled ?? false) {
+        _logger.info('OPDS acquisition cancelled.');
         throw const OpdsDownloadCancelled();
       }
       receivedBytes += chunk.length;
@@ -193,6 +214,7 @@ class OpdsAcquisitionImporter {
       yield chunk;
     }
     if (cancellation?.isCancelled ?? false) {
+      _logger.info('OPDS acquisition cancelled.');
       throw const OpdsDownloadCancelled();
     }
   }

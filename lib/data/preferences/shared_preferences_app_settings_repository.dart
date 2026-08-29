@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesAppSettingsRepository implements AppSettingsRepository {
   static const _themeModeKey = 'app.theme-mode';
+  static const _logLevelKey = 'app.log-level';
 
   @override
   Future<AppSettings> load() async {
@@ -13,12 +14,20 @@ class SharedPreferencesAppSettingsRepository implements AppSettingsRepository {
     final themeMode = ThemeMode.values
         .where((mode) => mode.name == stored)
         .firstOrNull;
-    return AppSettings(themeMode: themeMode ?? ThemeMode.system);
+    final storedLogLevel = preferences.getString(_logLevelKey);
+    final logLevel = AppLogLevel.values
+        .where((level) => level.name == storedLogLevel)
+        .firstOrNull;
+    return AppSettings(
+      themeMode: themeMode ?? ThemeMode.system,
+      logLevel: logLevel ?? AppLogLevel.info,
+    );
   }
 
   @override
   Future<void> save(AppSettings settings) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(_themeModeKey, settings.themeMode.name);
+    await preferences.setString(_logLevelKey, settings.logLevel.name);
   }
 }

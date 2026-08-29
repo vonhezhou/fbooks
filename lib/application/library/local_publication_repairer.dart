@@ -8,7 +8,10 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
+
+final _logger = Logger('library.repair');
 
 /// Repoints a missing locally imported publication at a replacement file.
 class LocalPublicationRepairer {
@@ -114,14 +117,38 @@ class LocalPublicationRepairer {
       );
       await _repository.save(repaired);
       if (previousAsset.kind.isManagedByFbooks) {
-        await _managedAssetStore.delete(previousAsset.location);
+        try {
+          await _managedAssetStore.delete(previousAsset.location);
+        } catch (cleanupError, cleanupStackTrace) {
+          _logger.warning(
+            'Previous managed asset cleanup failed after repair: '
+            'errorType=${cleanupError.runtimeType}.',
+            null,
+            cleanupStackTrace,
+          );
+        }
       }
+      _logger.info('Local publication repair completed.');
       return repaired;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      _logger.severe(
+        'Local publication repair failed: errorType=${error.runtimeType}.',
+        null,
+        stackTrace,
+      );
       if (managedLocation != null) {
-        await _managedAssetStore.delete(managedLocation);
+        try {
+          await _managedAssetStore.delete(managedLocation);
+        } catch (cleanupError, cleanupStackTrace) {
+          _logger.warning(
+            'Local publication repair cleanup failed: '
+            'errorType=${cleanupError.runtimeType}.',
+            null,
+            cleanupStackTrace,
+          );
+        }
       }
-      rethrow;
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 }

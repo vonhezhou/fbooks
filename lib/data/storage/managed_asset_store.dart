@@ -2,8 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+
+final _logger = Logger('storage.managed_assets');
 
 class AppSupportManagedAssetStore implements ManagedAssetStore {
   @override
@@ -14,6 +17,7 @@ class AppSupportManagedAssetStore implements ManagedAssetStore {
     final file = File.fromUri(location);
     if (await file.exists()) {
       await file.delete();
+      _logger.info('Managed asset deleted.');
     }
   }
 
@@ -44,6 +48,7 @@ class AppSupportManagedAssetStore implements ManagedAssetStore {
         await target.delete();
       }
       await temporary.rename(target.path);
+      _logger.info('Managed asset saved.');
       return target.uri;
     } catch (_) {
       if (!sinkClosed) {

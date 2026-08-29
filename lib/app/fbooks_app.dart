@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/app/logging/app_logging.dart';
 import 'package:fbooks/features/library/presentation/library_landing_page.dart';
 import 'package:fbooks/features/navigation/presentation/not_found_page.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,12 @@ class FbooksApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(appSettingsProvider, (_, next) {
+      final settings = next.asData?.value;
+      if (settings != null) {
+        applyAppLogLevel(settings.logLevel);
+      }
+    });
     final themeMode =
         ref.watch(appSettingsProvider).asData?.value.themeMode ??
         ThemeMode.system;
