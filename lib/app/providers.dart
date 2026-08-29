@@ -29,7 +29,10 @@ import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
 import 'package:fbooks/data/opds/http_remote_asset_fetcher.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
 import 'package:fbooks/data/reader/archive_comic_publication_inspector.dart';
+import 'package:fbooks/data/reader/epub_publication_inspector.dart';
 import 'package:fbooks/data/reader/local_flow_reading_session.dart';
+import 'package:fbooks/data/reader/pdf_publication_inspector.dart';
+import 'package:fbooks/data/reader/text_publication_inspector.dart';
 import 'package:fbooks/data/storage/managed_asset_store.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -129,7 +132,12 @@ final comicArchiveFileNameEncodingRepositoryProvider =
     });
 
 final publicationFormatInspectorProvider = Provider<PublicationFormatInspector>(
-  (ref) => PublicationInspectorRegistry([ArchiveComicPublicationInspector()]),
+  (ref) => PublicationInspectorRegistry([
+    ArchiveComicPublicationInspector(),
+    EpubPublicationInspector(),
+    PdfPublicationInspector(),
+    TextPublicationInspector(),
+  ]),
 );
 
 final publicationCoverStoreProvider = Provider<PublicationCoverStore>(
