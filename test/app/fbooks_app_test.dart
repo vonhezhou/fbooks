@@ -31,7 +31,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Fbooks'), findsOneWidget);
+    expect(find.text('fBooks'), findsOneWidget);
     expect(find.text('Your library will appear here.'), findsOneWidget);
   });
 
@@ -57,6 +57,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Your library'), findsOneWidget);
+    expect(find.text('fBooks'), findsOneWidget);
+    expect(find.byKey(const Key('brand-logo')), findsOneWidget);
     expect(find.text('Collections'), findsOneWidget);
     expect(find.text('Add books'), findsOneWidget);
   });

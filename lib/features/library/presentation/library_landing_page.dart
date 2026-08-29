@@ -225,7 +225,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   ];
 
   String get _sectionLabel => switch (_section) {
-    _AppSection.library => 'Fbooks',
+    _AppSection.library => 'fBooks',
     _AppSection.collections => 'Collections',
     _AppSection.plugins => 'Plugins',
     _AppSection.settings => 'Settings',
@@ -450,20 +450,16 @@ class _DesktopSidebar extends ConsumerWidget {
             children: [
               const Row(
                 children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Color(0xFFD8FF67),
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                    child: SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: Icon(Icons.auto_stories_rounded),
-                    ),
+                  Image(
+                    key: Key('brand-logo'),
+                    image: AssetImage('launcher_icon/fbooks_icon.png'),
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'Fbooks',
+                    'fBooks',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,

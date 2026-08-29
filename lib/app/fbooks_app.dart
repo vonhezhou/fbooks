@@ -13,7 +13,7 @@ class FbooksApp extends ConsumerWidget {
         ref.watch(appSettingsProvider).asData?.value.themeMode ??
         ThemeMode.system;
     return MaterialApp(
-      title: 'Fbooks',
+      title: 'fBooks',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

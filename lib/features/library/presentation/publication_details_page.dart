@@ -230,8 +230,8 @@ Future<void> _confirmRemoval(
       title: const Text('Remove from library?'),
       content: Text(
         downloadFiles.isEmpty
-            ? '“${publication.title}” will be removed from Fbooks, all collections, and saved reading progress. Its original local file will stay on your device.'
-            : '“${publication.title}” will be removed from Fbooks, all collections, and saved reading progress. Choose whether to keep its downloaded file.',
+            ? '“${publication.title}” will be removed from fBooks, all collections, and saved reading progress. Its original local file will stay on your device.'
+            : '“${publication.title}” will be removed from fBooks, all collections, and saved reading progress. Choose whether to keep its downloaded file.',
       ),
       actions: [
         TextButton(

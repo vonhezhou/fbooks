@@ -71,7 +71,7 @@ class SettingsPage extends ConsumerWidget {
           title: 'ABOUT',
           child: const ListTile(
             leading: Icon(Icons.info_outline),
-            title: Text('Fbooks'),
+            title: Text('fBooks'),
             subtitle: Text('A local-first reader for comics and ebooks.'),
             trailing: Text('1.0.0'),
           ),

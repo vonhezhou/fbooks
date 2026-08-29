@@ -45,7 +45,7 @@ class PluginsPage extends ConsumerWidget {
         const _CapabilityCard(
           icon: Icons.extension_outlined,
           title: 'Third-party extensions',
-          description: 'No external extensions are installed. Fbooks does not load unreviewed reader code.',
+          description: 'No external extensions are installed. fBooks does not load unreviewed reader code.',
           status: 'Not available',
           detail: 'A plug-in API is deliberately outside the current local-first milestone',
           enabled: false,
