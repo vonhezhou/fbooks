@@ -42,7 +42,8 @@ class ComicReaderPage extends ConsumerWidget {
           actions: [
             IconButton(
               tooltip: 'Reading settings',
-              onPressed: () => _showComicReadingSettings(context, ref),
+              onPressed: () =>
+                  _showComicReadingSettings(context, ref, desktop: desktop),
               icon: const Icon(Icons.tune),
             ),
           ],
@@ -488,7 +489,7 @@ class _ComicReaderStage extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             key: const Key('comic-reader-desktop-stage'),
-            constraints: BoxConstraints(maxWidth: vertical ? 920 : 1480),
+            constraints: BoxConstraints(maxWidth: vertical ? 920 : 1360),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: Colors.black,
@@ -582,13 +583,15 @@ class _ComicImage extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) => InteractiveViewer(
             maxScale: 4,
-            child: Center(
-              child: Image.memory(
-                snapshot.data!,
-                width: fitWidth ? constraints.maxWidth : null,
-                fit: fitWidth ? BoxFit.fitWidth : BoxFit.contain,
-              ),
-            ),
+            child: fitWidth
+                ? Image.memory(
+                    snapshot.data!,
+                    width: constraints.maxWidth,
+                    fit: BoxFit.fitWidth,
+                  )
+                : SizedBox.expand(
+                    child: Image.memory(snapshot.data!, fit: BoxFit.contain),
+                  ),
           ),
         );
       },
@@ -596,36 +599,90 @@ class _ComicImage extends StatelessWidget {
   }
 }
 
-Future<void> _showComicReadingSettings(BuildContext context, WidgetRef ref) {
+Future<void> _showComicReadingSettings(
+  BuildContext context,
+  WidgetRef ref, {
+  required bool desktop,
+}) {
+  if (desktop) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        key: const Key('comic-reader-desktop-settings'),
+        backgroundColor: const Color(0xFF202124),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: _ComicReadingSettingsPanel(ref: ref, desktop: true),
+        ),
+      ),
+    );
+  }
   return showModalBottomSheet<void>(
     context: context,
-    builder: (context) {
-      var preferences =
-          ref.read(comicReadingPreferencesProvider).asData?.value ??
-          ComicReadingPreferences.defaults;
-      return StatefulBuilder(
-        builder: (context, setModalState) {
-          Future<void> update(ComicReadingPreferences next) async {
-            setModalState(() => preferences = next);
-            await ref
-                .read(comicReadingPreferencesRepositoryProvider)
-                .save(next);
-            ref.invalidate(comicReadingPreferencesProvider);
-          }
+    backgroundColor: const Color(0xFF202124),
+    builder: (context) => _ComicReadingSettingsPanel(ref: ref, desktop: false),
+  );
+}
 
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Comic reading settings',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownMenu<ComicReadingMode>(
+class _ComicReadingSettingsPanel extends StatefulWidget {
+  const _ComicReadingSettingsPanel({required this.ref, required this.desktop});
+
+  final WidgetRef ref;
+  final bool desktop;
+
+  @override
+  State<_ComicReadingSettingsPanel> createState() =>
+      _ComicReadingSettingsPanelState();
+}
+
+class _ComicReadingSettingsPanelState
+    extends State<_ComicReadingSettingsPanel> {
+  late ComicReadingPreferences preferences;
+
+  @override
+  void initState() {
+    super.initState();
+    preferences =
+        widget.ref.read(comicReadingPreferencesProvider).asData?.value ??
+        ComicReadingPreferences.defaults;
+  }
+
+  Future<void> _update(ComicReadingPreferences next) async {
+    setState(() => preferences = next);
+    await widget.ref.read(comicReadingPreferencesRepositoryProvider).save(next);
+    widget.ref.invalidate(comicReadingPreferencesProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFFD8FF67),
+        brightness: Brightness.dark,
+        surface: const Color(0xFF202124),
+      ),
+    );
+    return Theme(
+      data: theme,
+      child: Material(
+        key: const Key('comic-reading-settings-surface'),
+        color: const Color(0xFF202124),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(widget.desktop ? 32 : 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Comic reading settings',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: 300,
+                  child: DropdownMenu<ComicReadingMode>(
                     initialSelection: preferences.mode,
                     label: const Text('Reading mode'),
                     dropdownMenuEntries: [
@@ -634,33 +691,33 @@ Future<void> _showComicReadingSettings(BuildContext context, WidgetRef ref) {
                     ],
                     onSelected: (value) {
                       if (value != null) {
-                        update(preferences.copyWith(mode: value));
+                        _update(preferences.copyWith(mode: value));
                       }
                     },
                   ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Double-page spread'),
-                    subtitle: Text(
-                      preferences.mode == ComicReadingMode.vertical
-                          ? 'Available in horizontal reading modes.'
-                          : 'Keep the cover single, then pair following pages.',
-                    ),
-                    value: preferences.doublePage,
-                    onChanged: preferences.mode == ComicReadingMode.vertical
-                        ? null
-                        : (value) =>
-                              update(preferences.copyWith(doublePage: value)),
+                ),
+                const SizedBox(height: 12),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Double-page spread'),
+                  subtitle: Text(
+                    preferences.mode == ComicReadingMode.vertical
+                        ? 'Available in horizontal reading modes.'
+                        : 'Keep the cover single, then pair following pages.',
                   ),
-                ],
-              ),
+                  value: preferences.doublePage,
+                  onChanged: preferences.mode == ComicReadingMode.vertical
+                      ? null
+                      : (value) =>
+                            _update(preferences.copyWith(doublePage: value)),
+                ),
+              ],
             ),
-          );
-        },
-      );
-    },
-  );
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 String _modeLabel(ComicReadingMode mode) {

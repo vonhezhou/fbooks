@@ -63,6 +63,19 @@ void main() {
     expect(find.byKey(const Key('comic-reader-desktop-stage')), findsOneWidget);
     expect(find.text('1 / 3'), findsOneWidget);
     expect(find.byTooltip('Reading settings'), findsOneWidget);
+    expect(tester.getSize(find.byType(Image).first).height, greaterThan(500));
+
+    await tester.tap(find.byTooltip('Reading settings'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('comic-reader-desktop-settings')),
+      findsOneWidget,
+    );
+    final surface = tester.widget<Material>(
+      find.byKey(const Key('comic-reading-settings-surface')),
+    );
+    expect(surface.color, const Color(0xFF202124));
     expect(tester.takeException(), isNull);
   });
 
