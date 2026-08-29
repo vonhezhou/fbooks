@@ -9,6 +9,7 @@ enum PublicationAssetKind {
   managedFile,
   importedSource,
   remoteAcquisition,
+  coverImage,
 }
 
 extension PublicationAssetKindX on PublicationAssetKind {
@@ -16,7 +17,9 @@ extension PublicationAssetKindX on PublicationAssetKind {
       this == PublicationAssetKind.localFile ||
       this == PublicationAssetKind.managedFile;
 
-  bool get isManagedByFbooks => this == PublicationAssetKind.managedFile;
+  bool get isManagedByFbooks =>
+      this == PublicationAssetKind.managedFile ||
+      this == PublicationAssetKind.coverImage;
 }
 
 class PublicationAsset {

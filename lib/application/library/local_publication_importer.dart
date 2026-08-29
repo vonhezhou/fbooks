@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
-import 'package:fbooks/application/reader/comic_archive_metadata.dart';
+import 'package:fbooks/application/managed_asset_store.dart';
+import 'package:fbooks/application/library/publication_cover_store.dart';
+import 'package:fbooks/application/library/publication_format_inspector.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -45,7 +46,8 @@ class LocalPublicationImporter {
   LocalPublicationImporter(
     this._repository,
     this._managedAssetStore, {
-    this.comicArchiveMetadataReader,
+    this.publicationFormatInspector,
+    this.publicationCoverStore,
     Uuid? uuid,
   }) : _uuid = uuid ?? const Uuid();
 
@@ -57,7 +59,8 @@ class LocalPublicationImporter {
 
   final PublicationRepository _repository;
   final ManagedAssetStore _managedAssetStore;
-  final ComicArchiveMetadataReader? comicArchiveMetadataReader;
+  final PublicationFormatInspector? publicationFormatInspector;
+  final PublicationCoverStore? publicationCoverStore;
   final Uuid _uuid;
 
   Future<LocalPublicationImportResult> importCandidates(
@@ -82,15 +85,16 @@ class LocalPublicationImporter {
 
       final publicationId = _uuid.v4();
       final managedAssetId = _uuid.v4();
-      Uri? managedLocation;
+      final managedLocations = <Uri>[];
       try {
-        managedLocation = await _managedAssetStore.save(
+        final managedLocation = await _managedAssetStore.save(
           assetId: managedAssetId,
           fileName: candidate.fileName,
           bytes: File.fromUri(candidate.location)
               .openRead()
               .map(Uint8List.fromList),
         );
+        managedLocations.add(managedLocation);
         var publication = Publication(
           id: publicationId,
           source: _localSource,
@@ -113,12 +117,24 @@ class LocalPublicationImporter {
             ),
           ],
         );
-        if (format == PublicationFormat.comicArchive) {
-          final metadata = await comicArchiveMetadataReader?.read(
-            candidate.location,
+        final inspection = await publicationFormatInspector?.inspect(
+          format: format,
+          location: managedLocation,
+        );
+        if (inspection?.metadata case final metadata?) {
+          publication = metadata.applyTo(publication);
+        }
+        if (inspection?.cover case final cover?) {
+          final coverAsset = await publicationCoverStore?.save(
+            publication: publication,
+            payload: cover,
           );
-          if (metadata != null) {
-            publication = metadata.applyTo(publication);
+          if (coverAsset != null) {
+            managedLocations.add(coverAsset.location);
+            publication = publicationCoverStore!.replace(
+              publication,
+              coverAsset,
+            );
           }
         }
         await _repository.save(publication);
@@ -131,7 +147,7 @@ class LocalPublicationImporter {
           null,
           stackTrace,
         );
-        if (managedLocation != null) {
+        for (final managedLocation in managedLocations.reversed) {
           try {
             await _managedAssetStore.delete(managedLocation);
           } catch (cleanupError, cleanupStackTrace) {

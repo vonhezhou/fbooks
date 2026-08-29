@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/library/local_publication_repairer.dart';
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/library/publication_cover_store.dart';
+import 'package:fbooks/application/library/publication_format_inspector.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -138,6 +140,75 @@ void main() {
         );
       },
     );
+
+    test(
+      'replaces a CBZ generated cover and cleans up the previous one',
+      () async {
+        final publication = Publication(
+          id: 'comic-1',
+          source: const LibrarySource(
+            id: 'local-library',
+            kind: LibrarySourceKind.local,
+            name: 'Local library',
+          ),
+          title: 'A comic',
+          format: PublicationFormat.comicArchive,
+          coverUri: Uri.file('/managed/old-cover.jpg'),
+          assets: [
+            PublicationAsset(
+              id: 'source-file',
+              publicationId: 'comic-1',
+              kind: PublicationAssetKind.importedSource,
+              location: Uri.file('/original/comic.cbz'),
+            ),
+            PublicationAsset(
+              id: 'managed-file',
+              publicationId: 'comic-1',
+              kind: PublicationAssetKind.managedFile,
+              location: Uri.file('/managed/old-comic.cbz'),
+            ),
+            PublicationAsset(
+              id: 'cover-file',
+              publicationId: 'comic-1',
+              kind: PublicationAssetKind.coverImage,
+              location: Uri.file('/managed/old-cover.jpg'),
+            ),
+          ],
+        );
+        final repository = _MemoryPublicationRepository([publication]);
+        final store = _RecordingManagedAssetStore();
+        final repairer = LocalPublicationRepairer(
+          repository,
+          store,
+          comicArchiveFileNameEncodingRepository: _EncodingRepository(),
+          publicationFormatInspector: _ComicPublicationInspector(),
+          publicationCoverStore: PublicationCoverStore(store),
+        );
+
+        final repaired = await repairer.repair(
+          publicationId: publication.id,
+          replacement: LocalPublicationCandidate(
+            fileName: 'Replacement.cbz',
+            location: Uri.file('/replacement/Replacement.cbz'),
+          ),
+        );
+
+        expect(repaired.coverUri, isNull);
+        expect(
+          repaired.assets.where(
+            (asset) => asset.kind == PublicationAssetKind.coverImage,
+          ),
+          hasLength(1),
+        );
+        expect(
+          store.deletedLocations,
+          containsAll([
+            Uri.file('/managed/old-comic.cbz'),
+            Uri.file('/managed/old-cover.jpg'),
+          ]),
+        );
+      },
+    );
   });
 }
 
@@ -210,6 +281,33 @@ class _FakeManagedAssetStore implements ManagedAssetStore {
     required String fileName,
     required Stream<Uint8List> bytes,
   }) async => Uri.file('/managed/$assetId.$fileName');
+}
+
+class _RecordingManagedAssetStore extends _FakeManagedAssetStore {
+  final deletedLocations = <Uri>[];
+
+  @override
+  Future<void> delete(Uri location) async {
+    deletedLocations.add(location);
+  }
+}
+
+class _ComicPublicationInspector implements PublicationFormatInspector {
+  @override
+  bool supports(PublicationFormat format) =>
+      format == PublicationFormat.comicArchive;
+
+  @override
+  Future<PublicationInspection?> inspect({
+    required PublicationFormat format,
+    required Uri location,
+  }) async => PublicationInspection(
+    cover: CoverPayload(
+      fileName: 'cover.png',
+      bytes: Uint8List.fromList([1, 2, 3]),
+      mediaType: 'image/png',
+    ),
+  );
 }
 
 class _EncodingRepository implements ComicArchiveFileNameEncodingRepository {

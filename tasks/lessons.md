@@ -98,3 +98,12 @@
 - For archive-memory claims, inspect the archive package's actual file-backed
   and lazy-decompression behavior before proposing a replacement; distinguish
   lazy ZIP entry access from caching decompressed page bytes in the session.
+
+## 2026-08-29 — Honour ComicInfo page-level cover declarations
+
+- CBZ cover selection must read `ComicInfo.xml`'s `Pages/Page` entries and
+  prefer a page whose `Type` is `FrontCover` over filename and directory
+  heuristics; a metadata file can define the cover even when its filename is
+  non-descriptive.
+- Add a regression fixture with a non-descriptive image name and a
+  `FrontCover` page declaration whenever changing archive-cover selection.

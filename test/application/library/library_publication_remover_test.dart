@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -63,6 +63,49 @@ void main() {
         await remover.remove(publication.id, deleteManagedFiles: false);
 
         expect(store.deletedLocations, [Uri.file('/managed/book.epub')]);
+      },
+    );
+
+    test(
+      'deletes a generated cover with a locally imported publication',
+      () async {
+        final publication = Publication(
+          id: 'local-comic',
+          source: _localPublication.source,
+          title: 'Local comic',
+          format: PublicationFormat.comicArchive,
+          coverUri: Uri.file('/managed/cover.jpg'),
+          assets: [
+            PublicationAsset(
+              id: 'managed-file',
+              publicationId: 'local-comic',
+              kind: PublicationAssetKind.managedFile,
+              location: Uri.file('/managed/comic.cbz'),
+            ),
+            PublicationAsset(
+              id: 'generated-cover',
+              publicationId: 'local-comic',
+              kind: PublicationAssetKind.coverImage,
+              location: Uri.file('/managed/cover.jpg'),
+            ),
+          ],
+        );
+        final store = _RecordingManagedAssetStore();
+        final remover = LibraryPublicationRemover(
+          _MemoryPublicationRepository(publication),
+          store,
+          _EncodingRepository(),
+        );
+
+        await remover.remove(publication.id, deleteManagedFiles: false);
+
+        expect(
+          store.deletedLocations,
+          containsAll([
+            Uri.file('/managed/comic.cbz'),
+            Uri.file('/managed/cover.jpg'),
+          ]),
+        );
       },
     );
 

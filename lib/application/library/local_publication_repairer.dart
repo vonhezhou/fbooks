@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/local_publication_importer.dart';
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/library/publication_cover_store.dart';
+import 'package:fbooks/application/library/publication_format_inspector.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -20,6 +22,8 @@ class LocalPublicationRepairer {
     this._repository,
     this._managedAssetStore, {
     required this.comicArchiveFileNameEncodingRepository,
+    this.publicationFormatInspector,
+    this.publicationCoverStore,
     Uuid? uuid,
   }) : _uuid = uuid ?? const Uuid();
 
@@ -27,6 +31,8 @@ class LocalPublicationRepairer {
   final ManagedAssetStore _managedAssetStore;
   final ComicArchiveFileNameEncodingRepository
   comicArchiveFileNameEncodingRepository;
+  final PublicationFormatInspector? publicationFormatInspector;
+  final PublicationCoverStore? publicationCoverStore;
   final Uuid _uuid;
 
   Future<Publication> repair({
@@ -71,15 +77,23 @@ class LocalPublicationRepairer {
     }
     final previousAsset = publication.assets[assetIndex];
     final managedAssetId = _uuid.v4();
-    Uri? managedLocation;
+    final managedLocations = <Uri>[];
     try {
-      managedLocation = await _managedAssetStore.save(
+      final managedLocation = await _managedAssetStore.save(
         assetId: managedAssetId,
         fileName: replacement.fileName,
         bytes: File.fromUri(replacement.location)
             .openRead()
             .map(Uint8List.fromList),
       );
+      managedLocations.add(managedLocation);
+      final inspection = await publicationFormatInspector?.inspect(
+        format: publication.format,
+        location: managedLocation,
+      );
+      final previousCoverAssets = publication.assets
+          .where((asset) => asset.kind == PublicationAssetKind.coverImage)
+          .toList(growable: false);
       final repairedAssets = publication.assets
           .where((asset) => !asset.kind.isReadableLocalFile)
           .toList();
@@ -109,7 +123,7 @@ class LocalPublicationRepairer {
           mediaType: PublicationFormatDetector.mediaTypeFor(replacementFormat),
         ),
       );
-      final repaired = Publication(
+      var repaired = Publication(
         id: publication.id,
         source: publication.source,
         title: publication.title,
@@ -119,6 +133,20 @@ class LocalPublicationRepairer {
         coverUri: publication.coverUri,
         assets: repairedAssets,
       );
+      if (inspection?.metadata case final metadata?) {
+        repaired = metadata.applyTo(repaired);
+      }
+      if (publicationCoverStore != null) {
+        PublicationAsset? coverAsset;
+        if (inspection?.cover case final cover?) {
+          coverAsset = await publicationCoverStore!.save(
+            publication: repaired,
+            payload: cover,
+          );
+          managedLocations.add(coverAsset.location);
+        }
+        repaired = publicationCoverStore!.replace(repaired, coverAsset);
+      }
       await _repository.save(repaired);
       await comicArchiveFileNameEncodingRepository.delete(publicationId);
       if (previousAsset.kind.isManagedByFbooks) {
@@ -133,6 +161,21 @@ class LocalPublicationRepairer {
           );
         }
       }
+      for (final previousCover in previousCoverAssets) {
+        if (!previousCover.kind.isManagedByFbooks) {
+          continue;
+        }
+        try {
+          await _managedAssetStore.delete(previousCover.location);
+        } catch (cleanupError, cleanupStackTrace) {
+          _logger.warning(
+            'Previous generated cover cleanup failed after repair: '
+            'errorType=${cleanupError.runtimeType}.',
+            null,
+            cleanupStackTrace,
+          );
+        }
+      }
       _logger.info('Local publication repair completed.');
       return repaired;
     } catch (error, stackTrace) {
@@ -141,7 +184,7 @@ class LocalPublicationRepairer {
         null,
         stackTrace,
       );
-      if (managedLocation != null) {
+      for (final managedLocation in managedLocations.reversed) {
         try {
           await _managedAssetStore.delete(managedLocation);
         } catch (cleanupError, cleanupStackTrace) {

@@ -8,6 +8,7 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
+import 'package:fbooks/features/library/presentation/publication_cover.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
@@ -109,7 +110,14 @@ class _PublicationDetailsContent extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 36),
           children: [
-            Center(child: _PublicationCover(publication: publication)),
+            Center(
+              child: PublicationCover(
+                publication: publication,
+                width: 184,
+                height: 260,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
             const SizedBox(height: 28),
             title,
             const SizedBox(height: 8),
@@ -146,7 +154,12 @@ class _PublicationDetailsContent extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _PublicationCover(publication: publication, desktop: true),
+                  PublicationCover(
+                    publication: publication,
+                    width: 230,
+                    height: 326,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   const SizedBox(width: 40),
                   Expanded(
                     child: Padding(
@@ -308,48 +321,6 @@ Future<void> confirmPublicationRemoval(
   }
 }
 
-class _PublicationCover extends StatelessWidget {
-  const _PublicationCover({required this.publication, this.desktop = false});
-
-  final Publication publication;
-  final bool desktop;
-
-  @override
-  Widget build(BuildContext context) {
-    final coverUri = publication.coverUri;
-    final canLoadCover =
-        coverUri != null &&
-        (coverUri.scheme == 'http' || coverUri.scheme == 'https');
-    return Container(
-      width: desktop ? 230 : 184,
-      height: desktop ? 326 : 260,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: _coverColor(publication.format),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: canLoadCover
-          ? Image.network(
-              coverUri.toString(),
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  _CoverFallback(format: publication.format),
-            )
-          : _CoverFallback(format: publication.format),
-    );
-  }
-}
-
-class _CoverFallback extends StatelessWidget {
-  const _CoverFallback({required this.format});
-
-  final PublicationFormat format;
-
-  @override
-  Widget build(BuildContext context) =>
-      Center(child: Icon(_formatIcon(format), size: 58, color: Colors.white));
-}
-
 class _DetailsCard extends StatelessWidget {
   const _DetailsCard({required this.children});
 
@@ -449,18 +420,3 @@ String _readingPositionLabel(ReadingProgress? progress) =>
       EpubCfiLocator() => 'Resume reading',
       null => 'Not opened yet',
     };
-
-IconData _formatIcon(PublicationFormat format) => switch (format) {
-  PublicationFormat.comicArchive ||
-  PublicationFormat.comicDirectory => Icons.auto_stories_outlined,
-  PublicationFormat.epub || PublicationFormat.text => Icons.menu_book_outlined,
-  PublicationFormat.pdf => Icons.picture_as_pdf_outlined,
-};
-
-Color _coverColor(PublicationFormat format) => switch (format) {
-  PublicationFormat.comicArchive ||
-  PublicationFormat.comicDirectory => const Color(0xFF455A64),
-  PublicationFormat.epub => const Color(0xFF6D597A),
-  PublicationFormat.text => const Color(0xFF5B7C6F),
-  PublicationFormat.pdf => const Color(0xFF9B3D3D),
-};

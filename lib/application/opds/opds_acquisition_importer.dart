@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';
@@ -53,16 +54,6 @@ class OpdsDownloadCancelled implements Exception {
 
 abstract interface class RemoteAssetFetcher {
   Future<RemoteAssetResponse> fetch(Uri uri, {OpdsCredentials? credentials});
-}
-
-abstract interface class ManagedAssetStore {
-  Future<Uri> save({
-    required String assetId,
-    required String fileName,
-    required Stream<Uint8List> bytes,
-  });
-
-  Future<void> delete(Uri location);
 }
 
 class OpdsAcquisitionImporter {

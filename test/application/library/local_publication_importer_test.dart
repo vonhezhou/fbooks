@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/local_publication_importer.dart';
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
-import 'package:fbooks/application/reader/comic_archive_metadata.dart';
+import 'package:fbooks/application/library/publication_cover_store.dart';
+import 'package:fbooks/application/library/publication_format_inspector.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -95,12 +96,13 @@ void main() {
     expect(store.savedBytes, [70, 98, 111, 111, 107, 115]);
   });
 
-  test('uses ComicInfo metadata when importing a CBZ', () async {
+  test('uses CBZ metadata and persists its extracted cover', () async {
     final repository = _MemoryPublicationRepository();
     final importer = LocalPublicationImporter(
       repository,
       _FakeManagedAssetStore(),
-      comicArchiveMetadataReader: _ComicMetadataReader(),
+      publicationFormatInspector: _ComicPublicationInspector(),
+      publicationCoverStore: PublicationCoverStore(_FakeManagedAssetStore()),
     );
 
     final result = await importer.importCandidates([
@@ -113,6 +115,13 @@ void main() {
     expect(result.imported.single.title, 'ComicInfo title');
     expect(result.imported.single.authors, ['Writer']);
     expect(result.imported.single.description, 'Summary');
+    expect(result.imported.single.coverUri, isNull);
+    expect(
+      result.imported.single.assets
+          .singleWhere((asset) => asset.kind == PublicationAssetKind.coverImage)
+          .mediaType,
+      'image/jpeg',
+    );
   });
 
   test(
@@ -224,12 +233,25 @@ class _RecordingManagedAssetStore implements ManagedAssetStore {
   }
 }
 
-class _ComicMetadataReader implements ComicArchiveMetadataReader {
+class _ComicPublicationInspector implements PublicationFormatInspector {
   @override
-  Future<ComicArchiveMetadata?> read(Uri location) async =>
-      const ComicArchiveMetadata(
-        title: 'ComicInfo title',
-        author: 'Writer',
-        description: 'Summary',
-      );
+  bool supports(PublicationFormat format) =>
+      format == PublicationFormat.comicArchive;
+
+  @override
+  Future<PublicationInspection?> inspect({
+    required PublicationFormat format,
+    required Uri location,
+  }) async => PublicationInspection(
+    metadata: const PublicationMetadataPatch(
+      title: 'ComicInfo title',
+      authors: ['Writer'],
+      description: 'Summary',
+    ),
+    cover: CoverPayload(
+      fileName: 'folder/cover.jpg',
+      bytes: Uint8List.fromList([1, 2, 3]),
+      mediaType: 'image/jpeg',
+    ),
+  );
 }

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';

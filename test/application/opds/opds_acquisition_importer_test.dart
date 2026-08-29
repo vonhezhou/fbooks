@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';

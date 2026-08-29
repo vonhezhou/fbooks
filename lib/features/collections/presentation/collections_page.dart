@@ -2,6 +2,7 @@ import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/features/library/presentation/publication_cover.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/features/collections/presentation/collection_membership_manager.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
@@ -605,7 +606,11 @@ class _CollectionDetailView extends ConsumerWidget {
                                   value: selectedIds.contains(book.id),
                                   onChanged: (_) => onSelectionChanged(book.id),
                                 )
-                              : Icon(_formatIcon(book.format)),
+                              : SizedBox(
+                                  width: 36,
+                                  height: 52,
+                                  child: PublicationCover(publication: book),
+                                ),
                           title: Text(book.title),
                           subtitle: Text(
                             book.authors.isEmpty
@@ -727,7 +732,7 @@ class _BookCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _PublicationCover(publication: book)),
+            Expanded(child: PublicationCover(publication: book)),
             const SizedBox(height: 10),
             Text(
               book.title,
@@ -777,35 +782,6 @@ class _CollectionCover extends StatelessWidget {
             Icons.collections_bookmark_rounded,
             size: size.isFinite ? size * .36 : 54,
             color: Colors.white,
-          )
-        : null,
-  );
-}
-
-class _PublicationCover extends StatelessWidget {
-  const _PublicationCover({required this.publication});
-
-  final Publication publication;
-
-  @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: _publicationColor(publication.format),
-      borderRadius: BorderRadius.circular(9),
-      image: publication.coverUri == null
-          ? null
-          : DecorationImage(
-              image: NetworkImage(publication.coverUri.toString()),
-              fit: BoxFit.cover,
-            ),
-    ),
-    child: publication.coverUri == null
-        ? Center(
-            child: Icon(
-              _formatIcon(publication.format),
-              size: 40,
-              color: Colors.white,
-            ),
           )
         : null,
   );
@@ -1106,21 +1082,6 @@ String _formatName(PublicationFormat format) => switch (format) {
   PublicationFormat.epub => 'EPUB',
   PublicationFormat.text => 'Text',
   PublicationFormat.pdf => 'PDF',
-};
-
-IconData _formatIcon(PublicationFormat format) => switch (format) {
-  PublicationFormat.comicArchive ||
-  PublicationFormat.comicDirectory => Icons.auto_stories_outlined,
-  PublicationFormat.epub || PublicationFormat.text => Icons.menu_book_outlined,
-  PublicationFormat.pdf => Icons.picture_as_pdf_outlined,
-};
-
-Color _publicationColor(PublicationFormat format) => switch (format) {
-  PublicationFormat.comicArchive ||
-  PublicationFormat.comicDirectory => const Color(0xFF455A64),
-  PublicationFormat.epub => const Color(0xFF6D597A),
-  PublicationFormat.text => const Color(0xFF5B7C6F),
-  PublicationFormat.pdf => const Color(0xFF9B3D3D),
 };
 
 Color _coverColor(String id) {

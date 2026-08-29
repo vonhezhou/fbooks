@@ -1,4 +1,4 @@
-import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -80,7 +80,7 @@ List<Uri> managedDownloadFiles(Publication publication) {
   return publication.assets
       .where(
         (asset) =>
-            (asset.kind.isManagedByFbooks ||
+            (asset.kind == PublicationAssetKind.managedFile ||
                 asset.kind == PublicationAssetKind.localFile) &&
             asset.location.scheme == 'file',
       )

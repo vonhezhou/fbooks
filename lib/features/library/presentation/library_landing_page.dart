@@ -10,6 +10,7 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/collections/presentation/collections_page.dart';
 import 'package:fbooks/features/collections/presentation/collection_membership_manager.dart';
 import 'package:fbooks/features/library/presentation/publication_details_page.dart';
+import 'package:fbooks/features/library/presentation/publication_cover.dart';
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
@@ -17,6 +18,7 @@ import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:fbooks/features/settings/presentation/settings_page.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
+import 'package:fbooks/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -585,7 +587,7 @@ class _DesktopSidebar extends ConsumerWidget {
                 children: [
                   Image(
                     key: Key('brand-logo'),
-                    image: AssetImage('launcher_icon/fbooks_icon.png'),
+                    image: Assets.launcherIcon.fbooksIcon.provider(),
                     width: 32,
                     height: 32,
                     fit: BoxFit.contain,
@@ -1282,7 +1284,6 @@ class _PublicationList extends ConsumerWidget {
               onTap: () => _openPublication(context, ref, publications[index]),
               onDetails: () =>
                   _showPublicationDetails(context, publications[index]),
-              icon: _iconFor(publications[index].format),
               formatLabel: _formatLabel(publications[index].format),
               selected: selectedPublicationIds.contains(publications[index].id),
               selectionMode: selectionMode,
@@ -1324,7 +1325,11 @@ class _PublicationList extends ConsumerWidget {
                         value: selectedPublicationIds.contains(publication.id),
                         onChanged: (_) => onSelectionChanged(publication.id),
                       )
-                    : Icon(_iconFor(publication.format)),
+                    : SizedBox(
+                        width: 36,
+                        height: 52,
+                        child: PublicationCover(publication: publication),
+                      ),
                 title: Text(publication.title),
                 subtitle: _PublicationSubtitle(
                   publication: publication,
@@ -1422,16 +1427,6 @@ class _PublicationList extends ConsumerWidget {
     );
   }
 
-  IconData _iconFor(PublicationFormat format) {
-    return switch (format) {
-      PublicationFormat.comicArchive ||
-      PublicationFormat.comicDirectory => Icons.auto_stories_outlined,
-      PublicationFormat.epub ||
-      PublicationFormat.text => Icons.menu_book_outlined,
-      PublicationFormat.pdf => Icons.picture_as_pdf_outlined,
-    };
-  }
-
   String _formatLabel(PublicationFormat format) {
     return switch (format) {
       PublicationFormat.comicArchive => 'CBZ',
@@ -1449,7 +1444,6 @@ class _PublicationCard extends StatelessWidget {
     required this.progress,
     required this.onTap,
     required this.onDetails,
-    required this.icon,
     required this.formatLabel,
     required this.selected,
     required this.selectionMode,
@@ -1462,7 +1456,6 @@ class _PublicationCard extends StatelessWidget {
   final ReadingProgress? progress;
   final VoidCallback onTap;
   final VoidCallback onDetails;
-  final IconData icon;
   final String formatLabel;
   final bool selected;
   final bool selectionMode;
@@ -1486,17 +1479,7 @@ class _PublicationCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: _coverColor(publication.format),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Icon(icon, size: 52, color: Colors.white),
-                      ),
-                    ),
-                  ),
+                  Expanded(child: PublicationCover(publication: publication)),
                   const SizedBox(height: 12),
                   Text(
                     publication.title,
@@ -1543,14 +1526,6 @@ class _PublicationCard extends StatelessWidget {
       ),
     );
   }
-
-  Color _coverColor(PublicationFormat format) => switch (format) {
-    PublicationFormat.comicArchive ||
-    PublicationFormat.comicDirectory => const Color(0xFF455A64),
-    PublicationFormat.epub => const Color(0xFF6D597A),
-    PublicationFormat.text => const Color(0xFF5B7C6F),
-    PublicationFormat.pdf => const Color(0xFF9B3D3D),
-  };
 
   String _resumeLabel(ReadingProgress progress) => switch (progress.locator) {
     ComicPageLocator(:final pageIndex) => 'Page ${pageIndex + 1}',

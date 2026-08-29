@@ -1,15 +1,17 @@
 import 'dart:async';
 
+import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/library/local_publication_repairer.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
+import 'package:fbooks/application/library/publication_cover_store.dart';
+import 'package:fbooks/application/library/publication_format_inspector.dart';
 import 'package:fbooks/application/opds/opds_catalog.dart';
 import 'package:fbooks/application/opds/opds_catalog_request.dart';
 import 'package:fbooks/application/opds/opds_credentials_repository.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
-import 'package:fbooks/application/reader/comic_archive_metadata.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/app/window/window_controller.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
@@ -26,7 +28,7 @@ import 'package:fbooks/data/persistence/local_database.dart';
 import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
 import 'package:fbooks/data/opds/http_remote_asset_fetcher.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
-import 'package:fbooks/data/reader/archive_comic_metadata_reader.dart';
+import 'package:fbooks/data/reader/archive_comic_publication_inspector.dart';
 import 'package:fbooks/data/reader/local_flow_reading_session.dart';
 import 'package:fbooks/data/storage/managed_asset_store.dart';
 import 'package:fbooks/domain/publication/publication.dart';
@@ -126,8 +128,12 @@ final comicArchiveFileNameEncodingRepositoryProvider =
       return SharedPreferencesComicArchiveFileNameEncodingRepository();
     });
 
-final comicArchiveMetadataReaderProvider = Provider<ComicArchiveMetadataReader>(
-  (ref) => ArchiveComicMetadataReader(),
+final publicationFormatInspectorProvider = Provider<PublicationFormatInspector>(
+  (ref) => PublicationInspectorRegistry([ArchiveComicPublicationInspector()]),
+);
+
+final publicationCoverStoreProvider = Provider<PublicationCoverStore>(
+  (ref) => PublicationCoverStore(ref.watch(managedAssetStoreProvider)),
 );
 
 final textReadingPreferencesRepositoryProvider =
@@ -145,7 +151,8 @@ final localPublicationImporterProvider = Provider<LocalPublicationImporter>((
   return LocalPublicationImporter(
     ref.watch(publicationRepositoryProvider),
     ref.watch(managedAssetStoreProvider),
-    comicArchiveMetadataReader: ref.watch(comicArchiveMetadataReaderProvider),
+    publicationFormatInspector: ref.watch(publicationFormatInspectorProvider),
+    publicationCoverStore: ref.watch(publicationCoverStoreProvider),
   );
 });
 
@@ -164,6 +171,8 @@ final localPublicationRepairerProvider = Provider<LocalPublicationRepairer>(
     comicArchiveFileNameEncodingRepository: ref.watch(
       comicArchiveFileNameEncodingRepositoryProvider,
     ),
+    publicationFormatInspector: ref.watch(publicationFormatInspectorProvider),
+    publicationCoverStore: ref.watch(publicationCoverStoreProvider),
   ),
 );
 
