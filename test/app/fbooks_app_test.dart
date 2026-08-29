@@ -22,6 +22,9 @@ void main() {
           publicationRepositoryProvider.overrideWithValue(
             _EmptyPublicationRepository(),
           ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
         ],
         child: const FbooksApp(),
       ),
@@ -43,6 +46,9 @@ void main() {
         overrides: [
           publicationRepositoryProvider.overrideWithValue(
             _EmptyPublicationRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
           ),
         ],
         child: const FbooksApp(),
@@ -100,6 +106,70 @@ void main() {
     _expectDarkTheme(tester, find.text('Settings').last);
   });
 
+  testWidgets('expands desktop collections and shows a selected list inline', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final collection = BookCollection(
+      id: 'weekend-reads',
+      name: 'Weekend reads',
+      kind: BookCollectionKind.custom,
+      description: 'Books for the weekend.',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    const book = Publication(
+      id: 'bobby',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Bobby Make-Believe',
+      format: PublicationFormat.comicArchive,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(const [book]),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _FixedBookCollectionRepository(
+              collections: [collection],
+              memberships: const {
+                'weekend-reads': ['bobby'],
+              },
+            ),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final collectionItem = find.byKey(
+      const Key('sidebar-collection-weekend-reads'),
+    );
+    expect(collectionItem, findsOneWidget);
+    expect(find.byTooltip('Collapse collections'), findsOneWidget);
+
+    await tester.tap(collectionItem);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('desktop-collection-detail')), findsOneWidget);
+    expect(find.text('Bobby Make-Believe'), findsOneWidget);
+    expect(find.byTooltip('Manage books'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Collapse collections'));
+    await tester.pumpAndSettle();
+
+    expect(collectionItem, findsNothing);
+    expect(find.byTooltip('Expand collections'), findsOneWidget);
+  });
+
   testWidgets('renders an imported book in a medium desktop window', (
     tester,
   ) async {
@@ -125,6 +195,9 @@ void main() {
           ),
           readingProgressRepositoryProvider.overrideWithValue(
             _EmptyReadingProgressRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
           ),
         ],
         child: const FbooksApp(),
@@ -305,6 +378,52 @@ class _EmptyBookCollectionRepository implements BookCollectionRepository {
   @override
   Stream<List<PublicationId>> watchPublicationIds(String collectionId) =>
       Stream.value(const []);
+}
+
+class _FixedBookCollectionRepository implements BookCollectionRepository {
+  const _FixedBookCollectionRepository({
+    required this.collections,
+    required this.memberships,
+  });
+
+  final List<BookCollection> collections;
+  final Map<String, List<PublicationId>> memberships;
+
+  @override
+  Future<void> addPublication(
+    String collectionId,
+    PublicationId publicationId,
+  ) async {}
+
+  @override
+  Future<void> delete(String id) async {}
+
+  @override
+  Future<BookCollection?> findById(String id) async =>
+      collections.where((collection) => collection.id == id).firstOrNull;
+
+  @override
+  Future<List<BookCollection>> listCollections() async => collections;
+
+  @override
+  Future<List<PublicationId>> listPublicationIds(String collectionId) async =>
+      memberships[collectionId] ?? const [];
+
+  @override
+  Future<void> removePublication(
+    String collectionId,
+    PublicationId publicationId,
+  ) async {}
+
+  @override
+  Future<void> save(BookCollection collection) async {}
+
+  @override
+  Stream<List<BookCollection>> watchCollections() => Stream.value(collections);
+
+  @override
+  Stream<List<PublicationId>> watchPublicationIds(String collectionId) =>
+      Stream.value(memberships[collectionId] ?? const []);
 }
 
 class _FixedAppSettingsRepository implements AppSettingsRepository {

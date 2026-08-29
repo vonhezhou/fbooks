@@ -234,33 +234,51 @@ class BookCollectionDetailPage extends ConsumerWidget {
   final BookCollection collection;
 
   @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      Scaffold(body: BookCollectionDetailContent(collection: collection));
+}
+
+/// Renders a collection inside either a standalone route or the desktop shell.
+class BookCollectionDetailContent extends ConsumerWidget {
+  const BookCollectionDetailContent({
+    super.key,
+    required this.collection,
+    this.showAppBar = true,
+    this.desktopLayout,
+  });
+
+  final BookCollection collection;
+  final bool showAppBar;
+  final bool? desktopLayout;
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final publications = ref.watch(libraryPublicationsProvider);
     final memberIds = ref.watch(
       collectionPublicationIdsProvider(collection.id),
     );
-    return Scaffold(
-      body: publications.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) =>
-            Center(child: Text('Unable to load this collection: $error')),
-        data: (allPublications) {
-          final ids = memberIds.asData?.value ?? const <PublicationId>[];
-          final byId = {
-            for (final publication in allPublications)
-              publication.id: publication,
-          };
-          final books = ids
-              .map((id) => byId[id])
-              .whereType<Publication>()
-              .toList(growable: false);
-          return _CollectionDetailView(
-            collection: collection,
-            books: books,
-            allPublications: allPublications,
-          );
-        },
-      ),
+    return publications.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) =>
+          Center(child: Text('Unable to load this collection: $error')),
+      data: (allPublications) {
+        final ids = memberIds.asData?.value ?? const <PublicationId>[];
+        final byId = {
+          for (final publication in allPublications)
+            publication.id: publication,
+        };
+        final books = ids
+            .map((id) => byId[id])
+            .whereType<Publication>()
+            .toList(growable: false);
+        return _CollectionDetailView(
+          collection: collection,
+          books: books,
+          allPublications: allPublications,
+          showAppBar: showAppBar,
+          desktopLayout: desktopLayout,
+        );
+      },
     );
   }
 }
@@ -270,16 +288,20 @@ class _CollectionDetailView extends ConsumerWidget {
     required this.collection,
     required this.books,
     required this.allPublications,
+    required this.showAppBar,
+    required this.desktopLayout,
   });
 
   final BookCollection collection;
   final List<Publication> books;
   final List<Publication> allPublications;
+  final bool showAppBar;
+  final bool? desktopLayout;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
     builder: (context, constraints) {
-      final desktop = constraints.maxWidth >= 960;
+      final desktop = desktopLayout ?? constraints.maxWidth >= 960;
       return _buildScrollView(context, ref, desktop: desktop);
     },
   );
@@ -292,24 +314,25 @@ class _CollectionDetailView extends ConsumerWidget {
     final canStartReading = books.any(_isReadable);
     return CustomScrollView(
       slivers: [
-        SliverAppBar(
-          pinned: true,
-          toolbarHeight: desktop ? 64 : kToolbarHeight,
-          title: Text(collection.name),
-          actions: [
-            IconButton(
-              tooltip: 'Add books',
-              onPressed: () => _showMembershipEditor(
-                context,
-                ref,
-                collection,
-                allPublications,
-                books.map((book) => book.id).toSet(),
+        if (showAppBar)
+          SliverAppBar(
+            pinned: true,
+            toolbarHeight: desktop ? 64 : kToolbarHeight,
+            title: Text(collection.name),
+            actions: [
+              IconButton(
+                tooltip: 'Add books',
+                onPressed: () => _showMembershipEditor(
+                  context,
+                  ref,
+                  collection,
+                  allPublications,
+                  books.map((book) => book.id).toSet(),
+                ),
+                icon: const Icon(Icons.library_add_outlined),
               ),
-              icon: const Icon(Icons.library_add_outlined),
-            ),
-          ],
-        ),
+            ],
+          ),
         SliverToBoxAdapter(
           child: Container(
             color: _coverColor(collection.id),
@@ -339,6 +362,14 @@ class _CollectionDetailView extends ConsumerWidget {
                         canStartReading: canStartReading,
                         onStartReading: () =>
                             _openFirstReadable(context, books),
+                        showManageAction: !showAppBar,
+                        onManageBooks: () => _showMembershipEditor(
+                          context,
+                          ref,
+                          collection,
+                          allPublications,
+                          books.map((book) => book.id).toSet(),
+                        ),
                       );
                       return isWide
                           ? Row(
@@ -417,12 +448,16 @@ class _CollectionDetails extends StatelessWidget {
     required this.bookCount,
     required this.canStartReading,
     required this.onStartReading,
+    required this.showManageAction,
+    required this.onManageBooks,
   });
 
   final BookCollection collection;
   final int bookCount;
   final bool canStartReading;
   final VoidCallback onStartReading;
+  final bool showManageAction;
+  final VoidCallback onManageBooks;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -455,14 +490,28 @@ class _CollectionDetails extends StatelessWidget {
         Text(description, style: const TextStyle(color: Colors.white)),
       ],
       const SizedBox(height: 20),
-      FilledButton.icon(
-        onPressed: canStartReading ? onStartReading : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF1C1D20),
-        ),
-        icon: const Icon(Icons.play_arrow),
-        label: const Text('Start reading'),
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FilledButton.icon(
+            onPressed: canStartReading ? onStartReading : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF1C1D20),
+            ),
+            icon: const Icon(Icons.menu_book_outlined),
+            label: const Text('Start reading'),
+          ),
+          if (showManageAction) ...[
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'Manage books',
+              onPressed: onManageBooks,
+              color: Colors.white,
+              icon: const Icon(Icons.more_vert),
+            ),
+          ],
+        ],
       ),
     ],
   );

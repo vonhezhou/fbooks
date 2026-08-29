@@ -1,5 +1,6 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';
+import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -38,6 +39,8 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   var _sourceFilter = _LibrarySourceFilter.all;
   var _formatFilter = _LibraryFormatFilter.all;
   var _sort = _LibrarySort.titleAscending;
+  var _collectionsExpanded = true;
+  BookCollection? _selectedDesktopCollection;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +74,16 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       _AppSection.collections => const CollectionsPage(),
       _AppSection.plugins => const PluginsPage(),
       _AppSection.settings => const SettingsPage(),
+    };
+    final desktopBody = switch (_section) {
+      _AppSection.collections when _selectedDesktopCollection != null =>
+        BookCollectionDetailContent(
+          key: const Key('desktop-collection-detail'),
+          collection: _selectedDesktopCollection!,
+          showAppBar: false,
+          desktopLayout: true,
+        ),
+      _ => body,
     };
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -112,6 +125,19 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
               _DesktopSidebar(
                 section: _section,
                 onSelected: (section) => setState(() => _section = section),
+                collectionsExpanded: _collectionsExpanded,
+                selectedCollection: _selectedDesktopCollection,
+                onCollectionsExpandedChanged: (expanded) =>
+                    setState(() => _collectionsExpanded = expanded),
+                onCollectionsOverviewSelected: () => setState(() {
+                  _section = _AppSection.collections;
+                  _selectedDesktopCollection = null;
+                }),
+                onCollectionSelected: (collection) => setState(() {
+                  _section = _AppSection.collections;
+                  _collectionsExpanded = true;
+                  _selectedDesktopCollection = collection;
+                }),
               ),
               Expanded(
                 child: Material(
@@ -126,7 +152,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                           onConnectOpds: _connectOpdsCatalog,
                           onBrowseOpds: _showOpdsCatalogs,
                         ),
-                      Expanded(child: body),
+                      Expanded(child: desktopBody),
                     ],
                   ),
                 ),
@@ -388,14 +414,31 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   }
 }
 
-class _DesktopSidebar extends StatelessWidget {
-  const _DesktopSidebar({required this.section, required this.onSelected});
+class _DesktopSidebar extends ConsumerWidget {
+  const _DesktopSidebar({
+    required this.section,
+    required this.onSelected,
+    required this.collectionsExpanded,
+    required this.selectedCollection,
+    required this.onCollectionsExpandedChanged,
+    required this.onCollectionsOverviewSelected,
+    required this.onCollectionSelected,
+  });
 
   final _AppSection section;
   final ValueChanged<_AppSection> onSelected;
+  final bool collectionsExpanded;
+  final BookCollection? selectedCollection;
+  final ValueChanged<bool> onCollectionsExpandedChanged;
+  final VoidCallback onCollectionsOverviewSelected;
+  final ValueChanged<BookCollection> onCollectionSelected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final customCollections =
+        ref.watch(bookCollectionsProvider).asData?.value ??
+        const <BookCollection>[];
+    final collections = [...SystemBookCollections.all, ...customCollections];
     return Container(
       width: 248,
       color: const Color(0xFF1C1D20),
@@ -430,19 +473,28 @@ class _DesktopSidebar extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 40),
-              _SidebarItem(
-                icon: Icons.library_books_outlined,
-                label: 'Library',
-                selected: section == _AppSection.library,
-                onTap: () => onSelected(_AppSection.library),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _SidebarItem(
+                      icon: Icons.library_books_outlined,
+                      label: 'Library',
+                      selected: section == _AppSection.library,
+                      onTap: () => onSelected(_AppSection.library),
+                    ),
+                    _CollectionsSidebarGroup(
+                      collections: collections,
+                      expanded: collectionsExpanded,
+                      selectedCollection: selectedCollection,
+                      selected: section == _AppSection.collections,
+                      onExpandedChanged: onCollectionsExpandedChanged,
+                      onOverviewSelected: onCollectionsOverviewSelected,
+                      onCollectionSelected: onCollectionSelected,
+                    ),
+                  ],
+                ),
               ),
-              _SidebarItem(
-                icon: Icons.collections_bookmark_outlined,
-                label: 'Collections',
-                selected: section == _AppSection.collections,
-                onTap: () => onSelected(_AppSection.collections),
-              ),
-              const Spacer(),
               _SidebarItem(
                 icon: Icons.extension_outlined,
                 label: 'Plugins',
@@ -463,18 +515,112 @@ class _DesktopSidebar extends StatelessWidget {
   }
 }
 
+class _CollectionsSidebarGroup extends StatelessWidget {
+  const _CollectionsSidebarGroup({
+    required this.collections,
+    required this.expanded,
+    required this.selectedCollection,
+    required this.selected,
+    required this.onExpandedChanged,
+    required this.onOverviewSelected,
+    required this.onCollectionSelected,
+  });
+
+  final List<BookCollection> collections;
+  final bool expanded;
+  final BookCollection? selectedCollection;
+  final bool selected;
+  final ValueChanged<bool> onExpandedChanged;
+  final VoidCallback onOverviewSelected;
+  final ValueChanged<BookCollection> onCollectionSelected;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      _SidebarItem(
+        icon: Icons.collections_bookmark_outlined,
+        label: 'Collections',
+        selected: selected && selectedCollection == null,
+        onTap: onOverviewSelected,
+        trailing: IconButton(
+          tooltip: expanded ? 'Collapse collections' : 'Expand collections',
+          onPressed: () => onExpandedChanged(!expanded),
+          color: Colors.white70,
+          icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
+        ),
+      ),
+      if (expanded)
+        for (final collection in collections)
+          _CollectionSidebarItem(
+            collection: collection,
+            selected: selectedCollection?.id == collection.id,
+            onTap: () => onCollectionSelected(collection),
+          ),
+    ],
+  );
+}
+
+class _CollectionSidebarItem extends ConsumerWidget {
+  const _CollectionSidebarItem({
+    required this.collection,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final BookCollection collection;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref
+        .watch(collectionPublicationIdsProvider(collection.id))
+        .asData
+        ?.value
+        .length;
+    return Padding(
+      padding: const EdgeInsets.only(left: 16),
+      child: _SidebarItem(
+        key: Key('sidebar-collection-${collection.id}'),
+        icon: _collectionIcon(collection.id),
+        label: collection.name,
+        selected: selected,
+        onTap: onTap,
+        trailing: count == null
+            ? const SizedBox(width: 24, height: 24)
+            : Text(
+                '$count',
+                style: TextStyle(
+                  color: selected ? Colors.white70 : Colors.white54,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+IconData _collectionIcon(String id) => switch (id) {
+  SystemBookCollections.readingList => Icons.schedule_outlined,
+  SystemBookCollections.favorites => Icons.favorite_border,
+  _ => Icons.bookmark_outline,
+};
+
 class _SidebarItem extends StatelessWidget {
   const _SidebarItem({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
     this.selected = false,
+    this.trailing,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -508,6 +654,7 @@ class _SidebarItem extends StatelessWidget {
                     ),
                   ),
                 ),
+                ?trailing,
               ],
             ),
           ),
