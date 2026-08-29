@@ -24,14 +24,15 @@ enum BookCollectionKind { system, custom }
 
 /// Stable identifiers for the built-in collection shortcuts in the interface.
 abstract final class SystemBookCollections {
-  static const readingList = 'system:reading-list';
+  /// Kept stable so existing reading-list memberships become Read later.
+  static const readLater = 'system:reading-list';
   static const favorites = 'system:favorites';
-  static const saved = 'system:saved';
+  static const finished = 'system:finished';
 
   static final all = <BookCollection>[
     BookCollection(
-      id: readingList,
-      name: 'Reading list',
+      id: readLater,
+      name: 'Read later',
       kind: BookCollectionKind.system,
       createdAt: DateTime.fromMillisecondsSinceEpoch(0),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
@@ -44,8 +45,8 @@ abstract final class SystemBookCollections {
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
     ),
     BookCollection(
-      id: saved,
-      name: 'Saved',
+      id: finished,
+      name: 'Finished',
       kind: BookCollectionKind.system,
       createdAt: DateTime.fromMillisecondsSinceEpoch(0),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(0),

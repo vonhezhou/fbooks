@@ -100,6 +100,10 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 
 ## After basic reading: library and OPDS quality
 
+- [ ] Library management: card/list display choice; title, author, last-read,
+  and added-time sorting in both directions; single and batch collection
+  actions. System collections are Read later, Favorites, and Finished.
+
 - [x] Publication details: cover, authors, description, source, format, and
   last-opened state.
 - [x] Remove a publication while clearing its reading state and collection

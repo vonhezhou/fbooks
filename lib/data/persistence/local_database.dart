@@ -90,13 +90,13 @@ class LocalDatabase extends _$LocalDatabase {
   LocalDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      if (from < 1 || from > 4) {
+      if (from < 1 || from > 5) {
         throw StateError('Unsupported database migration: $from -> $to.');
       }
       if (from == 1) {
@@ -111,6 +111,14 @@ class LocalDatabase extends _$LocalDatabase {
       if (from <= 3) {
         await migrator.createTable(storedBookCollections);
         await migrator.createTable(storedCollectionPublications);
+      }
+      if (from <= 4) {
+        await customStatement(
+          "DELETE FROM stored_collection_publications WHERE collection_id = 'system:saved'",
+        );
+        await customStatement(
+          "DELETE FROM stored_book_collections WHERE id = 'system:saved'",
+        );
       }
     },
     beforeOpen: (details) async {

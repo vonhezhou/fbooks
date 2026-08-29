@@ -8,6 +8,7 @@ import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/collections/presentation/collections_page.dart';
+import 'package:fbooks/features/collections/presentation/collection_membership_manager.dart';
 import 'package:fbooks/features/library/presentation/publication_details_page.dart';
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
@@ -25,7 +26,20 @@ enum _LibrarySourceFilter { all, local, opds }
 
 enum _LibraryFormatFilter { all, comic, epub, text }
 
-enum _LibrarySort { titleAscending, titleDescending }
+enum _LibrarySort { title, author, lastRead, added }
+
+enum _LibraryViewMode { cards, list }
+
+enum _PublicationAction {
+  open,
+  details,
+  favorite,
+  readLater,
+  finished,
+  collection,
+  repair,
+  delete,
+}
 
 class LibraryLandingPage extends ConsumerStatefulWidget {
   const LibraryLandingPage({super.key});
@@ -40,7 +54,11 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
   var _query = '';
   var _sourceFilter = _LibrarySourceFilter.all;
   var _formatFilter = _LibraryFormatFilter.all;
-  var _sort = _LibrarySort.titleAscending;
+  var _sort = _LibrarySort.title;
+  var _sortDescending = false;
+  var _viewMode = _LibraryViewMode.cards;
+  var _selectionMode = false;
+  final _selectedPublicationIds = <PublicationId>{};
   var _collectionsExpanded = true;
   BookCollection? _selectedDesktopCollection;
 
@@ -65,6 +83,35 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
           onFormatFilterChanged: (value) =>
               setState(() => _formatFilter = value),
           onSortChanged: (value) => setState(() => _sort = value),
+          sortDescending: _sortDescending,
+          onSortDescendingChanged: (value) =>
+              setState(() => _sortDescending = value),
+          viewMode: _viewMode,
+          onViewModeChanged: (value) => setState(() => _viewMode = value),
+          selectionMode: _selectionMode,
+          selectedPublicationIds: _selectedPublicationIds,
+          onSelectionModeChanged: (enabled) => setState(() {
+            _selectionMode = enabled;
+            if (!enabled) {
+              _selectedPublicationIds.clear();
+            }
+          }),
+          onSelectionChanged: (id) => setState(() {
+            if (!_selectedPublicationIds.add(id)) {
+              _selectedPublicationIds.remove(id);
+            }
+          }),
+          onSelectAll: () => setState(
+            () => _selectedPublicationIds
+              ..clear()
+              ..addAll(_filterPublications(items).map((item) => item.id)),
+          ),
+          onManageCollections: () => showCollectionMembershipManager(
+            context,
+            ref,
+            _selectedPublicationIds,
+          ),
+          onDeleteSelected: _deleteSelected,
         );
       },
       error: (error, stackTrace) => Center(
@@ -172,6 +219,45 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     );
   }
 
+  Future<void> _deleteSelected() async {
+    final selected = {..._selectedPublicationIds};
+    if (selected.isEmpty) {
+      return;
+    }
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove selected books?'),
+        content: Text(
+          '${selected.length} books will be removed from the library.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) {
+      return;
+    }
+    final remover = ref.read(libraryPublicationRemoverProvider);
+    for (final id in selected) {
+      await remover.remove(id, deleteManagedFiles: false);
+    }
+    if (mounted) {
+      setState(() {
+        _selectedPublicationIds.clear();
+        _selectionMode = false;
+      });
+    }
+  }
+
   List<Publication> _filterPublications(List<Publication> publications) {
     final normalizedQuery = _query.trim().toLowerCase();
     final filtered = publications.where((publication) {
@@ -200,11 +286,28 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       };
       return matchesQuery && matchesSource && matchesFormat;
     }).toList();
-    filtered.sort(
-      (left, right) => _sort == _LibrarySort.titleAscending
-          ? left.title.toLowerCase().compareTo(right.title.toLowerCase())
-          : right.title.toLowerCase().compareTo(left.title.toLowerCase()),
-    );
+    int compareText(String left, String right) =>
+        left.toLowerCase().compareTo(right.toLowerCase());
+    int compareDate(DateTime? left, DateTime? right) {
+      if (left == null && right == null) return 0;
+      if (left == null) return 1;
+      if (right == null) return -1;
+      return left.compareTo(right);
+    }
+
+    filtered.sort((left, right) {
+      final result = switch (_sort) {
+        _LibrarySort.title => compareText(left.title, right.title),
+        _LibrarySort.author => compareText(
+          left.authors.isEmpty ? '' : left.authors.first,
+          right.authors.isEmpty ? '' : right.authors.first,
+        ),
+        _LibrarySort.lastRead => compareDate(left.lastReadAt, right.lastReadAt),
+        _LibrarySort.added => compareDate(left.addedAt, right.addedAt),
+      };
+      final ordered = _sortDescending ? -result : result;
+      return ordered != 0 ? ordered : compareText(left.title, right.title);
+    });
     return filtered;
   }
 
@@ -622,8 +725,9 @@ class _CollectionSidebarItem extends ConsumerWidget {
 }
 
 IconData _collectionIcon(String id) => switch (id) {
-  SystemBookCollections.readingList => Icons.schedule_outlined,
+  SystemBookCollections.readLater => Icons.schedule_outlined,
   SystemBookCollections.favorites => Icons.favorite_border,
+  SystemBookCollections.finished => Icons.check_circle_outline,
   _ => Icons.bookmark_outline,
 };
 
@@ -824,6 +928,17 @@ class _LibraryContent extends StatelessWidget {
     required this.onSourceFilterChanged,
     required this.onFormatFilterChanged,
     required this.onSortChanged,
+    required this.sortDescending,
+    required this.onSortDescendingChanged,
+    required this.viewMode,
+    required this.onViewModeChanged,
+    required this.selectionMode,
+    required this.selectedPublicationIds,
+    required this.onSelectionModeChanged,
+    required this.onSelectionChanged,
+    required this.onSelectAll,
+    required this.onManageCollections,
+    required this.onDeleteSelected,
   });
 
   final List<Publication> publications;
@@ -835,24 +950,55 @@ class _LibraryContent extends StatelessWidget {
   final ValueChanged<_LibrarySourceFilter> onSourceFilterChanged;
   final ValueChanged<_LibraryFormatFilter> onFormatFilterChanged;
   final ValueChanged<_LibrarySort> onSortChanged;
+  final bool sortDescending;
+  final ValueChanged<bool> onSortDescendingChanged;
+  final _LibraryViewMode viewMode;
+  final ValueChanged<_LibraryViewMode> onViewModeChanged;
+  final bool selectionMode;
+  final Set<PublicationId> selectedPublicationIds;
+  final ValueChanged<bool> onSelectionModeChanged;
+  final ValueChanged<PublicationId> onSelectionChanged;
+  final VoidCallback onSelectAll;
+  final VoidCallback onManageCollections;
+  final Future<void> Function() onDeleteSelected;
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      _LibraryFilterBar(
-        query: query,
-        sourceFilter: sourceFilter,
-        formatFilter: formatFilter,
-        sort: sort,
-        onQueryChanged: onQueryChanged,
-        onSourceFilterChanged: onSourceFilterChanged,
-        onFormatFilterChanged: onFormatFilterChanged,
-        onSortChanged: onSortChanged,
-      ),
+      if (selectionMode)
+        _LibrarySelectionBar(
+          selectedCount: selectedPublicationIds.length,
+          onDone: () => onSelectionModeChanged(false),
+          onSelectAll: onSelectAll,
+          onManageCollections: onManageCollections,
+          onDelete: onDeleteSelected,
+        )
+      else
+        _LibraryFilterBar(
+          query: query,
+          sourceFilter: sourceFilter,
+          formatFilter: formatFilter,
+          sort: sort,
+          onQueryChanged: onQueryChanged,
+          onSourceFilterChanged: onSourceFilterChanged,
+          onFormatFilterChanged: onFormatFilterChanged,
+          onSortChanged: onSortChanged,
+          sortDescending: sortDescending,
+          onSortDescendingChanged: onSortDescendingChanged,
+          viewMode: viewMode,
+          onViewModeChanged: onViewModeChanged,
+          onSelectionModeChanged: onSelectionModeChanged,
+        ),
       Expanded(
         child: publications.isEmpty
             ? const _NoSearchResults()
-            : _PublicationList(publications: publications),
+            : _PublicationList(
+                publications: publications,
+                viewMode: viewMode,
+                selectionMode: selectionMode,
+                selectedPublicationIds: selectedPublicationIds,
+                onSelectionChanged: onSelectionChanged,
+              ),
       ),
     ],
   );
@@ -868,6 +1014,11 @@ class _LibraryFilterBar extends StatelessWidget {
     required this.onSourceFilterChanged,
     required this.onFormatFilterChanged,
     required this.onSortChanged,
+    required this.sortDescending,
+    required this.onSortDescendingChanged,
+    required this.viewMode,
+    required this.onViewModeChanged,
+    required this.onSelectionModeChanged,
   });
 
   final String query;
@@ -878,6 +1029,11 @@ class _LibraryFilterBar extends StatelessWidget {
   final ValueChanged<_LibrarySourceFilter> onSourceFilterChanged;
   final ValueChanged<_LibraryFormatFilter> onFormatFilterChanged;
   final ValueChanged<_LibrarySort> onSortChanged;
+  final bool sortDescending;
+  final ValueChanged<bool> onSortDescendingChanged;
+  final _LibraryViewMode viewMode;
+  final ValueChanged<_LibraryViewMode> onViewModeChanged;
+  final ValueChanged<bool> onSelectionModeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -910,48 +1066,89 @@ class _LibraryFilterBar extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _FilterMenu<_LibrarySourceFilter>(
-                tooltip: AppLocalizations.of(context).filterSource,
-                value: sourceFilter,
-                items: {
-                  _LibrarySourceFilter.all: AppLocalizations.of(context)
-                      .allSources,
-                  _LibrarySourceFilter.local: AppLocalizations.of(context)
-                      .localSource,
-                  _LibrarySourceFilter.opds: AppLocalizations.of(context)
-                      .opdsSource,
-                },
-                onChanged: onSourceFilterChanged,
+              MenuAnchor(
+                menuChildren: [
+                  SubmenuButton(
+                    menuChildren: [
+                      for (final value in _LibrarySourceFilter.values)
+                        RadioMenuButton(
+                          value: value,
+                          groupValue: sourceFilter,
+                          onChanged: (value) => onSourceFilterChanged(value!),
+                          child: Text(value.name),
+                        ),
+                    ],
+                    child: const Text('Source'),
+                  ),
+                  SubmenuButton(
+                    menuChildren: [
+                      for (final value in _LibraryFormatFilter.values)
+                        RadioMenuButton(
+                          value: value,
+                          groupValue: formatFilter,
+                          onChanged: (value) => onFormatFilterChanged(value!),
+                          child: Text(value.name),
+                        ),
+                    ],
+                    child: const Text('Format'),
+                  ),
+                  const Divider(),
+                  SubmenuButton(
+                    menuChildren: [
+                      for (final value in _LibrarySort.values)
+                        RadioMenuButton(
+                          value: value,
+                          groupValue: sort,
+                          onChanged: (value) => onSortChanged(value!),
+                          child: Text(value.name),
+                        ),
+                    ],
+                    child: const Text('Sort by'),
+                  ),
+                  RadioMenuButton(
+                    value: false,
+                    groupValue: sortDescending,
+                    onChanged: (value) => onSortDescendingChanged(value!),
+                    child: const Text('Ascending'),
+                  ),
+                  RadioMenuButton(
+                    value: true,
+                    groupValue: sortDescending,
+                    onChanged: (value) => onSortDescendingChanged(value!),
+                    child: const Text('Descending'),
+                  ),
+                ],
+                builder: (context, controller, child) => IconButton(
+                  tooltip: 'Filter and sort',
+                  onPressed: () => controller.isOpen
+                      ? controller.close()
+                      : controller.open(),
+                  icon: const Icon(Icons.tune),
+                ),
               ),
-              _FilterMenu<_LibraryFormatFilter>(
-                tooltip: AppLocalizations.of(context).filterFormat,
-                value: formatFilter,
-                items: {
-                  _LibraryFormatFilter.all: AppLocalizations.of(context)
-                      .allFormats,
-                  _LibraryFormatFilter.comic: AppLocalizations.of(context)
-                      .comicFormat,
-                  _LibraryFormatFilter.epub: AppLocalizations.of(context)
-                      .epubFormat,
-                  _LibraryFormatFilter.text: AppLocalizations.of(context)
-                      .textFormat,
-                },
-                onChanged: onFormatFilterChanged,
+              IconButton(
+                tooltip: viewMode == _LibraryViewMode.cards
+                    ? 'Show list'
+                    : 'Show cards',
+                onPressed: () => onViewModeChanged(
+                  viewMode == _LibraryViewMode.cards
+                      ? _LibraryViewMode.list
+                      : _LibraryViewMode.cards,
+                ),
+                icon: Icon(
+                  viewMode == _LibraryViewMode.cards
+                      ? Icons.view_list_outlined
+                      : Icons.grid_view_outlined,
+                ),
               ),
-              _FilterMenu<_LibrarySort>(
-                tooltip: AppLocalizations.of(context).sortPublications,
-                value: sort,
-                items: {
-                  _LibrarySort.titleAscending: AppLocalizations.of(context)
-                      .sortByTitleAscending,
-                  _LibrarySort.titleDescending: AppLocalizations.of(context)
-                      .sortByTitleDescending,
-                },
-                onChanged: onSortChanged,
+              IconButton(
+                tooltip: 'Select books',
+                onPressed: () => onSelectionModeChanged(true),
+                icon: const Icon(Icons.checklist),
               ),
             ],
           );
-          return constraints.maxWidth < 620
+          return constraints.maxWidth < 900
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [search, const SizedBox(height: 8), controls],
@@ -967,45 +1164,6 @@ class _LibraryFilterBar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _FilterMenu<T> extends StatelessWidget {
-  const _FilterMenu({
-    required this.tooltip,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final String tooltip;
-  final T value;
-  final Map<T, String> items;
-  final ValueChanged<T> onChanged;
-
-  @override
-  Widget build(BuildContext context) => Tooltip(
-    message: tooltip,
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<T>(
-        value: value,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        borderRadius: BorderRadius.circular(12),
-        items: items.entries
-            .map(
-              (entry) => DropdownMenuItem<T>(
-                value: entry.key,
-                child: Text(entry.value),
-              ),
-            )
-            .toList(growable: false),
-        onChanged: (value) {
-          if (value != null) {
-            onChanged(value);
-          }
-        },
-      ),
-    ),
-  );
 }
 
 class _NoSearchResults extends StatelessWidget {
@@ -1032,16 +1190,64 @@ class _NoSearchResults extends StatelessWidget {
   );
 }
 
+class _LibrarySelectionBar extends ConsumerWidget {
+  const _LibrarySelectionBar({
+    required this.selectedCount,
+    required this.onDone,
+    required this.onSelectAll,
+    required this.onManageCollections,
+    required this.onDelete,
+  });
+  final int selectedCount;
+  final VoidCallback onDone;
+  final VoidCallback onSelectAll;
+  final VoidCallback onManageCollections;
+  final Future<void> Function() onDelete;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Row(
+        children: [
+          IconButton(onPressed: onDone, icon: const Icon(Icons.close)),
+          Text('$selectedCount selected'),
+          const Spacer(),
+          TextButton(onPressed: onSelectAll, child: const Text('Select all')),
+          IconButton(
+            tooltip: 'Manage collections',
+            onPressed: selectedCount == 0 ? null : onManageCollections,
+            icon: const Icon(Icons.playlist_add),
+          ),
+          IconButton(
+            onPressed: selectedCount == 0 ? null : onDelete,
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PublicationList extends ConsumerWidget {
-  const _PublicationList({required this.publications});
+  const _PublicationList({
+    required this.publications,
+    required this.viewMode,
+    required this.selectionMode,
+    required this.selectedPublicationIds,
+    required this.onSelectionChanged,
+  });
 
   final List<Publication> publications;
+  final _LibraryViewMode viewMode;
+  final bool selectionMode;
+  final Set<PublicationId> selectedPublicationIds;
+  final ValueChanged<PublicationId> onSelectionChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= 720) {
+        if (viewMode == _LibraryViewMode.cards) {
           final desktop = _DesktopLibraryLayout.of(context);
           return GridView.builder(
             key: const Key('library-publication-grid'),
@@ -1066,6 +1272,9 @@ class _PublicationList extends ConsumerWidget {
                   _showPublicationDetails(context, publications[index]),
               icon: _iconFor(publications[index].format),
               formatLabel: _formatLabel(publications[index].format),
+              selected: selectedPublicationIds.contains(publications[index].id),
+              selectionMode: selectionMode,
+              onSelected: () => onSelectionChanged(publications[index].id),
             ),
           );
         }
@@ -1076,7 +1285,12 @@ class _PublicationList extends ConsumerWidget {
             final publication = publications[index];
             final progress = ref.watch(readingProgressProvider(publication.id));
             return ListTile(
-              leading: Icon(_iconFor(publication.format)),
+              leading: selectionMode
+                  ? Checkbox(
+                      value: selectedPublicationIds.contains(publication.id),
+                      onChanged: (_) => onSelectionChanged(publication.id),
+                    )
+                  : Icon(_iconFor(publication.format)),
               title: Text(publication.title),
               subtitle: _PublicationSubtitle(
                 publication: publication,
@@ -1086,15 +1300,17 @@ class _PublicationList extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(_formatLabel(publication.format)),
-                  IconButton(
-                    tooltip: 'Publication details',
-                    onPressed: () =>
+                  _PublicationActionsButton(
+                    publication: publication,
+                    onOpen: () => _openPublication(context, ref, publication),
+                    onDetails: () =>
                         _showPublicationDetails(context, publication),
-                    icon: const Icon(Icons.info_outline),
                   ),
                 ],
               ),
-              onTap: () => _openPublication(context, ref, publication),
+              onTap: selectionMode
+                  ? () => onSelectionChanged(publication.id)
+                  : () => _openPublication(context, ref, publication),
             );
           },
           separatorBuilder: (context, index) => const Divider(height: 1),
@@ -1200,6 +1416,9 @@ class _PublicationCard extends StatelessWidget {
     required this.onDetails,
     required this.icon,
     required this.formatLabel,
+    required this.selected,
+    required this.selectionMode,
+    required this.onSelected,
   });
 
   final Publication publication;
@@ -1208,6 +1427,9 @@ class _PublicationCard extends StatelessWidget {
   final VoidCallback onDetails;
   final IconData icon;
   final String formatLabel;
+  final bool selected;
+  final bool selectionMode;
+  final VoidCallback onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -1217,7 +1439,7 @@ class _PublicationCard extends StatelessWidget {
       child: Stack(
         children: [
           InkWell(
-            onTap: onTap,
+            onTap: selectionMode ? onSelected : onTap,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1253,6 +1475,14 @@ class _PublicationCard extends StatelessWidget {
               ),
             ),
           ),
+          if (selectionMode)
+            Positioned(
+              left: 4,
+              top: 4,
+              child: IgnorePointer(
+                child: Checkbox(value: selected, onChanged: null),
+              ),
+            ),
           Positioned(
             top: 4,
             right: 4,
@@ -1260,21 +1490,11 @@ class _PublicationCard extends StatelessWidget {
               key: Key('publication-details-${publication.id}'),
               width: 32,
               height: 32,
-              child: IconButton(
-                tooltip: 'Publication details',
-                onPressed: onDetails,
-                icon: const Icon(Icons.info_outline),
-                style: IconButton.styleFrom(
-                  iconSize: 18,
-                  padding: const EdgeInsets.all(7),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  backgroundColor: Theme.of(context).colorScheme.surface
-                      .withValues(alpha: .82),
-                  foregroundColor: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant,
-                ),
+              child: _PublicationActionsButton(
+                publication: publication,
+                onOpen: onTap,
+                onDetails: onDetails,
+                compact: true,
               ),
             ),
           ),
@@ -1297,6 +1517,154 @@ class _PublicationCard extends StatelessWidget {
     TextOffsetLocator(:final chapterIndex) => 'Chapter ${chapterIndex + 1}',
     EpubCfiLocator() => 'Resume reading',
   };
+}
+
+class _PublicationActionsButton extends ConsumerWidget {
+  const _PublicationActionsButton({
+    required this.publication,
+    required this.onOpen,
+    required this.onDetails,
+    this.compact = false,
+  });
+
+  final Publication publication;
+  final VoidCallback onOpen;
+  final VoidCallback onDetails;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      PopupMenuButton<_PublicationAction>(
+        tooltip: 'Book actions',
+        icon: const Icon(Icons.more_vert),
+        iconSize: compact ? 18 : null,
+        style: compact
+            ? IconButton.styleFrom(
+                padding: const EdgeInsets.all(7),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                backgroundColor: Theme.of(context).colorScheme.surface
+                    .withValues(alpha: .82),
+              )
+            : null,
+        onSelected: (action) async {
+          if (action == _PublicationAction.open) {
+            onOpen();
+            return;
+          }
+          if (action == _PublicationAction.details) {
+            onDetails();
+            return;
+          }
+          if (action == _PublicationAction.collection) {
+            await showCollectionMembershipManager(context, ref, {
+              publication.id,
+            });
+            return;
+          }
+          if (action == _PublicationAction.repair) {
+            await repairLocalPublication(
+              context,
+              ref,
+              publication,
+              closePageOnSuccess: false,
+            );
+            return;
+          }
+          if (action == _PublicationAction.delete) {
+            await confirmPublicationRemoval(
+              context,
+              ref,
+              publication,
+              closePageOnSuccess: false,
+            );
+            return;
+          }
+          final collectionId = switch (action) {
+            _PublicationAction.favorite => SystemBookCollections.favorites,
+            _PublicationAction.readLater => SystemBookCollections.readLater,
+            _PublicationAction.finished => SystemBookCollections.finished,
+            _PublicationAction.collection ||
+            _PublicationAction.repair ||
+            _PublicationAction.delete => throw StateError('Handled above.'),
+            _PublicationAction.open => throw StateError('Handled above.'),
+            _PublicationAction.details => throw StateError('Handled above.'),
+          };
+          final repository = ref.read(bookCollectionRepositoryProvider);
+          final ids = await repository.listPublicationIds(collectionId);
+          if (ids.contains(publication.id)) {
+            await repository.removePublication(collectionId, publication.id);
+          } else {
+            await repository.addPublication(collectionId, publication.id);
+          }
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Added “${publication.title}”.')),
+            );
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: _PublicationAction.open,
+            child: ListTile(
+              leading: Icon(Icons.menu_book_outlined),
+              title: Text('Open / continue reading'),
+            ),
+          ),
+          PopupMenuItem(
+            value: _PublicationAction.details,
+            child: ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('Details'),
+            ),
+          ),
+          PopupMenuDivider(),
+          PopupMenuItem(
+            value: _PublicationAction.favorite,
+            child: ListTile(
+              leading: Icon(Icons.favorite_border),
+              title: Text('Toggle favorite'),
+            ),
+          ),
+          PopupMenuItem(
+            value: _PublicationAction.readLater,
+            child: ListTile(
+              leading: Icon(Icons.schedule_outlined),
+              title: Text('Toggle Read later'),
+            ),
+          ),
+          PopupMenuItem(
+            value: _PublicationAction.finished,
+            child: ListTile(
+              leading: Icon(Icons.check_circle_outline),
+              title: Text('Toggle finished'),
+            ),
+          ),
+          PopupMenuItem(
+            value: _PublicationAction.collection,
+            child: ListTile(
+              leading: Icon(Icons.playlist_add),
+              title: Text('Add to collection'),
+            ),
+          ),
+          if (publication.source.kind == LibrarySourceKind.local)
+            PopupMenuItem(
+              value: _PublicationAction.repair,
+              child: ListTile(
+                leading: Icon(Icons.build_outlined),
+                title: Text('Repair local file'),
+              ),
+            ),
+          PopupMenuDivider(),
+          PopupMenuItem(
+            value: _PublicationAction.delete,
+            child: ListTile(
+              leading: Icon(Icons.delete_outline),
+              title: Text('Remove from library'),
+            ),
+          ),
+        ],
+      );
 }
 
 class _PublicationSubtitle extends StatelessWidget {

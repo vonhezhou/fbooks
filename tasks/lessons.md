@@ -1,5 +1,51 @@
 # Lessons
 
+## 2026-08-29 — Do not retain overlapping built-in collection semantics
+
+- When product feedback distinguishes a specific queue such as “Read later”,
+  do not leave another system collection such as “Saved” with overlapping
+  meaning. Confirm the canonical collection and remove the redundant one from
+  the product model and UI.
+- For Fbooks, the canonical deferred-reading collection is `Read later`; the
+  previous `Reading list` label must be renamed and the `Saved` system
+  collection must not be exposed or created.
+- A “Finished” system collection must be driven by explicit reading-completion
+  state, with automatic completion at the final valid locator and a manual
+  correction action; do not infer completion from a merely recent progress
+  timestamp.
+
+## 2026-08-29 — Preserve the user's requested legacy-feature scope
+
+- When asked to synchronise a legacy screen's capabilities, treat the audited
+  legacy checklist as the delivery contract. Do not stop after implementing a
+  related data-model slice while selection mode, batch actions, or the other
+  named screen remains absent.
+- Before reporting progress, compare every requested legacy capability against
+  the current implementation and explicitly continue any unmatched item.
+
+## 2026-08-29 — Carry over interaction structure, not just feature labels
+
+- When a legacy screen is the explicit reference, preserve its scalable
+  interaction model. For library sorting, use a sort-field choice plus a
+  separate ascending/descending choice; do not flatten their Cartesian product
+  into a growing list of options.
+- Consolidate related filters under one overflow menu when the reference does
+  so, and audit each legacy single-book action before replacing its menu.
+
+## 2026-08-29 — Menu parity needs an explicit action matrix
+
+- Do not call a legacy context menu synchronised after adding only a few new
+  actions. Build and check off the legacy action matrix (open, details,
+  favourite, completion, collection membership, deletion, and any supported
+  platform action) for both single and selected books.
+
+## 2026-08-29 — Treat collection membership as collection management
+
+- Do not flatten a potentially long list of user-created collections into a
+  context menu. For single or bulk membership changes, open a dedicated
+  management surface that lets users select existing collections, create one,
+  and delete custom collections while protecting system collections.
+
 ## 2026-08-29 — Dark theme must cover the whole primary screen
 
 - Do not combine a theme-aware sidebar or card with hard-coded light page

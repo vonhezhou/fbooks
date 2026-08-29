@@ -11,14 +11,14 @@ void main() {
   late LocalDatabase database;
   late DriftBookCollectionRepository repository;
 
-  setUp(() {
+  void openDatabase() {
     database = LocalDatabase.forTesting(NativeDatabase.memory());
     repository = DriftBookCollectionRepository(database);
-  });
-
-  tearDown(() => database.close());
+    addTearDown(database.close);
+  }
 
   test('persists a custom collection and its publication membership', () async {
+    openDatabase();
     const publication = Publication(
       id: 'book-1',
       source: LibrarySource(
@@ -52,6 +52,7 @@ void main() {
   });
 
   test('creates a built-in collection when a book is added to it', () async {
+    openDatabase();
     const publication = Publication(
       id: 'book-2',
       source: LibrarySource(
@@ -76,6 +77,90 @@ void main() {
     expect(
       (await repository.findById(SystemBookCollections.favorites))?.kind,
       BookCollectionKind.system,
+    );
+  });
+
+  test('exposes the three non-overlapping system collections', () {
+    expect(SystemBookCollections.all.map((collection) => collection.id), [
+      SystemBookCollections.readLater,
+      SystemBookCollections.favorites,
+      SystemBookCollections.finished,
+    ]);
+    expect(SystemBookCollections.all.map((collection) => collection.name), [
+      'Read later',
+      'Favorites',
+      'Finished',
+    ]);
+  });
+
+  test('removes the retired Saved system collection during v4 migration', () async {
+    final migratedDatabase = LocalDatabase.forTesting(
+      NativeDatabase.memory(
+        setup: (rawDatabase) {
+          rawDatabase
+            ..execute('''
+              CREATE TABLE stored_book_collections (
+                id TEXT NOT NULL PRIMARY KEY,
+                name TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                description TEXT,
+                cover_uri TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+              )
+            ''')
+            ..execute('''
+              CREATE TABLE stored_collection_publications (
+                collection_id TEXT NOT NULL,
+                publication_id TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                PRIMARY KEY (collection_id, publication_id)
+              )
+            ''')
+            ..execute("""
+              INSERT INTO stored_book_collections
+                (id, name, kind, created_at, updated_at)
+              VALUES ('system:saved', 'Saved', 'system', 0, 0)
+            """)
+            ..execute("""
+              INSERT INTO stored_book_collections
+                (id, name, kind, created_at, updated_at)
+              VALUES ('system:favorites', 'Favorites', 'system', 0, 0)
+            """)
+            ..execute("""
+              INSERT INTO stored_collection_publications
+                (collection_id, publication_id, created_at)
+              VALUES ('system:saved', 'book-1', 0)
+            """)
+            ..execute('PRAGMA user_version = 4');
+        },
+      ),
+    );
+    addTearDown(migratedDatabase.close);
+
+    expect(
+      await migratedDatabase
+          .customSelect(
+            "SELECT id FROM stored_book_collections WHERE id = 'system:saved'",
+          )
+          .get(),
+      isEmpty,
+    );
+    expect(
+      await migratedDatabase
+          .customSelect(
+            "SELECT collection_id FROM stored_collection_publications WHERE collection_id = 'system:saved'",
+          )
+          .get(),
+      isEmpty,
+    );
+    expect(
+      await migratedDatabase
+          .customSelect(
+            "SELECT id FROM stored_book_collections WHERE id = 'system:favorites'",
+          )
+          .get(),
+      hasLength(1),
     );
   });
 }

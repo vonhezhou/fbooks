@@ -3,6 +3,7 @@ import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
+import 'package:fbooks/features/collections/presentation/collection_membership_manager.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
@@ -140,8 +141,9 @@ class _SystemCollectionTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ids = ref.watch(collectionPublicationIdsProvider(collection.id));
     final icon = switch (collection.id) {
-      SystemBookCollections.readingList => Icons.bookmark_outline,
+      SystemBookCollections.readLater => Icons.schedule_outlined,
       SystemBookCollections.favorites => Icons.favorite_border,
+      SystemBookCollections.finished => Icons.check_circle_outline,
       _ => Icons.collections_bookmark_outlined,
     };
     return ListTile(
@@ -242,7 +244,7 @@ class BookCollectionDetailPage extends ConsumerWidget {
 }
 
 /// Renders a collection inside either a standalone route or the desktop shell.
-class BookCollectionDetailContent extends ConsumerWidget {
+class BookCollectionDetailContent extends ConsumerStatefulWidget {
   const BookCollectionDetailContent({
     super.key,
     required this.collection,
@@ -255,10 +257,27 @@ class BookCollectionDetailContent extends ConsumerWidget {
   final bool? desktopLayout;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BookCollectionDetailContent> createState() =>
+      _BookCollectionDetailContentState();
+}
+
+enum _CollectionViewMode { cards, list }
+
+enum _CollectionSort { title, author, added }
+
+class _BookCollectionDetailContentState
+    extends ConsumerState<BookCollectionDetailContent> {
+  var _viewMode = _CollectionViewMode.cards;
+  var _sort = _CollectionSort.title;
+  var _descending = false;
+  var _selectionMode = false;
+  final _selectedIds = <PublicationId>{};
+
+  @override
+  Widget build(BuildContext context) {
     final publications = ref.watch(libraryPublicationsProvider);
     final memberIds = ref.watch(
-      collectionPublicationIdsProvider(collection.id),
+      collectionPublicationIdsProvider(widget.collection.id),
     );
     return publications.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -273,13 +292,52 @@ class BookCollectionDetailContent extends ConsumerWidget {
         final books = ids
             .map((id) => byId[id])
             .whereType<Publication>()
-            .toList(growable: false);
+            .toList();
+        int compare(Publication left, Publication right) => switch (_sort) {
+          _CollectionSort.title => left.title.toLowerCase().compareTo(
+            right.title.toLowerCase(),
+          ),
+          _CollectionSort.author =>
+            (left.authors.isEmpty ? '' : left.authors.first)
+                .toLowerCase()
+                .compareTo(
+                  (right.authors.isEmpty ? '' : right.authors.first)
+                      .toLowerCase(),
+                ),
+          _CollectionSort.added => (left.addedAt ?? DateTime(0)).compareTo(
+            right.addedAt ?? DateTime(0),
+          ),
+        };
+        books.sort(
+          (left, right) =>
+              _descending ? -compare(left, right) : compare(left, right),
+        );
         return _CollectionDetailView(
-          collection: collection,
+          collection: widget.collection,
           books: books,
           allPublications: allPublications,
-          showAppBar: showAppBar,
-          desktopLayout: desktopLayout,
+          showAppBar: widget.showAppBar,
+          desktopLayout: widget.desktopLayout,
+          viewMode: _viewMode,
+          sort: _sort,
+          descending: _descending,
+          onViewModeChanged: (value) => setState(() => _viewMode = value),
+          onSortChanged: (value) => setState(() => _sort = value),
+          onDescendingChanged: (value) => setState(() => _descending = value),
+          selectionMode: _selectionMode,
+          selectedIds: _selectedIds,
+          onSelectionModeChanged: (value) => setState(() {
+            _selectionMode = value;
+            if (!value) _selectedIds.clear();
+          }),
+          onSelectionChanged: (id) => setState(() {
+            if (!_selectedIds.add(id)) _selectedIds.remove(id);
+          }),
+          onSelectAll: () => setState(
+            () => _selectedIds
+              ..clear()
+              ..addAll(books.map((book) => book.id)),
+          ),
         );
       },
     );
@@ -293,6 +351,17 @@ class _CollectionDetailView extends ConsumerWidget {
     required this.allPublications,
     required this.showAppBar,
     required this.desktopLayout,
+    required this.viewMode,
+    required this.sort,
+    required this.descending,
+    required this.onViewModeChanged,
+    required this.onSortChanged,
+    required this.onDescendingChanged,
+    required this.selectionMode,
+    required this.selectedIds,
+    required this.onSelectionModeChanged,
+    required this.onSelectionChanged,
+    required this.onSelectAll,
   });
 
   final BookCollection collection;
@@ -300,6 +369,17 @@ class _CollectionDetailView extends ConsumerWidget {
   final List<Publication> allPublications;
   final bool showAppBar;
   final bool? desktopLayout;
+  final _CollectionViewMode viewMode;
+  final _CollectionSort sort;
+  final bool descending;
+  final ValueChanged<_CollectionViewMode> onViewModeChanged;
+  final ValueChanged<_CollectionSort> onSortChanged;
+  final ValueChanged<bool> onDescendingChanged;
+  final bool selectionMode;
+  final Set<PublicationId> selectedIds;
+  final ValueChanged<bool> onSelectionModeChanged;
+  final ValueChanged<PublicationId> onSelectionChanged;
+  final VoidCallback onSelectAll;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
@@ -323,6 +403,83 @@ class _CollectionDetailView extends ConsumerWidget {
             toolbarHeight: desktop ? 64 : kToolbarHeight,
             title: Text(collection.name),
             actions: [
+              IconButton(
+                tooltip: selectionMode ? 'Done selecting' : 'Select books',
+                onPressed: () => onSelectionModeChanged(!selectionMode),
+                icon: Icon(selectionMode ? Icons.close : Icons.checklist),
+              ),
+              if (selectionMode)
+                TextButton(onPressed: onSelectAll, child: const Text('All')),
+              if (selectionMode)
+                IconButton(
+                  tooltip: 'Manage collections',
+                  onPressed: selectedIds.isEmpty
+                      ? null
+                      : () => showCollectionMembershipManager(
+                          context,
+                          ref,
+                          selectedIds,
+                        ),
+                  icon: const Icon(Icons.playlist_add),
+                ),
+              if (selectionMode)
+                IconButton(
+                  tooltip: 'Remove selected books',
+                  onPressed: selectedIds.isEmpty
+                      ? null
+                      : () async {
+                          final repository = ref.read(
+                            bookCollectionRepositoryProvider,
+                          );
+                          for (final id in selectedIds) {
+                            await repository.removePublication(
+                              collection.id,
+                              id,
+                            );
+                          }
+                          onSelectionModeChanged(false);
+                        },
+                  icon: const Icon(Icons.remove_circle_outline),
+                ),
+              PopupMenuButton<_CollectionSort>(
+                tooltip: 'Sort books',
+                initialValue: sort,
+                onSelected: onSortChanged,
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: _CollectionSort.title,
+                    child: Text('Title'),
+                  ),
+                  PopupMenuItem(
+                    value: _CollectionSort.author,
+                    child: Text('Author'),
+                  ),
+                  PopupMenuItem(
+                    value: _CollectionSort.added,
+                    child: Text('Added time'),
+                  ),
+                ],
+              ),
+              IconButton(
+                tooltip: descending ? 'Ascending' : 'Descending',
+                onPressed: () => onDescendingChanged(!descending),
+                icon: Icon(descending ? Icons.south : Icons.north),
+              ),
+              IconButton(
+                tooltip: viewMode == _CollectionViewMode.cards
+                    ? 'Show list'
+                    : 'Show cards',
+                onPressed: () => onViewModeChanged(
+                  viewMode == _CollectionViewMode.cards
+                      ? _CollectionViewMode.list
+                      : _CollectionViewMode.cards,
+                ),
+                icon: Icon(
+                  viewMode == _CollectionViewMode.cards
+                      ? Icons.view_list_outlined
+                      : Icons.grid_view_outlined,
+                ),
+              ),
               IconButton(
                 tooltip: 'Add books',
                 onPressed: () => _showMembershipEditor(
@@ -425,7 +582,8 @@ class _CollectionDetailView extends ConsumerWidget {
                         ),
                       ),
                     )
-                  : SliverGrid(
+                  : viewMode == _CollectionViewMode.cards && !selectionMode
+                  ? SliverGrid(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => _BookCard(book: books[index]),
                         childCount: books.length,
@@ -436,6 +594,40 @@ class _CollectionDetailView extends ConsumerWidget {
                         mainAxisSpacing: desktop ? 20 : 16,
                         crossAxisSpacing: desktop ? 20 : 16,
                       ),
+                    )
+                  : SliverList.separated(
+                      itemCount: books.length,
+                      itemBuilder: (context, index) {
+                        final book = books[index];
+                        return ListTile(
+                          leading: selectionMode
+                              ? Checkbox(
+                                  value: selectedIds.contains(book.id),
+                                  onChanged: (_) => onSelectionChanged(book.id),
+                                )
+                              : Icon(_formatIcon(book.format)),
+                          title: Text(book.title),
+                          subtitle: Text(
+                            book.authors.isEmpty
+                                ? _formatName(book.format)
+                                : book.authors.join(', '),
+                          ),
+                          trailing: IconButton(
+                            tooltip: 'Remove from this collection',
+                            icon: const Icon(Icons.remove_circle_outline),
+                            onPressed: () => ref
+                                .read(bookCollectionRepositoryProvider)
+                                .removePublication(collection.id, book.id),
+                          ),
+                          onTap: selectionMode
+                              ? () => onSelectionChanged(book.id)
+                              : _isReadable(book)
+                              ? () => _openPublication(context, book)
+                              : null,
+                        );
+                      },
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
                     ),
             );
           },

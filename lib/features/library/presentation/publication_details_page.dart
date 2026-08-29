@@ -30,12 +30,14 @@ class PublicationDetailsPage extends ConsumerWidget {
           if (publication.source.kind == LibrarySourceKind.local)
             IconButton(
               tooltip: 'Repair local file',
-              onPressed: () => _repairLocalFile(context, ref, publication),
+              onPressed: () =>
+                  repairLocalPublication(context, ref, publication),
               icon: const Icon(Icons.build_outlined),
             ),
           IconButton(
             tooltip: 'Remove from library',
-            onPressed: () => _confirmRemoval(context, ref, publication),
+            onPressed: () =>
+                confirmPublicationRemoval(context, ref, publication),
             icon: const Icon(Icons.delete_outline),
           ),
         ],
@@ -184,11 +186,12 @@ class _PublicationDetailsContent extends StatelessWidget {
   }
 }
 
-Future<void> _repairLocalFile(
+Future<void> repairLocalPublication(
   BuildContext context,
   WidgetRef ref,
-  Publication publication,
-) async {
+  Publication publication, {
+  bool closePageOnSuccess = true,
+}) async {
   final replacement = await ref
       .read(localPublicationPickerProvider)
       .pickReplacement(publication.format);
@@ -206,7 +209,9 @@ Future<void> _repairLocalFile(
     }
     ref.invalidate(comicReaderSessionProvider(publication.id));
     ref.invalidate(flowReadingSessionProvider(publication.id));
-    Navigator.of(context).pop();
+    if (closePageOnSuccess) {
+      Navigator.of(context).pop();
+    }
     messenger.showSnackBar(
       SnackBar(
         content: Text('“${publication.title}” now uses the selected file.'),
@@ -227,11 +232,12 @@ Future<void> _repairLocalFile(
   }
 }
 
-Future<void> _confirmRemoval(
+Future<void> confirmPublicationRemoval(
   BuildContext context,
   WidgetRef ref,
-  Publication publication,
-) async {
+  Publication publication, {
+  bool closePageOnSuccess = true,
+}) async {
   final downloadFiles = managedDownloadFiles(publication);
   final deleteDownload = await showDialog<bool>(
     context: context,
@@ -275,7 +281,9 @@ Future<void> _confirmRemoval(
     if (!context.mounted) {
       return;
     }
-    Navigator.of(context).pop();
+    if (closePageOnSuccess) {
+      Navigator.of(context).pop();
+    }
     messenger.showSnackBar(
       SnackBar(
         content: Text(

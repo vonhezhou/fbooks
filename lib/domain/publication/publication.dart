@@ -16,6 +16,8 @@ class Publication {
     this.description,
     this.coverUri,
     this.assets = const [],
+    this.addedAt,
+    this.lastReadAt,
   });
 
   final PublicationId id;
@@ -26,4 +28,6 @@ class Publication {
   final String? description;
   final Uri? coverUri;
   final List<PublicationAsset> assets;
+  final DateTime? addedAt;
+  final DateTime? lastReadAt;
 }

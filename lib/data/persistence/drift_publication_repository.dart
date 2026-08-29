@@ -63,6 +63,10 @@ class DriftPublicationRepository implements PublicationRepository {
   @override
   Future<void> save(Publication publication) async {
     await _database.transaction(() async {
+      final existing = await (_database.select(
+        _database.storedPublications,
+      )..where((row) => row.id.equals(publication.id))).getSingleOrNull();
+      final now = DateTime.now();
       await _database
           .into(_database.storedLibrarySources)
           .insertOnConflictUpdate(
@@ -71,7 +75,7 @@ class DriftPublicationRepository implements PublicationRepository {
               kind: publication.source.kind.name,
               name: publication.source.name,
               endpoint: Value(publication.source.endpoint?.toString()),
-              createdAt: DateTime.now(),
+              createdAt: now,
             ),
           );
 
@@ -86,8 +90,8 @@ class DriftPublicationRepository implements PublicationRepository {
               format: publication.format.name,
               description: Value(publication.description),
               coverUri: Value(publication.coverUri?.toString()),
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
+              createdAt: existing?.createdAt ?? publication.addedAt ?? now,
+              updatedAt: now,
             ),
           );
 
@@ -136,8 +140,15 @@ class DriftPublicationRepository implements PublicationRepository {
     final assetRows = await _database
         .select(_database.storedPublicationAssets)
         .get();
+    final progressRows = await _database
+        .select(_database.storedReadingProgresses)
+        .get();
     final sourceById = {for (final source in sourceRows) source.id: source};
     final assetsByPublicationId = <String, List<StoredPublicationAsset>>{};
+    final lastReadAtByPublicationId = {
+      for (final progress in progressRows)
+        progress.publicationId: progress.updatedAt,
+    };
     for (final asset in assetRows) {
       assetsByPublicationId
           .putIfAbsent(asset.publicationId, () => [])
@@ -149,6 +160,7 @@ class DriftPublicationRepository implements PublicationRepository {
             publication,
             source: sourceById[publication.sourceId],
             assets: assetsByPublicationId[publication.id] ?? const [],
+            lastReadAt: lastReadAtByPublicationId[publication.id],
           ),
         )
         .toList(growable: false);
@@ -163,13 +175,23 @@ class DriftPublicationRepository implements PublicationRepository {
     final assets = await (_database.select(
       _database.storedPublicationAssets,
     )..where((row) => row.publicationId.equals(publication.id))).get();
-    return _toPublication(publication, source: source, assets: assets);
+    final progress =
+        await (_database.select(_database.storedReadingProgresses)
+              ..where((row) => row.publicationId.equals(publication.id)))
+            .getSingleOrNull();
+    return _toPublication(
+      publication,
+      source: source,
+      assets: assets,
+      lastReadAt: progress?.updatedAt,
+    );
   }
 
   Publication _toPublication(
     StoredPublication publication, {
     required StoredLibrarySource? source,
     required List<StoredPublicationAsset> assets,
+    DateTime? lastReadAt,
   }) {
     if (source == null) {
       throw StateError('Publication ${publication.id} has no library source');
@@ -204,6 +226,8 @@ class DriftPublicationRepository implements PublicationRepository {
             ),
           )
           .toList(growable: false),
+      addedAt: publication.createdAt,
+      lastReadAt: lastReadAt,
     );
   }
 }

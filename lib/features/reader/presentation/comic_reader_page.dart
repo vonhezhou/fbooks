@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/comic_spread_index.dart';
@@ -384,6 +385,14 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
               updatedAt: DateTime.now(),
             ),
           );
+      if (pageIndex == widget.session.document.pages.length - 1) {
+        await ref
+            .read(bookCollectionRepositoryProvider)
+            .addPublication(
+              SystemBookCollections.finished,
+              widget.publicationId,
+            );
+      }
     } catch (_) {
       // A failed progress write must not interrupt reading.
     }
