@@ -41,6 +41,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final publications = ref.watch(libraryPublicationsProvider);
     final libraryBody = publications.when(
       data: (items) {
@@ -114,7 +115,8 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
               ),
               Expanded(
                 child: Material(
-                  color: const Color(0xFFF8F7F3),
+                  key: const Key('primary-content-surface'),
+                  color: colorScheme.surface,
                   child: Column(
                     children: [
                       if (_section == _AppSection.library)

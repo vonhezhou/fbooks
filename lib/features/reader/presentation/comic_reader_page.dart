@@ -10,6 +10,7 @@ import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
+import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -604,23 +605,11 @@ Future<void> _showComicReadingSettings(
   WidgetRef ref, {
   required bool desktop,
 }) {
-  if (desktop) {
-    return showDialog<void>(
-      context: context,
-      builder: (context) => Dialog(
-        key: const Key('comic-reader-desktop-settings'),
-        backgroundColor: const Color(0xFF202124),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: _ComicReadingSettingsPanel(ref: ref, desktop: true),
-        ),
-      ),
-    );
-  }
-  return showModalBottomSheet<void>(
-    context: context,
-    backgroundColor: const Color(0xFF202124),
-    builder: (context) => _ComicReadingSettingsPanel(ref: ref, desktop: false),
+  return showReaderSettingsSurface(
+    context,
+    desktop: desktop,
+    desktopKey: const Key('comic-reader-desktop-settings'),
+    child: _ComicReadingSettingsPanel(ref: ref, desktop: desktop),
   );
 }
 
@@ -669,15 +658,26 @@ class _ComicReadingSettingsPanelState
         key: const Key('comic-reading-settings-surface'),
         color: const Color(0xFF202124),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: EdgeInsets.all(widget.desktop ? 32 : 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Comic reading settings',
-                  style: Theme.of(context).textTheme.titleLarge,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Comic reading settings',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close settings',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 SizedBox(

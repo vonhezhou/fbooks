@@ -72,6 +72,12 @@ void main() {
       find.byKey(const Key('comic-reader-desktop-settings')),
       findsOneWidget,
     );
+    expect(
+      tester
+          .getTopRight(find.byKey(const Key('comic-reader-desktop-settings')))
+          .dx,
+      1200,
+    );
     final surface = tester.widget<Material>(
       find.byKey(const Key('comic-reading-settings-surface')),
     );
@@ -161,6 +167,11 @@ void main() {
 
     await tester.tap(find.byTooltip('Reading settings'));
     await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(
+      find.byKey(const Key('comic-reader-desktop-settings')),
+      findsNothing,
+    );
     await tester.tap(find.byType(DropdownMenu<ComicReadingMode>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Vertical scroll').last);

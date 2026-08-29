@@ -107,6 +107,107 @@ void main() {
     expect(find.byTooltip('Reading settings'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('uses a dark right-side panel for desktop settings', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 820));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      _readerApp(
+        const TextDocument(
+          publicationId: _publicationId,
+          chapters: [TextChapter(index: 0, title: 'First', text: 'Read')],
+        ),
+        preferences: const TextReadingPreferences(
+          appearance: TextReadingAppearance.dark,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Reading settings'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('text-reader-desktop-settings')),
+      findsOneWidget,
+    );
+    expect(
+      tester
+          .getTopRight(find.byKey(const Key('text-reader-desktop-settings')))
+          .dx,
+      1200,
+    );
+    final surface = tester.widget<Material>(
+      find.byKey(const Key('text-reading-settings-surface')),
+    );
+    expect(surface.color, const Color(0xFF1C1D20));
+  });
+
+  testWidgets('uses a bottom sheet for compact settings', (tester) async {
+    await tester.pumpWidget(
+      _readerApp(
+        const TextDocument(
+          publicationId: _publicationId,
+          chapters: [TextChapter(index: 0, title: 'First', text: 'Read')],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Reading settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byKey(const Key('text-reader-desktop-settings')), findsNothing);
+  });
+
+  testWidgets('uses a dark left-side panel for the desktop table of contents', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 820));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      _readerApp(
+        _documentWithTableOfContents,
+        preferences: const TextReadingPreferences(
+          appearance: TextReadingAppearance.dark,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Table of contents'));
+    await tester.pumpAndSettle();
+
+    final panel = find.byKey(
+      const Key('text-reader-desktop-table-of-contents'),
+    );
+    expect(panel, findsOneWidget);
+    expect(tester.getTopLeft(panel).dx, 0);
+    final surface = tester.widget<Material>(
+      find.byKey(const Key('text-reader-table-of-contents-surface')),
+    );
+    expect(surface.color, const Color(0xFF1C1D20));
+  });
+
+  testWidgets('uses a full-screen dialog for the compact table of contents', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_readerApp(_documentWithTableOfContents));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Table of contents'));
+    await tester.pumpAndSettle();
+
+    final surface = find.byKey(
+      const Key('text-reader-table-of-contents-surface'),
+    );
+    expect(find.byType(Dialog), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(tester.getSize(surface), tester.getSize(find.byType(MaterialApp)));
+  });
 }
 
 const _publicationId = 'linked-book';
@@ -122,7 +223,22 @@ const _publication = Publication(
   format: PublicationFormat.epub,
 );
 
-Widget _readerApp(TextDocument document) => ProviderScope(
+const _documentWithTableOfContents = TextDocument(
+  publicationId: _publicationId,
+  chapters: [
+    TextChapter(index: 0, title: 'First', text: 'Read'),
+    TextChapter(index: 1, title: 'Second', text: 'Continue'),
+  ],
+  tableOfContents: [
+    TextTableOfContentsEntry(title: 'First chapter', chapterIndex: 0),
+    TextTableOfContentsEntry(title: 'Second chapter', chapterIndex: 1),
+  ],
+);
+
+Widget _readerApp(
+  TextDocument document, {
+  TextReadingPreferences preferences = TextReadingPreferences.defaults,
+}) => ProviderScope(
   overrides: [
     publicationRepositoryProvider.overrideWithValue(
       _PublicationRepository(_publication),
@@ -134,7 +250,7 @@ Widget _readerApp(TextDocument document) => ProviderScope(
       _ReadingProgressRepository(),
     ),
     textReadingPreferencesRepositoryProvider.overrideWithValue(
-      _TextReadingPreferencesRepository(),
+      _TextReadingPreferencesRepository(preferences),
     ),
   ],
   child: const MaterialApp(
@@ -233,10 +349,15 @@ class _ReadingProgressRepository implements ReadingProgressRepository {
 
 class _TextReadingPreferencesRepository
     implements TextReadingPreferencesRepository {
-  @override
-  Future<TextReadingPreferences> load() async =>
-      TextReadingPreferences.defaults;
+  _TextReadingPreferencesRepository(this.preferences);
+
+  TextReadingPreferences preferences;
 
   @override
-  Future<void> save(TextReadingPreferences preferences) async {}
+  Future<TextReadingPreferences> load() async => preferences;
+
+  @override
+  Future<void> save(TextReadingPreferences preferences) async {
+    this.preferences = preferences;
+  }
 }

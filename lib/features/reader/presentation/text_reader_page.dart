@@ -11,6 +11,7 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/text_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
+import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,7 +44,8 @@ class TextReaderPage extends ConsumerWidget {
           actions: [
             IconButton(
               tooltip: 'Reading settings',
-              onPressed: () => _showTextReadingSettings(context, ref),
+              onPressed: () =>
+                  _showTextReadingSettings(context, ref, desktop: desktop),
               icon: const Icon(Icons.tune),
             ),
           ],
@@ -265,6 +267,8 @@ class _TextChapterControls extends StatelessWidget {
                 context,
                 tableOfContents,
                 onChapterSelected,
+                appearance: appearance,
+                desktop: desktop,
               ),
               icon: const Icon(Icons.format_list_bulleted),
             ),
@@ -327,24 +331,91 @@ class _TextChapterControls extends StatelessWidget {
 Future<void> _showTableOfContents(
   BuildContext context,
   List<TextTableOfContentsEntry> entries,
-  ValueChanged<int> onSelected,
-) {
-  return showModalBottomSheet<void>(
+  ValueChanged<int> onSelected, {
+  required TextReadingAppearance appearance,
+  required bool desktop,
+}) {
+  final panel = _TableOfContentsPanel(
+    entries: entries,
+    onSelected: onSelected,
+    appearance: appearance,
+  );
+  if (desktop) {
+    return showReaderSettingsSurface(
+      context,
+      desktop: true,
+      desktopKey: const Key('text-reader-desktop-table-of-contents'),
+      desktopAlignment: Alignment.centerLeft,
+      desktopEntryOffset: const Offset(-1, 0),
+      barrierLabel: 'Dismiss table of contents',
+      child: panel,
+    );
+  }
+
+  return showDialog<void>(
     context: context,
-    builder: (context) => SafeArea(
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          const ListTile(title: Text('Table of contents')),
-          for (final entry in entries)
-            ListTile(
-              title: Text(entry.title),
-              onTap: () {
-                Navigator.of(context).pop();
-                onSelected(entry.chapterIndex);
-              },
-            ),
-        ],
+    builder: (context) => Dialog.fullscreen(child: panel),
+  );
+}
+
+class _TableOfContentsPanel extends StatelessWidget {
+  const _TableOfContentsPanel({
+    required this.entries,
+    required this.onSelected,
+    required this.appearance,
+  });
+
+  final List<TextTableOfContentsEntry> entries;
+  final ValueChanged<int> onSelected;
+  final TextReadingAppearance appearance;
+
+  @override
+  Widget build(BuildContext context) => Theme(
+    data: _textReaderTheme(appearance),
+    child: SizedBox.expand(
+      child: Material(
+        key: const Key('text-reader-table-of-contents-surface'),
+        color: _backgroundColor(appearance),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 12, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Table of contents',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close table of contents',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    return ListTile(
+                      title: Text(entry.title),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        onSelected(entry.chapterIndex);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     ),
   );
@@ -607,103 +678,151 @@ TextStyle? _segmentTextStyle(TextStyle? baseStyle, TextSegment segment) {
         );
 }
 
-Future<void> _showTextReadingSettings(BuildContext context, WidgetRef ref) {
-  return showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) {
-      var preferences =
-          ref.read(textReadingPreferencesProvider).asData?.value ??
-          TextReadingPreferences.defaults;
-      return StatefulBuilder(
-        builder: (context, setModalState) {
-          Future<void> update(TextReadingPreferences next) async {
-            setModalState(() => preferences = next);
-            await ref.read(textReadingPreferencesRepositoryProvider).save(next);
-            ref.invalidate(textReadingPreferencesProvider);
-          }
-
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Text reading settings',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 20),
-                  _TextPreferenceSlider(
-                    label: 'Text size',
-                    valueLabel: '${preferences.fontSize.round()} pt',
-                    value: preferences.fontSize,
-                    min: 14,
-                    max: 28,
-                    divisions: 14,
-                    onChanged: (value) =>
-                        update(preferences.copyWith(fontSize: value)),
-                  ),
-                  const SizedBox(height: 12),
-                  _TextPreferenceSlider(
-                    label: 'Line height',
-                    valueLabel: preferences.lineHeight.toStringAsFixed(1),
-                    value: preferences.lineHeight,
-                    min: 1.3,
-                    max: 2.1,
-                    divisions: 8,
-                    onChanged: (value) =>
-                        update(preferences.copyWith(lineHeight: value)),
-                  ),
-                  const SizedBox(height: 12),
-                  _TextPreferenceSlider(
-                    label: 'Page margins',
-                    valueLabel: '${preferences.horizontalPadding.round()} px',
-                    value: preferences.horizontalPadding,
-                    min: 16,
-                    max: 64,
-                    divisions: 6,
-                    onChanged: (value) =>
-                        update(preferences.copyWith(horizontalPadding: value)),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Appearance',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  SegmentedButton<TextReadingAppearance>(
-                    segments: const [
-                      ButtonSegment(
-                        value: TextReadingAppearance.light,
-                        icon: Icon(Icons.light_mode_outlined),
-                        label: Text('Light'),
-                      ),
-                      ButtonSegment(
-                        value: TextReadingAppearance.sepia,
-                        icon: Icon(Icons.auto_stories_outlined),
-                        label: Text('Sepia'),
-                      ),
-                      ButtonSegment(
-                        value: TextReadingAppearance.dark,
-                        icon: Icon(Icons.dark_mode_outlined),
-                        label: Text('Dark'),
-                      ),
-                    ],
-                    selected: {preferences.appearance},
-                    onSelectionChanged: (selection) => update(
-                      preferences.copyWith(appearance: selection.single),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
+Future<void> _showTextReadingSettings(
+  BuildContext context,
+  WidgetRef ref, {
+  required bool desktop,
+}) {
+  return showReaderSettingsSurface(
+    context,
+    desktop: desktop,
+    desktopKey: const Key('text-reader-desktop-settings'),
+    child: _TextReadingSettingsPanel(ref: ref, desktop: desktop),
   );
+}
+
+class _TextReadingSettingsPanel extends StatefulWidget {
+  const _TextReadingSettingsPanel({required this.ref, required this.desktop});
+
+  final WidgetRef ref;
+  final bool desktop;
+
+  @override
+  State<_TextReadingSettingsPanel> createState() =>
+      _TextReadingSettingsPanelState();
+}
+
+class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
+  late TextReadingPreferences preferences;
+
+  @override
+  void initState() {
+    super.initState();
+    preferences =
+        widget.ref.read(textReadingPreferencesProvider).asData?.value ??
+        TextReadingPreferences.defaults;
+  }
+
+  Future<void> _update(TextReadingPreferences next) async {
+    setState(() => preferences = next);
+    await widget.ref.read(textReadingPreferencesRepositoryProvider).save(next);
+    widget.ref.invalidate(textReadingPreferencesProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appearance = preferences.appearance;
+    return Theme(
+      data: _textReaderTheme(appearance),
+      child: Material(
+        key: const Key('text-reading-settings-surface'),
+        color: _backgroundColor(appearance),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              widget.desktop ? 32 : 24,
+              20,
+              widget.desktop ? 32 : 24,
+              28,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Text reading settings',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Close settings',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _TextPreferenceSlider(
+                  label: 'Text size',
+                  valueLabel: '${preferences.fontSize.round()} pt',
+                  value: preferences.fontSize,
+                  min: 14,
+                  max: 28,
+                  divisions: 14,
+                  onChanged: (value) =>
+                      _update(preferences.copyWith(fontSize: value)),
+                ),
+                const SizedBox(height: 12),
+                _TextPreferenceSlider(
+                  label: 'Line height',
+                  valueLabel: preferences.lineHeight.toStringAsFixed(1),
+                  value: preferences.lineHeight,
+                  min: 1.3,
+                  max: 2.1,
+                  divisions: 8,
+                  onChanged: (value) =>
+                      _update(preferences.copyWith(lineHeight: value)),
+                ),
+                const SizedBox(height: 12),
+                _TextPreferenceSlider(
+                  label: 'Page margins',
+                  valueLabel: '${preferences.horizontalPadding.round()} px',
+                  value: preferences.horizontalPadding,
+                  min: 16,
+                  max: 64,
+                  divisions: 6,
+                  onChanged: (value) =>
+                      _update(preferences.copyWith(horizontalPadding: value)),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Appearance',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                SegmentedButton<TextReadingAppearance>(
+                  segments: const [
+                    ButtonSegment(
+                      value: TextReadingAppearance.light,
+                      icon: Icon(Icons.light_mode_outlined),
+                      label: Text('Light'),
+                    ),
+                    ButtonSegment(
+                      value: TextReadingAppearance.sepia,
+                      icon: Icon(Icons.auto_stories_outlined),
+                      label: Text('Sepia'),
+                    ),
+                    ButtonSegment(
+                      value: TextReadingAppearance.dark,
+                      icon: Icon(Icons.dark_mode_outlined),
+                      label: Text('Dark'),
+                    ),
+                  ],
+                  selected: {preferences.appearance},
+                  onSelectionChanged: (selection) => _update(
+                    preferences.copyWith(appearance: selection.single),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _TextPreferenceSlider extends StatelessWidget {
@@ -754,6 +873,17 @@ Color _backgroundColor(TextReadingAppearance appearance) =>
       TextReadingAppearance.dark => const Color(0xFF1C1D20),
       TextReadingAppearance.sepia => const Color(0xFFF3E7CD),
     };
+
+ThemeData _textReaderTheme(TextReadingAppearance appearance) => ThemeData(
+  useMaterial3: true,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: const Color(0xFF5268A6),
+    brightness: appearance == TextReadingAppearance.dark
+        ? Brightness.dark
+        : Brightness.light,
+    surface: _backgroundColor(appearance),
+  ),
+);
 
 Color _foregroundColor(TextReadingAppearance appearance) =>
     switch (appearance) {

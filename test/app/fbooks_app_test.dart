@@ -1,11 +1,15 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/app/fbooks_app.dart';
 import 'package:fbooks/domain/library/library_source.dart';
+import 'package:fbooks/domain/collection/book_collection.dart';
+import 'package:fbooks/domain/collection/book_collection_repository.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
+import 'package:fbooks/domain/settings/app_settings.dart';
+import 'package:fbooks/domain/settings/app_settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,6 +53,51 @@ void main() {
     expect(find.text('Your library'), findsOneWidget);
     expect(find.text('Collections'), findsOneWidget);
     expect(find.text('Add books'), findsOneWidget);
+  });
+
+  testWidgets('uses a dark surface for every desktop primary page', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _EmptyPublicationRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+          appSettingsRepositoryProvider.overrideWithValue(
+            _FixedAppSettingsRepository(
+              const AppSettings(themeMode: ThemeMode.dark),
+            ),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final primarySurface = tester.widget<Material>(
+      find.byKey(const Key('primary-content-surface')),
+    );
+    expect(primarySurface.color, const Color(0xFF1C1D20));
+    _expectDarkTheme(tester, find.text('Your library'));
+
+    await tester.tap(find.text('Collections').first);
+    await tester.pumpAndSettle();
+    _expectDarkTheme(tester, find.text('Collections').last);
+
+    await tester.tap(find.text('Plugins').first);
+    await tester.pumpAndSettle();
+    _expectDarkTheme(tester, find.text('Plugins').last);
+
+    await tester.tap(find.text('Settings').first);
+    await tester.pumpAndSettle();
+    _expectDarkTheme(tester, find.text('Settings').last);
   });
 
   testWidgets('renders an imported book in a medium desktop window', (
@@ -159,6 +208,13 @@ void main() {
   });
 }
 
+void _expectDarkTheme(WidgetTester tester, Finder finder) {
+  expect(
+    Theme.of(tester.element(finder)).colorScheme.brightness,
+    Brightness.dark,
+  );
+}
+
 class _EmptyPublicationRepository implements PublicationRepository {
   @override
   Future<void> delete(PublicationId id) => throw UnimplementedError();
@@ -212,4 +268,53 @@ class _EmptyReadingProgressRepository implements ReadingProgressRepository {
 
   @override
   Future<void> save(ReadingProgress progress) async {}
+}
+
+class _EmptyBookCollectionRepository implements BookCollectionRepository {
+  @override
+  Future<void> addPublication(
+    String collectionId,
+    PublicationId publicationId,
+  ) async {}
+
+  @override
+  Future<void> delete(String id) async {}
+
+  @override
+  Future<BookCollection?> findById(String id) async => null;
+
+  @override
+  Future<List<BookCollection>> listCollections() async => const [];
+
+  @override
+  Future<List<PublicationId>> listPublicationIds(String collectionId) async =>
+      const [];
+
+  @override
+  Future<void> removePublication(
+    String collectionId,
+    PublicationId publicationId,
+  ) async {}
+
+  @override
+  Future<void> save(BookCollection collection) async {}
+
+  @override
+  Stream<List<BookCollection>> watchCollections() => Stream.value(const []);
+
+  @override
+  Stream<List<PublicationId>> watchPublicationIds(String collectionId) =>
+      Stream.value(const []);
+}
+
+class _FixedAppSettingsRepository implements AppSettingsRepository {
+  const _FixedAppSettingsRepository(this.settings);
+
+  final AppSettings settings;
+
+  @override
+  Future<AppSettings> load() async => settings;
+
+  @override
+  Future<void> save(AppSettings settings) async {}
 }
