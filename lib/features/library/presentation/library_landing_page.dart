@@ -81,6 +81,13 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       _AppSection.settings => const SettingsPage(),
     };
     final desktopBody = switch (_section) {
+      _AppSection.library => _DesktopLibraryPage(
+        body: libraryBody,
+        isImporting: _isImporting,
+        onImport: _importLocalPublications,
+        onConnectOpds: _connectOpdsCatalog,
+        onBrowseOpds: _showOpdsCatalogs,
+      ),
       _AppSection.collections when _selectedDesktopCollection != null =>
         BookCollectionDetailContent(
           key: const Key('desktop-collection-detail'),
@@ -153,13 +160,6 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                   child: Column(
                     children: [
                       const DesktopWindowCaption(),
-                      if (_section == _AppSection.library)
-                        _DesktopHeader(
-                          isImporting: _isImporting,
-                          onImport: _importLocalPublications,
-                          onConnectOpds: _connectOpdsCatalog,
-                          onBrowseOpds: _showOpdsCatalogs,
-                        ),
                       Expanded(child: desktopBody),
                     ],
                   ),
@@ -700,44 +700,88 @@ class _DesktopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(36, 28, 36, 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              AppLocalizations.of(context).yourLibrary,
-              style: Theme.of(context).textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
+    return Row(
+      key: const Key('desktop-library-header'),
+      children: [
+        Expanded(
+          child: Text(
+            AppLocalizations.of(context).yourLibrary,
+            style: Theme.of(context).textTheme.headlineMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
-          IconButton(
-            tooltip: AppLocalizations.of(context).browseOpdsCatalogs,
-            onPressed: onBrowseOpds,
-            icon: const Icon(Icons.cloud_outlined),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton.icon(
-            onPressed: onConnectOpds,
-            icon: const Icon(Icons.add_to_queue_outlined),
-            label: Text(AppLocalizations.of(context).connectOpds),
-          ),
-          const SizedBox(width: 12),
-          FilledButton.icon(
-            onPressed: isImporting ? null : onImport,
-            icon: isImporting
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.add),
-            label: Text(AppLocalizations.of(context).addBooks),
-          ),
-        ],
-      ),
+        ),
+        IconButton(
+          tooltip: AppLocalizations.of(context).browseOpdsCatalogs,
+          onPressed: onBrowseOpds,
+          icon: const Icon(Icons.cloud_outlined),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: onConnectOpds,
+          icon: const Icon(Icons.add_to_queue_outlined),
+          label: Text(AppLocalizations.of(context).connectOpds),
+        ),
+        const SizedBox(width: 12),
+        FilledButton.icon(
+          onPressed: isImporting ? null : onImport,
+          icon: isImporting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.add),
+          label: Text(AppLocalizations.of(context).addBooks),
+        ),
+      ],
     );
   }
+}
+
+class _DesktopLibraryPage extends StatelessWidget {
+  const _DesktopLibraryPage({
+    required this.body,
+    required this.isImporting,
+    required this.onImport,
+    required this.onConnectOpds,
+    required this.onBrowseOpds,
+  });
+
+  final Widget body;
+  final bool isImporting;
+  final VoidCallback onImport;
+  final VoidCallback onConnectOpds;
+  final VoidCallback onBrowseOpds;
+
+  @override
+  Widget build(BuildContext context) => _DesktopLibraryLayout(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        children: [
+          _DesktopHeader(
+            isImporting: isImporting,
+            onImport: onImport,
+            onConnectOpds: onConnectOpds,
+            onBrowseOpds: onBrowseOpds,
+          ),
+          const SizedBox(height: 20),
+          Expanded(child: body),
+        ],
+      ),
+    ),
+  );
+}
+
+class _DesktopLibraryLayout extends InheritedWidget {
+  const _DesktopLibraryLayout({required super.child});
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_DesktopLibraryLayout>() !=
+      null;
+
+  @override
+  bool updateShouldNotify(_DesktopLibraryLayout oldWidget) => false;
 }
 
 class _EmptyLibraryView extends StatelessWidget {
@@ -836,86 +880,93 @@ class _LibraryFilterBar extends StatelessWidget {
   final ValueChanged<_LibrarySort> onSortChanged;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        final search = TextFormField(
-          initialValue: query,
-          onChanged: onQueryChanged,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context).searchLibrary,
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: query.isEmpty
-                ? null
-                : IconButton(
-                    tooltip: AppLocalizations.of(context).clearSearch,
-                    onPressed: () => onQueryChanged(''),
-                    icon: const Icon(Icons.clear),
-                  ),
-            border: const OutlineInputBorder(),
-          ),
-        );
-        final controls = Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _FilterMenu<_LibrarySourceFilter>(
-              tooltip: AppLocalizations.of(context).filterSource,
-              value: sourceFilter,
-              items: {
-                _LibrarySourceFilter.all: AppLocalizations.of(context)
-                    .allSources,
-                _LibrarySourceFilter.local: AppLocalizations.of(context)
-                    .localSource,
-                _LibrarySourceFilter.opds: AppLocalizations.of(context)
-                    .opdsSource,
-              },
-              onChanged: onSourceFilterChanged,
+  Widget build(BuildContext context) {
+    final desktop = _DesktopLibraryLayout.of(context);
+    return Padding(
+      key: const Key('library-filter-bar'),
+      padding: desktop
+          ? EdgeInsets.zero
+          : const EdgeInsets.fromLTRB(24, 12, 24, 8),
+      child: LayoutBuilder(
+        key: const Key('library-filter-controls'),
+        builder: (context, constraints) {
+          final search = TextFormField(
+            initialValue: query,
+            onChanged: onQueryChanged,
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).searchLibrary,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: query.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: AppLocalizations.of(context).clearSearch,
+                      onPressed: () => onQueryChanged(''),
+                      icon: const Icon(Icons.clear),
+                    ),
+              border: const OutlineInputBorder(),
             ),
-            _FilterMenu<_LibraryFormatFilter>(
-              tooltip: AppLocalizations.of(context).filterFormat,
-              value: formatFilter,
-              items: {
-                _LibraryFormatFilter.all: AppLocalizations.of(context)
-                    .allFormats,
-                _LibraryFormatFilter.comic: AppLocalizations.of(context)
-                    .comicFormat,
-                _LibraryFormatFilter.epub: AppLocalizations.of(context)
-                    .epubFormat,
-                _LibraryFormatFilter.text: AppLocalizations.of(context)
-                    .textFormat,
-              },
-              onChanged: onFormatFilterChanged,
-            ),
-            _FilterMenu<_LibrarySort>(
-              tooltip: AppLocalizations.of(context).sortPublications,
-              value: sort,
-              items: {
-                _LibrarySort.titleAscending: AppLocalizations.of(context)
-                    .sortByTitleAscending,
-                _LibrarySort.titleDescending: AppLocalizations.of(context)
-                    .sortByTitleDescending,
-              },
-              onChanged: onSortChanged,
-            ),
-          ],
-        );
-        return constraints.maxWidth < 620
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [search, const SizedBox(height: 8), controls],
-              )
-            : Row(
-                children: [
-                  Expanded(child: search),
-                  const SizedBox(width: 12),
-                  controls,
-                ],
-              );
-      },
-    ),
-  );
+          );
+          final controls = Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _FilterMenu<_LibrarySourceFilter>(
+                tooltip: AppLocalizations.of(context).filterSource,
+                value: sourceFilter,
+                items: {
+                  _LibrarySourceFilter.all: AppLocalizations.of(context)
+                      .allSources,
+                  _LibrarySourceFilter.local: AppLocalizations.of(context)
+                      .localSource,
+                  _LibrarySourceFilter.opds: AppLocalizations.of(context)
+                      .opdsSource,
+                },
+                onChanged: onSourceFilterChanged,
+              ),
+              _FilterMenu<_LibraryFormatFilter>(
+                tooltip: AppLocalizations.of(context).filterFormat,
+                value: formatFilter,
+                items: {
+                  _LibraryFormatFilter.all: AppLocalizations.of(context)
+                      .allFormats,
+                  _LibraryFormatFilter.comic: AppLocalizations.of(context)
+                      .comicFormat,
+                  _LibraryFormatFilter.epub: AppLocalizations.of(context)
+                      .epubFormat,
+                  _LibraryFormatFilter.text: AppLocalizations.of(context)
+                      .textFormat,
+                },
+                onChanged: onFormatFilterChanged,
+              ),
+              _FilterMenu<_LibrarySort>(
+                tooltip: AppLocalizations.of(context).sortPublications,
+                value: sort,
+                items: {
+                  _LibrarySort.titleAscending: AppLocalizations.of(context)
+                      .sortByTitleAscending,
+                  _LibrarySort.titleDescending: AppLocalizations.of(context)
+                      .sortByTitleDescending,
+                },
+                onChanged: onSortChanged,
+              ),
+            ],
+          );
+          return constraints.maxWidth < 620
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [search, const SizedBox(height: 8), controls],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: search),
+                    const SizedBox(width: 12),
+                    controls,
+                  ],
+                );
+        },
+      ),
+    );
+  }
 }
 
 class _FilterMenu<T> extends StatelessWidget {
@@ -991,8 +1042,12 @@ class _PublicationList extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= 720) {
+          final desktop = _DesktopLibraryLayout.of(context);
           return GridView.builder(
-            padding: const EdgeInsets.fromLTRB(36, 8, 36, 36),
+            key: const Key('library-publication-grid'),
+            padding: desktop
+                ? const EdgeInsets.only(top: 20)
+                : const EdgeInsets.fromLTRB(36, 8, 36, 36),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: 240,
               mainAxisExtent: 304,
@@ -1157,6 +1212,7 @@ class _PublicationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      key: Key('publication-card-${publication.id}'),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
@@ -1200,12 +1256,25 @@ class _PublicationCard extends StatelessWidget {
           Positioned(
             top: 4,
             right: 4,
-            child: IconButton(
-              tooltip: 'Publication details',
-              onPressed: onDetails,
-              icon: const Icon(Icons.info_outline),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: .88),
+            child: SizedBox(
+              key: Key('publication-details-${publication.id}'),
+              width: 32,
+              height: 32,
+              child: IconButton(
+                tooltip: 'Publication details',
+                onPressed: onDetails,
+                icon: const Icon(Icons.info_outline),
+                style: IconButton.styleFrom(
+                  iconSize: 18,
+                  padding: const EdgeInsets.all(7),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: Theme.of(context).colorScheme.surface
+                      .withValues(alpha: .82),
+                  foregroundColor: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant,
+                ),
               ),
             ),
           ),

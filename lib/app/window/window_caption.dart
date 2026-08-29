@@ -13,7 +13,7 @@ bool get isDesktopTargetPlatform =>
 /// A draggable desktop caption that matches the surrounding app surface.
 class DesktopWindowCaption extends StatelessWidget
     implements PreferredSizeWidget {
-  const DesktopWindowCaption({super.key, this.height = 40});
+  const DesktopWindowCaption({super.key, this.height = 32});
 
   final double height;
 

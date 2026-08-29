@@ -19,7 +19,7 @@ class SettingsPage extends ConsumerWidget {
         ref.watch(bookCollectionsProvider).asData?.value.length ?? 0;
     final logDirectory = ref.watch(appLogDirectoryProvider);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
+      padding: const EdgeInsets.all(28),
       children: [
         Text(
           l10n.settings,

@@ -311,6 +311,57 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('aligns desktop library content and keeps details compact', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(const [
+              Publication(
+                id: 'aligned-book',
+                source: LibrarySource(
+                  id: 'local-library',
+                  kind: LibrarySourceKind.local,
+                  name: 'Local library',
+                ),
+                title: 'Aligned book',
+                format: PublicationFormat.epub,
+              ),
+            ]),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _EmptyReadingProgressRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.byKey(const Key('desktop-library-header'))).dx,
+      tester.getTopLeft(find.byKey(const Key('library-filter-controls'))).dx,
+    );
+    expect(
+      tester
+          .getTopLeft(find.byKey(const Key('publication-card-aligned-book')))
+          .dx,
+      tester.getTopLeft(find.byKey(const Key('library-publication-grid'))).dx,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('publication-details-aligned-book'))),
+      const Size(32, 32),
+    );
+  });
+
   testWidgets('shows the not-found page for an unknown named route', (
     tester,
   ) async {
