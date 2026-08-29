@@ -31,12 +31,21 @@ class TextChapter {
     required this.title,
     required this.text,
     this.segments = const [],
+    this.html,
   });
 
   final int index;
   final String title;
   final String text;
   final List<TextSegment> segments;
+
+  /// EPUB XHTML prepared with its packaged styles and images resolved.
+  ///
+  /// Plain-text chapters deliberately leave this unset so their lightweight
+  /// [TextSegment]-based presentation remains available.
+  final String? html;
+
+  bool get isHtml => html != null;
 }
 
 /// A small inline style unit retained from EPUB spine markup.

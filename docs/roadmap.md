@@ -132,13 +132,21 @@ complete.
 - [x] Follow internal EPUB hyperlinks by jumping to their target chapter.
 - [x] Render embedded EPUB spine images from packaged resources.
 - [x] Render EPUB tables as horizontally scrollable table blocks.
+- [x] Render EPUB XHTML with linked packaged stylesheets while preserving
+  reader-controlled typography and appearance preferences.
 
 ## Next: reading performance
 
-- [ ] Load EPUB chapters on demand: open the navigation and current chapter
-  first, then parse later chapters only when they are needed and cache the
-  result. Keep the main isolate responsive throughout; the current background
-  isolate parsing is an interim step, not the final loading model.
+- [x] Load EPUB chapters on demand: a session-owned isolate retains the EPUB
+  container, opens navigation first, parses chapters only when needed, and
+  caches loaded chapters without blocking the main isolate.
+
+## Next: EPUB presentation fidelity
+
+- [ ] Resolve stylesheet `@import` and `url(...)` resources from the EPUB
+  package, then add runtime loading for embedded fonts where the Flutter HTML
+  renderer can apply them. Keep unsupported CSS explicit rather than silently
+  claiming browser-level fidelity.
 
 ## After performance: extensible book sources
 

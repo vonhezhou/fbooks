@@ -208,7 +208,11 @@ final textReaderSessionProvider =
       if (publication == null) {
         throw StateError('Publication $publicationId was not found');
       }
-      return ref.watch(textReaderSessionFactoryProvider).open(publication);
+      final session = await ref
+          .watch(textReaderSessionFactoryProvider)
+          .open(publication);
+      ref.onDispose(() => session.close());
+      return session;
     });
 
 final opdsCatalogProvider =

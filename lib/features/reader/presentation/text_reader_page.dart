@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
-
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -13,6 +12,8 @@ import 'package:fbooks/domain/reading/text_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_html_table/flutter_html_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TextReaderPage extends ConsumerWidget {
@@ -148,9 +149,9 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
             itemCount: chapterCount,
             onPageChanged: _savePosition,
             itemBuilder: (context, index) {
-              return _TextChapterView(
+              return _DeferredTextChapterView(
                 key: ValueKey(widget.session.document.chapters[index].index),
-                chapter: widget.session.document.chapters[index],
+                loadChapter: () => widget.session.loadChapter(index),
                 initialOffset: _chapterOffsets[index] ?? 0,
                 onPositionChanged: _savePosition,
                 onChapterSelected: _goToChapter,
@@ -421,32 +422,45 @@ class _TableOfContentsPanel extends StatelessWidget {
   );
 }
 
-class _TextChapterView extends StatelessWidget {
-  const _TextChapterView({
+class _DeferredTextChapterView extends StatelessWidget {
+  const _DeferredTextChapterView({
     super.key,
-    required this.chapter,
+    required this.loadChapter,
     required this.initialOffset,
     required this.onPositionChanged,
     required this.onChapterSelected,
     required this.preferences,
   });
 
-  final TextChapter chapter;
+  final Future<TextChapter> Function() loadChapter;
   final int initialOffset;
   final void Function(int chapterIndex, int offset) onPositionChanged;
   final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
 
   @override
-  Widget build(BuildContext context) {
-    return _TextChapterScrollView(
-      chapter: chapter,
-      initialOffset: initialOffset,
-      onPositionChanged: onPositionChanged,
-      onChapterSelected: onChapterSelected,
-      preferences: preferences,
-    );
-  }
+  Widget build(BuildContext context) => FutureBuilder<TextChapter>(
+    future: loadChapter(),
+    builder: (context, snapshot) => switch (snapshot) {
+      AsyncSnapshot(:final data?) => _TextChapterScrollView(
+        chapter: data,
+        initialOffset: initialOffset,
+        onPositionChanged: onPositionChanged,
+        onChapterSelected: onChapterSelected,
+        preferences: preferences,
+      ),
+      AsyncSnapshot(:final error?) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Unable to load this chapter.\n$error',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+      _ => const Center(child: CircularProgressIndicator()),
+    },
+  );
 }
 
 class _TextChapterScrollView extends StatefulWidget {
@@ -541,16 +555,49 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                Text.rich(
-                  TextSpan(
-                    children: _chapterTextSpans(
-                      context,
-                      widget.chapter,
-                      widget.preferences,
-                      _linkRecognizerFor,
+                if (widget.chapter.isHtml)
+                  Html(
+                    data: widget.chapter.html!,
+                    extensions: [
+                      TagWrapExtension(
+                        tagsToWrap: const {'table'},
+                        builder: (child) => SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: child,
+                        ),
+                      ),
+                      const TableHtmlExtension(),
+                    ],
+                    onLinkTap: (url, attributes, element) {
+                      final uri = url == null ? null : Uri.tryParse(url);
+                      final chapterIndex = int.tryParse(
+                        uri?.pathSegments.singleOrNull ?? '',
+                      );
+                      if (uri?.scheme == 'fbooks' &&
+                          uri?.host == 'chapter' &&
+                          chapterIndex != null) {
+                        widget.onChapterSelected(chapterIndex);
+                      }
+                    },
+                    style: {
+                      'body': Style(
+                        color: _foregroundColor(widget.preferences.appearance),
+                        fontSize: FontSize(widget.preferences.fontSize),
+                        lineHeight: LineHeight(widget.preferences.lineHeight),
+                      ),
+                    },
+                  )
+                else
+                  Text.rich(
+                    TextSpan(
+                      children: _chapterTextSpans(
+                        context,
+                        widget.chapter,
+                        widget.preferences,
+                        _linkRecognizerFor,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

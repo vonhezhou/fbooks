@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/text_reader_session.dart';
 import 'package:fbooks/domain/library/library_source.dart';
@@ -17,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('follows an internal EPUB link to its target chapter', (
+  testWidgets('follows an internal EPUB link rendered from XHTML', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -28,13 +26,8 @@ void main() {
             TextChapter(
               index: 0,
               title: 'First',
-              text: 'Read the next chapter',
-              segments: [
-                TextSegment(
-                  text: 'Read the next chapter',
-                  linkTargetChapterIndex: 1,
-                ),
-              ],
+              text: '',
+              html: '<p><a href="fbooks://chapter/1">Read the next chapter</a></p>',
             ),
             TextChapter(index: 1, title: 'Second', text: 'Arrival'),
           ],
@@ -50,7 +43,7 @@ void main() {
     expect(find.text('Arrival'), findsOneWidget);
   });
 
-  testWidgets('renders embedded EPUB images and tables', (tester) async {
+  testWidgets('renders EPUB XHTML images and tables', (tester) async {
     await tester.pumpWidget(
       _readerApp(
         TextDocument(
@@ -60,21 +53,10 @@ void main() {
               index: 0,
               title: 'Illustrated data',
               text: '',
-              segments: [
-                TextSegment(
-                  text: '',
-                  imageBytes: Uint8List.fromList(_pixelGif),
-                ),
-                const TextSegment(
-                  text: '',
-                  table: TextTable(
-                    rows: [
-                      ['Year', 'Sales'],
-                      ['2025', '42'],
-                    ],
-                  ),
-                ),
-              ],
+              html:
+                  '<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" /></p>'
+                  '<table><tr><th>Year</th><th>Sales</th></tr>'
+                  '<tr><td>2025</td><td>42</td></tr></table>',
             ),
           ],
         ),
@@ -83,7 +65,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(Image), findsOneWidget);
-    expect(find.byType(Table), findsOneWidget);
     expect(find.text('Sales'), findsOneWidget);
   });
 
@@ -258,45 +239,6 @@ Widget _readerApp(
   ),
 );
 
-final _pixelGif = Uint8List.fromList(const [
-  71,
-  73,
-  70,
-  56,
-  57,
-  97,
-  1,
-  0,
-  1,
-  0,
-  128,
-  0,
-  0,
-  0,
-  0,
-  0,
-  255,
-  255,
-  255,
-  44,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  1,
-  0,
-  1,
-  0,
-  0,
-  2,
-  1,
-  76,
-  0,
-  59,
-]);
-
 class _PublicationRepository implements PublicationRepository {
   const _PublicationRepository(this.publication);
 
@@ -337,6 +279,12 @@ class _TextReaderSession implements TextReaderSession {
 
   @override
   final TextDocument document;
+
+  @override
+  Future<TextChapter> loadChapter(int index) async => document.chapters[index];
+
+  @override
+  Future<void> close() async {}
 }
 
 class _ReadingProgressRepository implements ReadingProgressRepository {
