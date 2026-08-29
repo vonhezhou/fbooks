@@ -134,6 +134,8 @@ complete.
 - [x] Render EPUB tables as horizontally scrollable table blocks.
 - [x] Render EPUB XHTML with linked packaged stylesheets while preserving
   reader-controlled typography and appearance preferences.
+- [x] Define the bounded [EPUB reading rendering profile](epub-rendering-profile.md)
+  and its lazy, discardable derived-cache policy.
 
 ## Next: reading performance
 
@@ -147,6 +149,18 @@ complete.
   package, then add runtime loading for embedded fonts where the Flutter HTML
   renderer can apply them. Keep unsupported CSS explicit rather than silently
   claiming browser-level fidelity.
+
+## Next: shared reflowable reading core
+
+- [x] Extract the first format-neutral flow-document/session model and shared
+  Flutter reader entry for TXT and EPUB. EPUB still uses a contained
+  `transitionalHtml` adapter; the next step is semantic block conversion, not
+  expanding HTML support or adding a WebView.
+- [ ] Keep parsing, sanitization, resource resolution and format-specific
+  progress mapping in adapters while replacing EPUB's temporary HTML adapter
+  with controlled flow blocks.
+- [ ] Evaluate a maintained, cross-platform parser for unencrypted MOBI/KF7/KF8
+  only after the flow core can represent its extracted reflowable content.
 
 ## After performance: extensible book sources
 

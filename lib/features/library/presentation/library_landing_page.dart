@@ -11,7 +11,7 @@ import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
-import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:fbooks/features/settings/presentation/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -896,7 +896,7 @@ class _PublicationList extends ConsumerWidget {
           ref,
           publication.id,
           MaterialPageRoute<void>(
-            builder: (context) => TextReaderPage(
+            builder: (context) => FlowReaderPage(
               publicationId: publication.id,
               title: publication.title,
             ),

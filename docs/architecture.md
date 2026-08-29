@@ -30,3 +30,11 @@ presentation -> application -> domain <- data / infrastructure
 - Database schema changes require an explicit migration before the schema
   version changes; an unimplemented migration fails loudly instead of risking
   the user's library data.
+
+## Reflowable reading
+
+TXT, EPUB and future reflowable formats should converge on the bounded
+[flow reading core](flow-reading-core.md). Format adapters own parsing,
+sanitization and format-specific locator mapping; the shared Flutter renderer
+only consumes the controlled flow-document model. Page-based formats such as
+comics and PDF remain outside this core.

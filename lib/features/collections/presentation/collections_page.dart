@@ -4,7 +4,7 @@ import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
-import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -841,7 +841,7 @@ void _openPublication(BuildContext context, Publication publication) {
   final page = switch (publication.format) {
     PublicationFormat.comicArchive || PublicationFormat.comicDirectory =>
       ComicReaderPage(publicationId: publication.id, title: publication.title),
-    PublicationFormat.epub || PublicationFormat.text => TextReaderPage(
+    PublicationFormat.epub || PublicationFormat.text => FlowReaderPage(
       publicationId: publication.id,
       title: publication.title,
     ),

@@ -7,7 +7,7 @@ import 'package:fbooks/application/opds/opds_credentials_repository.dart';
 import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
-import 'package:fbooks/application/reader/text_reader_session.dart';
+import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
 import 'package:fbooks/data/preferences/shared_preferences_text_reading_preferences_repository.dart';
@@ -21,7 +21,7 @@ import 'package:fbooks/data/persistence/local_database.dart';
 import 'package:fbooks/data/opds/http_opds_catalog_client.dart';
 import 'package:fbooks/data/opds/http_remote_asset_fetcher.dart';
 import 'package:fbooks/data/reader/archive_comic_reader_session.dart';
-import 'package:fbooks/data/reader/local_text_reader_session.dart';
+import 'package:fbooks/data/reader/local_flow_reading_session.dart';
 import 'package:fbooks/data/storage/managed_asset_store.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -142,8 +142,8 @@ final comicReaderSessionFactoryProvider = Provider<ComicReaderSessionFactory>(
   (ref) => ArchiveComicReaderSessionFactory(),
 );
 
-final textReaderSessionFactoryProvider = Provider<TextReaderSessionFactory>(
-  (ref) => LocalTextReaderSessionFactory(),
+final flowReadingSessionFactoryProvider = Provider<FlowReadingSessionFactory>(
+  (ref) => LocalFlowReadingSessionFactory(),
 );
 
 final libraryPublicationsProvider = StreamProvider<List<Publication>>((ref) {
@@ -197,8 +197,8 @@ final textReadingPreferencesProvider = FutureProvider<TextReadingPreferences>(
   (ref) => ref.watch(textReadingPreferencesRepositoryProvider).load(),
 );
 
-final textReaderSessionProvider =
-    FutureProvider.family<TextReaderSession, PublicationId>((
+final flowReadingSessionProvider =
+    FutureProvider.family<FlowReadingSession, PublicationId>((
       ref,
       publicationId,
     ) async {
@@ -209,7 +209,7 @@ final textReaderSessionProvider =
         throw StateError('Publication $publicationId was not found');
       }
       final session = await ref
-          .watch(textReaderSessionFactoryProvider)
+          .watch(flowReadingSessionFactoryProvider)
           .open(publication);
       ref.onDispose(() => session.close());
       return session;

@@ -6,7 +6,7 @@ import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
-import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -201,7 +201,7 @@ Future<void> _repairLocalFile(
       return;
     }
     ref.invalidate(comicReaderSessionProvider(publication.id));
-    ref.invalidate(textReaderSessionProvider(publication.id));
+    ref.invalidate(flowReadingSessionProvider(publication.id));
     Navigator.of(context).pop();
     messenger.showSnackBar(
       SnackBar(
@@ -386,7 +386,7 @@ void _openReader(BuildContext context, Publication publication) {
       ),
     ),
     PublicationFormat.epub || PublicationFormat.text => MaterialPageRoute<void>(
-      builder: (context) => TextReaderPage(
+      builder: (context) => FlowReaderPage(
         publicationId: publication.id,
         title: publication.title,
       ),

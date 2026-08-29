@@ -3,12 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
 import 'package:fbooks/app/providers.dart';
-import 'package:fbooks/application/reader/text_reader_session.dart';
+import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
-import 'package:fbooks/domain/reading/text_document.dart';
+import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +16,8 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html_table/flutter_html_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TextReaderPage extends ConsumerWidget {
-  const TextReaderPage({
+class FlowReaderPage extends ConsumerWidget {
+  const FlowReaderPage({
     super.key,
     required this.publicationId,
     required this.title,
@@ -30,7 +30,7 @@ class TextReaderPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
     builder: (context, constraints) {
       final desktop = constraints.maxWidth >= 960;
-      final session = ref.watch(textReaderSessionProvider(publicationId));
+      final session = ref.watch(flowReadingSessionProvider(publicationId));
       final preferences =
           ref.watch(textReadingPreferencesProvider).asData?.value ??
           TextReadingPreferences.defaults;
@@ -52,7 +52,7 @@ class TextReaderPage extends ConsumerWidget {
           ],
         ),
         body: session.when(
-          data: (value) => _TextChapterPager(
+          data: (value) => _FlowChapterPager(
             publicationId: publicationId,
             session: value,
             preferences: preferences,
@@ -74,8 +74,8 @@ class TextReaderPage extends ConsumerWidget {
   );
 }
 
-class _TextChapterPager extends ConsumerStatefulWidget {
-  const _TextChapterPager({
+class _FlowChapterPager extends ConsumerStatefulWidget {
+  const _FlowChapterPager({
     required this.publicationId,
     required this.session,
     required this.preferences,
@@ -83,15 +83,15 @@ class _TextChapterPager extends ConsumerStatefulWidget {
   });
 
   final PublicationId publicationId;
-  final TextReaderSession session;
+  final FlowReadingSession session;
   final TextReadingPreferences preferences;
   final bool desktop;
 
   @override
-  ConsumerState<_TextChapterPager> createState() => _TextChapterPagerState();
+  ConsumerState<_FlowChapterPager> createState() => _FlowChapterPagerState();
 }
 
-class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
+class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
   late final PageController _pageController;
   late final ReadingProgressRepository _progressRepository;
   bool _hasRestoredPosition = false;
@@ -149,7 +149,7 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
             itemCount: chapterCount,
             onPageChanged: _savePosition,
             itemBuilder: (context, index) {
-              return _DeferredTextChapterView(
+              return _DeferredFlowChapterView(
                 key: ValueKey(widget.session.document.chapters[index].index),
                 loadChapter: () => widget.session.loadChapter(index),
                 initialOffset: _chapterOffsets[index] ?? 0,
@@ -160,7 +160,7 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
             },
           ),
         ),
-        _TextChapterControls(
+        _FlowChapterControls(
           currentChapter: _currentChapter,
           chapterCount: chapterCount,
           onChapterSelected: _goToChapter,
@@ -236,8 +236,8 @@ class _TextChapterPagerState extends ConsumerState<_TextChapterPager> {
   }
 }
 
-class _TextChapterControls extends StatelessWidget {
-  const _TextChapterControls({
+class _FlowChapterControls extends StatelessWidget {
+  const _FlowChapterControls({
     required this.currentChapter,
     required this.chapterCount,
     required this.onChapterSelected,
@@ -249,7 +249,7 @@ class _TextChapterControls extends StatelessWidget {
   final int currentChapter;
   final int chapterCount;
   final ValueChanged<int> onChapterSelected;
-  final List<TextTableOfContentsEntry> tableOfContents;
+  final List<FlowTableOfContentsEntry> tableOfContents;
   final TextReadingAppearance appearance;
   final bool desktop;
 
@@ -331,7 +331,7 @@ class _TextChapterControls extends StatelessWidget {
 
 Future<void> _showTableOfContents(
   BuildContext context,
-  List<TextTableOfContentsEntry> entries,
+  List<FlowTableOfContentsEntry> entries,
   ValueChanged<int> onSelected, {
   required TextReadingAppearance appearance,
   required bool desktop,
@@ -366,7 +366,7 @@ class _TableOfContentsPanel extends StatelessWidget {
     required this.appearance,
   });
 
-  final List<TextTableOfContentsEntry> entries;
+  final List<FlowTableOfContentsEntry> entries;
   final ValueChanged<int> onSelected;
   final TextReadingAppearance appearance;
 
@@ -422,8 +422,8 @@ class _TableOfContentsPanel extends StatelessWidget {
   );
 }
 
-class _DeferredTextChapterView extends StatelessWidget {
-  const _DeferredTextChapterView({
+class _DeferredFlowChapterView extends StatelessWidget {
+  const _DeferredFlowChapterView({
     super.key,
     required this.loadChapter,
     required this.initialOffset,
@@ -432,17 +432,17 @@ class _DeferredTextChapterView extends StatelessWidget {
     required this.preferences,
   });
 
-  final Future<TextChapter> Function() loadChapter;
+  final Future<FlowChapter> Function() loadChapter;
   final int initialOffset;
   final void Function(int chapterIndex, int offset) onPositionChanged;
   final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<TextChapter>(
+  Widget build(BuildContext context) => FutureBuilder<FlowChapter>(
     future: loadChapter(),
     builder: (context, snapshot) => switch (snapshot) {
-      AsyncSnapshot(:final data?) => _TextChapterScrollView(
+      AsyncSnapshot(:final data?) => FlowChapterRenderer(
         chapter: data,
         initialOffset: initialOffset,
         onPositionChanged: onPositionChanged,
@@ -463,8 +463,9 @@ class _DeferredTextChapterView extends StatelessWidget {
   );
 }
 
-class _TextChapterScrollView extends StatefulWidget {
-  const _TextChapterScrollView({
+class FlowChapterRenderer extends StatefulWidget {
+  const FlowChapterRenderer({
+    super.key,
     required this.chapter,
     required this.initialOffset,
     required this.onPositionChanged,
@@ -472,17 +473,17 @@ class _TextChapterScrollView extends StatefulWidget {
     required this.preferences,
   });
 
-  final TextChapter chapter;
+  final FlowChapter chapter;
   final int initialOffset;
   final void Function(int chapterIndex, int offset) onPositionChanged;
   final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
 
   @override
-  State<_TextChapterScrollView> createState() => _TextChapterScrollViewState();
+  State<FlowChapterRenderer> createState() => _FlowChapterRendererState();
 }
 
-class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
+class _FlowChapterRendererState extends State<FlowChapterRenderer> {
   late final ScrollController _scrollController;
   final _linkRecognizers = <int, TapGestureRecognizer>{};
 
@@ -506,7 +507,7 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
   }
 
   @override
-  void didUpdateWidget(covariant _TextChapterScrollView oldWidget) {
+  void didUpdateWidget(covariant FlowChapterRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialOffset == widget.initialOffset ||
         !_scrollController.hasClients) {
@@ -555,9 +556,11 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                if (widget.chapter.isHtml)
+                // EPUB currently supplies this transitional adapter. The
+                // semantic FlowBlock renderer will replace it in a follow-up.
+                if (widget.chapter.hasTransitionalHtml)
                   Html(
-                    data: widget.chapter.html!,
+                    data: widget.chapter.transitionalHtml!,
                     extensions: [
                       TagWrapExtension(
                         tagsToWrap: const {'table'},
@@ -618,7 +621,7 @@ class _TextChapterScrollViewState extends State<_TextChapterScrollView> {
 
 List<InlineSpan> _chapterTextSpans(
   BuildContext context,
-  TextChapter chapter,
+  FlowChapter chapter,
   TextReadingPreferences preferences,
   TapGestureRecognizer Function(int chapterIndex) linkRecognizerFor,
 ) {
@@ -627,9 +630,9 @@ List<InlineSpan> _chapterTextSpans(
     fontSize: preferences.fontSize,
     height: preferences.lineHeight,
   );
-  final segments = chapter.segments.isEmpty
-      ? [TextSegment(text: chapter.text)]
-      : chapter.segments;
+  final segments = chapter.inlines.isEmpty
+      ? [FlowInline(text: chapter.text)]
+      : chapter.inlines;
   return [
     for (final segment in segments)
       if (segment.isImage)
@@ -677,7 +680,7 @@ class _InlineEpubImage extends StatelessWidget {
 class _InlineEpubTable extends StatelessWidget {
   const _InlineEpubTable({required this.table});
 
-  final TextTable table;
+  final FlowTable table;
 
   @override
   Widget build(BuildContext context) {
@@ -713,7 +716,7 @@ class _InlineEpubTable extends StatelessWidget {
   }
 }
 
-TextStyle? _segmentTextStyle(TextStyle? baseStyle, TextSegment segment) {
+TextStyle? _segmentTextStyle(TextStyle? baseStyle, FlowInline segment) {
   final emphasizedStyle = segment.emphasized
       ? baseStyle?.copyWith(fontStyle: FontStyle.italic)
       : baseStyle;

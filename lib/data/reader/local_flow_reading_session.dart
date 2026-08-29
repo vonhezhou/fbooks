@@ -4,17 +4,17 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:epub_pro/epub_pro.dart';
-import 'package:fbooks/application/reader/text_reader_session.dart';
+import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
-import 'package:fbooks/domain/reading/text_document.dart';
+import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as html;
 import 'package:path/path.dart' as path;
 
-class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
+class LocalFlowReadingSessionFactory implements FlowReadingSessionFactory {
   @override
-  Future<TextReaderSession> open(Publication publication) async {
+  Future<FlowReadingSession> open(Publication publication) async {
     if (publication.format != PublicationFormat.epub &&
         publication.format != PublicationFormat.text) {
       throw UnsupportedError(
@@ -37,11 +37,11 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
 
     return switch (publication.format) {
       PublicationFormat.epub => await _openEpub(publication.id, filePath),
-      PublicationFormat.text => _LocalTextReaderSession(
-        TextDocument(
+      PublicationFormat.text => _LocalFlowReadingSession(
+        FlowDocument(
           publicationId: publication.id,
           chapters: [
-            TextChapter(
+            FlowChapter(
               index: 0,
               title: path.basenameWithoutExtension(filePath),
               text: await file.readAsString(),
@@ -53,12 +53,12 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     };
   }
 
-  Future<TextReaderSession> _openEpub(
+  Future<FlowReadingSession> _openEpub(
     String publicationId,
     String filePath,
   ) async {
     final opened = await _EpubWorkerClient.open(publicationId, filePath);
-    return _LazyEpubTextReaderSession(
+    return _LazyEpubFlowReadingSession(
       document: opened.index.document,
       chapters: opened.index.chapters,
       worker: opened.worker,
@@ -69,7 +69,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
 class _EpubDocumentIndex {
   const _EpubDocumentIndex({required this.document, required this.chapters});
 
-  final TextDocument document;
+  final FlowDocument document;
   final List<_EpubChapterReference> chapters;
 }
 
@@ -87,22 +87,22 @@ class _OpenedEpubWorker {
   final _EpubDocumentIndex index;
 }
 
-class _LazyEpubTextReaderSession implements TextReaderSession {
-  _LazyEpubTextReaderSession({
+class _LazyEpubFlowReadingSession implements FlowReadingSession {
+  _LazyEpubFlowReadingSession({
     required this.document,
     required this.chapters,
     required this.worker,
   });
 
   @override
-  final TextDocument document;
+  final FlowDocument document;
   final List<_EpubChapterReference> chapters;
   final _EpubWorkerClient worker;
-  final _chapterCache = <int, Future<TextChapter>>{};
+  final _chapterCache = <int, Future<FlowChapter>>{};
   var _closed = false;
 
   @override
-  Future<TextChapter> loadChapter(int index) {
+  Future<FlowChapter> loadChapter(int index) {
     if (_closed) {
       throw StateError('The EPUB reader session is closed');
     }
@@ -156,11 +156,11 @@ class _EpubWorkerClient {
     }
   }
 
-  Future<TextChapter> loadChapter(int index) {
+  Future<FlowChapter> loadChapter(int index) {
     if (_closed) {
       throw StateError('The EPUB worker is closed');
     }
-    return _request<TextChapter>(_LoadEpubChapterWorkerRequest(index));
+    return _request<FlowChapter>(_LoadEpubChapterWorkerRequest(index));
   }
 
   Future<void> close() async {
@@ -289,15 +289,15 @@ _EpubDocumentIndex _buildEpubDocumentIndex(
       _EpubChapterReference(index: index, title: _chapterTitle(chapter, index)),
   ];
   return _EpubDocumentIndex(
-    document: TextDocument(
+    document: FlowDocument(
       publicationId: publicationId,
       chapters: [
         for (final reference in references)
-          TextChapter(index: reference.index, title: reference.title, text: ''),
+          FlowChapter(index: reference.index, title: reference.title, text: ''),
       ],
       tableOfContents: [
         for (final reference in references)
-          TextTableOfContentsEntry(
+          FlowTableOfContentsEntry(
             title: reference.title,
             chapterIndex: reference.index,
           ),
@@ -326,7 +326,7 @@ String _chapterTitle(EpubChapterRef chapter, int index) {
   );
 }
 
-Future<TextChapter> _readEpubChapter(
+Future<FlowChapter> _readEpubChapter(
   EpubBookRef book,
   List<EpubChapterRef> chapters,
   int index,
@@ -343,13 +343,13 @@ Future<TextChapter> _readEpubChapter(
   await _inlineImages(document, sourceFileName, book);
   _rewriteInternalLinks(document, sourceFileName, chapters);
 
-  return TextChapter(
+  return FlowChapter(
     index: index,
     title: title == null || title.isEmpty
         ? _chapterTitle(chapter, index)
         : title,
     text: document.body?.text.trim() ?? '',
-    html: document.outerHtml,
+    transitionalHtml: document.outerHtml,
   );
 }
 
@@ -453,14 +453,14 @@ T? _findByNormalizedPath<T>(Map<String, T> resources, String targetPath) {
 
 String _normalizeEpubPath(String value) => path.posix.normalize(value);
 
-class _LocalTextReaderSession implements TextReaderSession {
-  const _LocalTextReaderSession(this.document);
+class _LocalFlowReadingSession implements FlowReadingSession {
+  const _LocalFlowReadingSession(this.document);
 
   @override
-  final TextDocument document;
+  final FlowDocument document;
 
   @override
-  Future<TextChapter> loadChapter(int index) async {
+  Future<FlowChapter> loadChapter(int index) async {
     if (index < 0 || index >= document.chapters.length) {
       throw RangeError.index(index, document.chapters, 'index');
     }

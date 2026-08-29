@@ -1,15 +1,15 @@
 import 'package:fbooks/app/providers.dart';
-import 'package:fbooks/application/reader/text_reader_session.dart';
+import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/reading_progress_repository.dart';
-import 'package:fbooks/domain/reading/text_document.dart';
+import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences_repository.dart';
-import 'package:fbooks/features/reader/presentation/text_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,16 +20,16 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _readerApp(
-        const TextDocument(
+        const FlowDocument(
           publicationId: _publicationId,
           chapters: [
-            TextChapter(
+            FlowChapter(
               index: 0,
               title: 'First',
               text: '',
-              html: '<p><a href="fbooks://chapter/1">Read the next chapter</a></p>',
+              transitionalHtml: '<p><a href="fbooks://chapter/1">Read the next chapter</a></p>',
             ),
-            TextChapter(index: 1, title: 'Second', text: 'Arrival'),
+            FlowChapter(index: 1, title: 'Second', text: 'Arrival'),
           ],
         ),
       ),
@@ -46,14 +46,14 @@ void main() {
   testWidgets('renders EPUB XHTML images and tables', (tester) async {
     await tester.pumpWidget(
       _readerApp(
-        TextDocument(
+        FlowDocument(
           publicationId: _publicationId,
           chapters: [
-            TextChapter(
+            FlowChapter(
               index: 0,
               title: 'Illustrated data',
               text: '',
-              html:
+              transitionalHtml:
                   '<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" /></p>'
                   '<table><tr><th>Year</th><th>Sales</th></tr>'
                   '<tr><td>2025</td><td>42</td></tr></table>',
@@ -73,9 +73,9 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       _readerApp(
-        const TextDocument(
+        const FlowDocument(
           publicationId: _publicationId,
-          chapters: [TextChapter(index: 0, title: 'First', text: 'Read')],
+          chapters: [FlowChapter(index: 0, title: 'First', text: 'Read')],
         ),
       ),
     );
@@ -96,9 +96,9 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       _readerApp(
-        const TextDocument(
+        const FlowDocument(
           publicationId: _publicationId,
-          chapters: [TextChapter(index: 0, title: 'First', text: 'Read')],
+          chapters: [FlowChapter(index: 0, title: 'First', text: 'Read')],
         ),
         preferences: const TextReadingPreferences(
           appearance: TextReadingAppearance.dark,
@@ -129,9 +129,9 @@ void main() {
   testWidgets('uses a bottom sheet for compact settings', (tester) async {
     await tester.pumpWidget(
       _readerApp(
-        const TextDocument(
+        const FlowDocument(
           publicationId: _publicationId,
-          chapters: [TextChapter(index: 0, title: 'First', text: 'Read')],
+          chapters: [FlowChapter(index: 0, title: 'First', text: 'Read')],
         ),
       ),
     );
@@ -204,28 +204,28 @@ const _publication = Publication(
   format: PublicationFormat.epub,
 );
 
-const _documentWithTableOfContents = TextDocument(
+const _documentWithTableOfContents = FlowDocument(
   publicationId: _publicationId,
   chapters: [
-    TextChapter(index: 0, title: 'First', text: 'Read'),
-    TextChapter(index: 1, title: 'Second', text: 'Continue'),
+    FlowChapter(index: 0, title: 'First', text: 'Read'),
+    FlowChapter(index: 1, title: 'Second', text: 'Continue'),
   ],
   tableOfContents: [
-    TextTableOfContentsEntry(title: 'First chapter', chapterIndex: 0),
-    TextTableOfContentsEntry(title: 'Second chapter', chapterIndex: 1),
+    FlowTableOfContentsEntry(title: 'First chapter', chapterIndex: 0),
+    FlowTableOfContentsEntry(title: 'Second chapter', chapterIndex: 1),
   ],
 );
 
 Widget _readerApp(
-  TextDocument document, {
+  FlowDocument document, {
   TextReadingPreferences preferences = TextReadingPreferences.defaults,
 }) => ProviderScope(
   overrides: [
     publicationRepositoryProvider.overrideWithValue(
       _PublicationRepository(_publication),
     ),
-    textReaderSessionFactoryProvider.overrideWithValue(
-      _TextReaderSessionFactory(document),
+    flowReadingSessionFactoryProvider.overrideWithValue(
+      _FlowReadingSessionFactory(document),
     ),
     readingProgressRepositoryProvider.overrideWithValue(
       _ReadingProgressRepository(),
@@ -235,7 +235,7 @@ Widget _readerApp(
     ),
   ],
   child: const MaterialApp(
-    home: TextReaderPage(publicationId: _publicationId, title: 'Linked book'),
+    home: FlowReaderPage(publicationId: _publicationId, title: 'Linked book'),
   ),
 );
 
@@ -264,24 +264,24 @@ class _PublicationRepository implements PublicationRepository {
   Stream<List<Publication>> watchPublications() => Stream.value([publication]);
 }
 
-class _TextReaderSessionFactory implements TextReaderSessionFactory {
-  const _TextReaderSessionFactory(this.document);
+class _FlowReadingSessionFactory implements FlowReadingSessionFactory {
+  const _FlowReadingSessionFactory(this.document);
 
-  final TextDocument document;
+  final FlowDocument document;
 
   @override
-  Future<TextReaderSession> open(Publication publication) async =>
-      _TextReaderSession(document);
+  Future<FlowReadingSession> open(Publication publication) async =>
+      _FlowReadingSession(document);
 }
 
-class _TextReaderSession implements TextReaderSession {
-  const _TextReaderSession(this.document);
+class _FlowReadingSession implements FlowReadingSession {
+  const _FlowReadingSession(this.document);
 
   @override
-  final TextDocument document;
+  final FlowDocument document;
 
   @override
-  Future<TextChapter> loadChapter(int index) async => document.chapters[index];
+  Future<FlowChapter> loadChapter(int index) async => document.chapters[index];
 
   @override
   Future<void> close() async {}

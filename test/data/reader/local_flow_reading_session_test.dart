@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:fbooks/data/reader/local_text_reader_session.dart';
+import 'package:fbooks/data/reader/local_flow_reading_session.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -67,7 +67,7 @@ void main() {
         );
       await file.writeAsBytes(ZipEncoder().encode(archive));
 
-      final session = await LocalTextReaderSessionFactory().open(
+      final session = await LocalFlowReadingSessionFactory().open(
         _publication(id: 'epub', file: file, format: PublicationFormat.epub),
       );
       addTearDown(session.close);
@@ -76,21 +76,21 @@ void main() {
         'Beginning',
         'Ending',
       ]);
-      expect(session.document.chapters.first.html, isNull);
+      expect(session.document.chapters.first.transitionalHtml, isNull);
 
       await file.delete();
 
       final first = await session.loadChapter(0);
       final cachedFirst = await session.loadChapter(0);
 
-      expect(first.isHtml, isTrue);
+      expect(first.hasTransitionalHtml, isTrue);
       expect(identical(first, cachedFirst), isTrue);
       expect(first.title, 'First');
-      expect(first.html, contains('color: #123456'));
-      expect(first.html, contains('<em>world</em>'));
-      expect(first.html, contains('data:image/gif;base64,'));
-      expect(first.html, contains('<table>'));
-      expect(first.html, contains('fbooks://chapter/1'));
+      expect(first.transitionalHtml, contains('color: #123456'));
+      expect(first.transitionalHtml, contains('<em>world</em>'));
+      expect(first.transitionalHtml, contains('data:image/gif;base64,'));
+      expect(first.transitionalHtml, contains('<table>'));
+      expect(first.transitionalHtml, contains('fbooks://chapter/1'));
       expect(session.document.tableOfContents.map((entry) => entry.title), [
         'Beginning',
         'Ending',
@@ -106,7 +106,7 @@ void main() {
     final file = File('${directory.path}/notes.txt');
     await file.writeAsString('A plain-text chapter.');
 
-    final session = await LocalTextReaderSessionFactory().open(
+    final session = await LocalFlowReadingSessionFactory().open(
       _publication(id: 'text', file: file, format: PublicationFormat.text),
     );
 
