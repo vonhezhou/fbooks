@@ -14,9 +14,9 @@ import 'package:fbooks/features/reader/presentation/comic_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/pdf_reader_page.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:fbooks/features/settings/presentation/settings_page.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 enum _AppSection { library, collections, plugins, settings }
 
 enum _LibrarySourceFilter { all, local, opds }
@@ -65,8 +65,11 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
           onSortChanged: (value) => setState(() => _sort = value),
         );
       },
-      error: (error, stackTrace) =>
-          Center(child: Text('Unable to load the library: $error')),
+      error: (error, stackTrace) => Center(
+        child: Text(
+          AppLocalizations.of(context).unableToLoadLibrary(error.toString()),
+        ),
+      ),
       loading: () => const Center(child: CircularProgressIndicator()),
     );
     final body = switch (_section) {
@@ -90,30 +93,32 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
         if (constraints.maxWidth < 840) {
           return Scaffold(
             appBar: AppBar(
-              title: Text(_sectionLabel),
-              actions: _section == _AppSection.library ? _compactActions : [],
+              title: Text(_sectionLabel(context)),
+              actions: _section == _AppSection.library
+                  ? _compactActions(context)
+                  : [],
             ),
             body: body,
             bottomNavigationBar: NavigationBar(
               selectedIndex: _section.index,
               onDestinationSelected: (index) =>
                   setState(() => _section = _AppSection.values[index]),
-              destinations: const [
+              destinations: [
                 NavigationDestination(
                   icon: Icon(Icons.library_books_outlined),
-                  label: 'Library',
+                  label: AppLocalizations.of(context).library,
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.collections_bookmark_outlined),
-                  label: 'Collections',
+                  label: AppLocalizations.of(context).collections,
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.extension_outlined),
-                  label: 'Plugins',
+                  label: AppLocalizations.of(context).plugins,
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.settings_outlined),
-                  label: 'Settings',
+                  label: AppLocalizations.of(context).settings,
                 ),
               ],
             ),
@@ -200,9 +205,9 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     return filtered;
   }
 
-  List<Widget> get _compactActions => [
+  List<Widget> _compactActions(BuildContext context) => [
     IconButton(
-      tooltip: 'Add local publications',
+      tooltip: AppLocalizations.of(context).addLocalPublications,
       onPressed: _isImporting ? null : _importLocalPublications,
       icon: _isImporting
           ? const SizedBox(
@@ -213,22 +218,22 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
           : const Icon(Icons.add_circle_outline),
     ),
     IconButton(
-      tooltip: 'Connect OPDS catalog',
+      tooltip: AppLocalizations.of(context).connectOpdsCatalog,
       onPressed: _connectOpdsCatalog,
       icon: const Icon(Icons.add_to_queue_outlined),
     ),
     IconButton(
-      tooltip: 'Browse OPDS catalogs',
+      tooltip: AppLocalizations.of(context).browseOpdsCatalogs,
       onPressed: _showOpdsCatalogs,
       icon: const Icon(Icons.cloud_outlined),
     ),
   ];
 
-  String get _sectionLabel => switch (_section) {
-    _AppSection.library => 'fBooks',
-    _AppSection.collections => 'Collections',
-    _AppSection.plugins => 'Plugins',
-    _AppSection.settings => 'Settings',
+  String _sectionLabel(BuildContext context) => switch (_section) {
+    _AppSection.library => AppLocalizations.of(context).appTitle,
+    _AppSection.collections => AppLocalizations.of(context).collections,
+    _AppSection.plugins => AppLocalizations.of(context).plugins,
+    _AppSection.settings => AppLocalizations.of(context).settings,
   };
 
   Future<void> _importLocalPublications() async {
@@ -249,18 +254,25 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${result.imported.length} added, '
-            '${result.duplicates.length} already in library, '
-            '${result.unsupported.length} unsupported.',
+            AppLocalizations.of(context).importSummary(
+              result.imported.length,
+              result.duplicates.length,
+              result.unsupported.length,
+            ),
           ),
         ),
       );
-    } catch (error) {
+    } catch (_) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to add publications: $error')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)
+                .unableToAddPublications(error.toString()),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -276,7 +288,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     final connect = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Connect OPDS catalog'),
+        title: Text(AppLocalizations.of(context).connectOpdsCatalog),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -284,24 +296,24 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
               TextField(
                 controller: endpointController,
                 autofocus: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'https://example.com/opds',
-                  labelText: 'Catalog URL',
+                  labelText: AppLocalizations.of(context).catalogUrl,
                 ),
                 keyboardType: TextInputType.url,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: usernameController,
-                decoration: const InputDecoration(
-                  labelText: 'Username (optional)',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).usernameOptional,
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password (optional)',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).passwordOptional,
                 ),
                 obscureText: true,
               ),
@@ -311,11 +323,11 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Connect'),
+            child: Text(AppLocalizations.of(context).connect),
           ),
         ],
       ),
@@ -335,14 +347,22 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
         !endpoint.hasAuthority ||
         (endpoint.scheme != 'http' && endpoint.scheme != 'https')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid HTTP(S) catalog URL.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).validHttpCatalogUrlRequired,
+          ),
+        ),
       );
       return;
     }
 
     if (username.isNotEmpty != password.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter both a username and password.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).usernameAndPasswordRequired,
+          ),
+        ),
       );
       return;
     }
@@ -383,7 +403,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     }
     if (opdsSources.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No OPDS catalogs connected yet.')),
+        SnackBar(content: Text(AppLocalizations.of(context).noOpdsCatalogs)),
       );
       return;
     }
@@ -392,7 +412,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
       context: context,
       builder: (context) => ListView(
         children: [
-          const ListTile(title: Text('OPDS catalogs')),
+          ListTile(title: Text(AppLocalizations.of(context).opdsCatalogs)),
           for (final source in opdsSources)
             ListTile(
               leading: const Icon(Icons.cloud_outlined),
@@ -448,7 +468,7 @@ class _DesktopSidebar extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Row(
+              Row(
                 children: [
                   Image(
                     key: Key('brand-logo'),
@@ -459,7 +479,7 @@ class _DesktopSidebar extends ConsumerWidget {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'fBooks',
+                    AppLocalizations.of(context).appTitle,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -475,7 +495,7 @@ class _DesktopSidebar extends ConsumerWidget {
                   children: [
                     _SidebarItem(
                       icon: Icons.library_books_outlined,
-                      label: 'Library',
+                      label: AppLocalizations.of(context).library,
                       selected: section == _AppSection.library,
                       onTap: () => onSelected(_AppSection.library),
                     ),
@@ -493,13 +513,13 @@ class _DesktopSidebar extends ConsumerWidget {
               ),
               _SidebarItem(
                 icon: Icons.extension_outlined,
-                label: 'Plugins',
+                label: AppLocalizations.of(context).plugins,
                 selected: section == _AppSection.plugins,
                 onTap: () => onSelected(_AppSection.plugins),
               ),
               _SidebarItem(
                 icon: Icons.settings_outlined,
-                label: 'Settings',
+                label: AppLocalizations.of(context).settings,
                 selected: section == _AppSection.settings,
                 onTap: () => onSelected(_AppSection.settings),
               ),
@@ -535,11 +555,13 @@ class _CollectionsSidebarGroup extends StatelessWidget {
     children: [
       _SidebarItem(
         icon: Icons.collections_bookmark_outlined,
-        label: 'Collections',
+        label: AppLocalizations.of(context).collections,
         selected: selected && selectedCollection == null,
         onTap: onOverviewSelected,
         trailing: IconButton(
-          tooltip: expanded ? 'Collapse collections' : 'Expand collections',
+          tooltip: expanded
+              ? AppLocalizations.of(context).collapseCollections
+              : AppLocalizations.of(context).expandCollections,
           onPressed: () => onExpandedChanged(!expanded),
           color: Colors.white70,
           icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
@@ -681,13 +703,13 @@ class _DesktopHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Your library',
+              AppLocalizations.of(context).yourLibrary,
               style: Theme.of(context).textTheme.headlineMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
           IconButton(
-            tooltip: 'Browse OPDS catalogs',
+            tooltip: AppLocalizations.of(context).browseOpdsCatalogs,
             onPressed: onBrowseOpds,
             icon: const Icon(Icons.cloud_outlined),
           ),
@@ -695,7 +717,7 @@ class _DesktopHeader extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onConnectOpds,
             icon: const Icon(Icons.add_to_queue_outlined),
-            label: const Text('Connect OPDS'),
+            label: Text(AppLocalizations.of(context).connectOpds),
           ),
           const SizedBox(width: 12),
           FilledButton.icon(
@@ -707,7 +729,7 @@ class _DesktopHeader extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.add),
-            label: const Text('Add books'),
+            label: Text(AppLocalizations.of(context).addBooks),
           ),
         ],
       ),
@@ -720,7 +742,7 @@ class _EmptyLibraryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.all(24),
         child: Column(
@@ -729,12 +751,12 @@ class _EmptyLibraryView extends StatelessWidget {
             Icon(Icons.auto_stories_outlined, size: 64),
             SizedBox(height: 16),
             Text(
-              'Your library will appear here.',
+              AppLocalizations.of(context).libraryWelcome,
               style: TextStyle(fontSize: 20),
             ),
             SizedBox(height: 8),
             Text(
-              'Start by importing a local publication or connecting an OPDS source.',
+              AppLocalizations.of(context).libraryWelcomeDescription,
               textAlign: TextAlign.center,
             ),
           ],
@@ -819,12 +841,12 @@ class _LibraryFilterBar extends StatelessWidget {
           initialValue: query,
           onChanged: onQueryChanged,
           decoration: InputDecoration(
-            labelText: 'Search library',
+            labelText: AppLocalizations.of(context).searchLibrary,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: query.isEmpty
                 ? null
                 : IconButton(
-                    tooltip: 'Clear search',
+                    tooltip: AppLocalizations.of(context).clearSearch,
                     onPressed: () => onQueryChanged(''),
                     icon: const Icon(Icons.clear),
                   ),
@@ -836,32 +858,41 @@ class _LibraryFilterBar extends StatelessWidget {
           runSpacing: 8,
           children: [
             _FilterMenu<_LibrarySourceFilter>(
-              tooltip: 'Filter source',
+              tooltip: AppLocalizations.of(context).filterSource,
               value: sourceFilter,
-              items: const {
-                _LibrarySourceFilter.all: 'All sources',
-                _LibrarySourceFilter.local: 'Local',
-                _LibrarySourceFilter.opds: 'OPDS',
+              items: {
+                _LibrarySourceFilter.all: AppLocalizations.of(context)
+                    .allSources,
+                _LibrarySourceFilter.local: AppLocalizations.of(context)
+                    .localSource,
+                _LibrarySourceFilter.opds: AppLocalizations.of(context)
+                    .opdsSource,
               },
               onChanged: onSourceFilterChanged,
             ),
             _FilterMenu<_LibraryFormatFilter>(
-              tooltip: 'Filter format',
+              tooltip: AppLocalizations.of(context).filterFormat,
               value: formatFilter,
-              items: const {
-                _LibraryFormatFilter.all: 'All formats',
-                _LibraryFormatFilter.comic: 'Comics',
-                _LibraryFormatFilter.epub: 'EPUB',
-                _LibraryFormatFilter.text: 'Text',
+              items: {
+                _LibraryFormatFilter.all: AppLocalizations.of(context)
+                    .allFormats,
+                _LibraryFormatFilter.comic: AppLocalizations.of(context)
+                    .comicFormat,
+                _LibraryFormatFilter.epub: AppLocalizations.of(context)
+                    .epubFormat,
+                _LibraryFormatFilter.text: AppLocalizations.of(context)
+                    .textFormat,
               },
               onChanged: onFormatFilterChanged,
             ),
             _FilterMenu<_LibrarySort>(
-              tooltip: 'Sort publications',
+              tooltip: AppLocalizations.of(context).sortPublications,
               value: sort,
-              items: const {
-                _LibrarySort.titleAscending: 'Title A–Z',
-                _LibrarySort.titleDescending: 'Title Z–A',
+              items: {
+                _LibrarySort.titleAscending: AppLocalizations.of(context)
+                    .sortByTitleAscending,
+                _LibrarySort.titleDescending: AppLocalizations.of(context)
+                    .sortByTitleDescending,
               },
               onChanged: onSortChanged,
             ),
@@ -927,7 +958,7 @@ class _NoSearchResults extends StatelessWidget {
   const _NoSearchResults();
 
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
     child: Padding(
       padding: EdgeInsets.all(24),
       child: Column(
@@ -935,10 +966,10 @@ class _NoSearchResults extends StatelessWidget {
         children: [
           Icon(Icons.search_off_outlined, size: 48),
           SizedBox(height: 12),
-          Text('No matching publications'),
+          Text(AppLocalizations.of(context).noMatchingPublications),
           SizedBox(height: 6),
           Text(
-            'Try another title, author, source, or format.',
+            AppLocalizations.of(context).noMatchingPublicationsDescription,
             textAlign: TextAlign.center,
           ),
         ],

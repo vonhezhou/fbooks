@@ -6,6 +6,7 @@ import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -49,11 +50,13 @@ class _PdfReaderPageState extends ConsumerState<PdfReaderPage> {
               .where((asset) => asset.kind.isReadableLocalFile)
               .firstOrNull;
           if (asset == null || asset.location.scheme != 'file') {
-            return const _PdfReaderError('A local PDF file is required.');
+            return _PdfReaderError(
+              AppLocalizations.of(context).localPdfRequired,
+            );
           }
           final filePath = asset.location.toFilePath();
           if (!File(filePath).existsSync()) {
-            return const _PdfReaderError('The imported PDF file is missing.');
+            return _PdfReaderError(AppLocalizations.of(context).pdfFileMissing);
           }
           final page = progress.asData?.value?.locator;
           final initialPage = page is PdfPageLocator ? page.pageNumber : 1;

@@ -2,6 +2,7 @@ import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/app/logging/app_logging.dart';
 import 'package:fbooks/features/library/presentation/library_landing_page.dart';
 import 'package:fbooks/features/navigation/presentation/not_found_page.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,8 +20,9 @@ class FbooksApp extends ConsumerWidget {
     final themeMode =
         ref.watch(appSettingsProvider).asData?.value.themeMode ??
         ThemeMode.system;
+    final locale = ref.watch(appSettingsProvider).asData?.value.locale;
     return MaterialApp(
-      title: 'fBooks',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -55,6 +57,9 @@ class FbooksApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       themeMode: themeMode,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const LibraryLandingPage(),
       onUnknownRoute: (settings) => MaterialPageRoute<void>(
         settings: settings,

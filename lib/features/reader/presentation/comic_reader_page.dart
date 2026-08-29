@@ -11,9 +11,9 @@ import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/domain/reading/comic_reading_preferences.dart';
 import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class ComicReaderPage extends ConsumerWidget {
   const ComicReaderPage({
     super.key,
@@ -42,7 +42,7 @@ class ComicReaderPage extends ConsumerWidget {
           title: Text(title, overflow: TextOverflow.ellipsis),
           actions: [
             IconButton(
-              tooltip: 'Reading settings',
+              tooltip: AppLocalizations.of(context).readingSettings,
               onPressed: () =>
                   _showComicReadingSettings(context, ref, desktop: desktop),
               icon: const Icon(Icons.tune),
@@ -417,7 +417,7 @@ class _ComicPageControls extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: 'Previous page',
+            tooltip: AppLocalizations.of(context).previousPage,
             onPressed: canGoBack ? onPrevious : null,
             icon: const Icon(Icons.chevron_left),
           ),
@@ -435,7 +435,7 @@ class _ComicPageControls extends StatelessWidget {
           ),
           Text(pageLabel),
           IconButton(
-            tooltip: 'Next page',
+            tooltip: AppLocalizations.of(context).nextPage,
             onPressed: canGoForward ? onNext : null,
             icon: const Icon(Icons.chevron_right),
           ),
@@ -668,12 +668,12 @@ class _ComicReadingSettingsPanelState
                   children: [
                     Expanded(
                       child: Text(
-                        'Comic reading settings',
+                        AppLocalizations.of(context).readingSettings,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Close settings',
+                      tooltip: AppLocalizations.of(context).closeSettings,
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
                     ),
@@ -684,10 +684,13 @@ class _ComicReadingSettingsPanelState
                   width: 300,
                   child: DropdownMenu<ComicReadingMode>(
                     initialSelection: preferences.mode,
-                    label: const Text('Reading mode'),
+                    label: Text(AppLocalizations.of(context).readingMode),
                     dropdownMenuEntries: [
                       for (final mode in ComicReadingMode.values)
-                        DropdownMenuEntry(value: mode, label: _modeLabel(mode)),
+                        DropdownMenuEntry(
+                          value: mode,
+                          label: _modeLabel(context, mode),
+                        ),
                     ],
                     onSelected: (value) {
                       if (value != null) {
@@ -699,7 +702,7 @@ class _ComicReadingSettingsPanelState
                 const SizedBox(height: 12),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Double-page spread'),
+                  title: Text(AppLocalizations.of(context).doublePageSpread),
                   subtitle: Text(
                     preferences.mode == ComicReadingMode.vertical
                         ? 'Available in horizontal reading modes.'
@@ -720,7 +723,7 @@ class _ComicReadingSettingsPanelState
   }
 }
 
-String _modeLabel(ComicReadingMode mode) {
+String _modeLabel(BuildContext context, ComicReadingMode mode) {
   return switch (mode) {
     ComicReadingMode.leftToRight => 'Left to right',
     ComicReadingMode.rightToLeft => 'Right to left',
@@ -779,7 +782,7 @@ class _ReaderEmptyContentView extends StatelessWidget {
           const Icon(Icons.hide_image_outlined, size: 52),
           const SizedBox(height: 16),
           Text(
-            'Nothing to display',
+            AppLocalizations.of(context).readerEmptyTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),

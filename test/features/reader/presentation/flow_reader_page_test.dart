@@ -10,6 +10,7 @@ import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences_repository.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -235,6 +236,8 @@ Widget _readerApp(
     ),
   ],
   child: const MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: FlowReaderPage(publicationId: _publicationId, title: 'Linked book'),
   ),
 );

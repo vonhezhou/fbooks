@@ -4,9 +4,9 @@ import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_request.dart';
 import 'package:fbooks/application/opds/opds_credentials.dart';
 import 'package:fbooks/domain/library/library_source.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class OpdsCatalogPage extends ConsumerWidget {
   const OpdsCatalogPage({super.key, required this.source, this.endpoint});
 
@@ -17,6 +17,7 @@ class OpdsCatalogPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final catalog = ref.watch(
       opdsCatalogProvider(
         OpdsCatalogRequest(sourceId: source.id, endpoint: _endpoint),
@@ -27,7 +28,7 @@ class OpdsCatalogPage extends ConsumerWidget {
         title: Text(source.name),
         actions: [
           IconButton(
-            tooltip: 'Retry catalog',
+            tooltip: l10n.opdsRetryCatalog,
             onPressed: () => ref.invalidate(
               opdsCatalogProvider(
                 OpdsCatalogRequest(sourceId: source.id, endpoint: _endpoint),
@@ -36,19 +37,19 @@ class OpdsCatalogPage extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
           ),
           PopupMenuButton<_CatalogAction>(
-            tooltip: 'Catalog actions',
+            tooltip: l10n.opdsCatalogActions,
             onSelected: (action) => switch (action) {
               _CatalogAction.edit => _editCatalog(context, ref, source),
               _CatalogAction.remove => _removeCatalog(context, ref, source),
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: _CatalogAction.edit,
-                child: Text('Edit catalog'),
+                child: Text(l10n.editCatalog),
               ),
               PopupMenuItem(
                 value: _CatalogAction.remove,
-                child: Text('Remove catalog'),
+                child: Text(l10n.removeCatalog),
               ),
             ],
           ),
@@ -58,7 +59,7 @@ class OpdsCatalogPage extends ConsumerWidget {
         data: (value) => ListView(
           children: [
             if (value.navigation.isNotEmpty) ...[
-              const ListTile(title: Text('Browse')),
+              ListTile(title: Text(l10n.browse)),
               for (final link in value.navigation)
                 ListTile(
                   leading: const Icon(Icons.folder_outlined),
@@ -85,7 +86,7 @@ class OpdsCatalogPage extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              'Unable to load the OPDS catalog.\n$error',
+              l10n.unableToLoadOpdsCatalog(error.toString()),
               textAlign: TextAlign.center,
             ),
           ),
@@ -103,6 +104,7 @@ Future<void> _editCatalog(
   WidgetRef ref,
   LibrarySource source,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final existingCredentials = await ref
       .read(opdsCredentialsRepositoryProvider)
       .load(source.id);
@@ -121,29 +123,25 @@ Future<void> _editCatalog(
   final save = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Edit OPDS catalog'),
+      title: Text(l10n.editOpdsCatalog),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: endpointController,
-              decoration: const InputDecoration(labelText: 'Catalog URL'),
+              decoration: InputDecoration(labelText: l10n.catalogUrl),
               keyboardType: TextInputType.url,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username (optional)',
-              ),
+              decoration: InputDecoration(labelText: l10n.usernameOptional),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password (optional)',
-              ),
+              decoration: InputDecoration(labelText: l10n.passwordOptional),
               obscureText: true,
             ),
           ],
@@ -152,11 +150,11 @@ Future<void> _editCatalog(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Save'),
+          child: Text(l10n.save),
         ),
       ],
     ),
@@ -176,7 +174,7 @@ Future<void> _editCatalog(
       (endpoint.scheme != 'http' && endpoint.scheme != 'https') ||
       (username.isNotEmpty != password.isNotEmpty)) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Enter a valid URL and both credentials.')),
+      SnackBar(content: Text(l10n.validCatalogCredentialsRequired)),
     );
     return;
   }
@@ -212,6 +210,7 @@ Future<void> _removeCatalog(
   WidgetRef ref,
   LibrarySource source,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final publications = await ref
       .read(publicationRepositoryProvider)
       .listPublications();
@@ -219,28 +218,23 @@ Future<void> _removeCatalog(
     return;
   }
   if (publications.any((publication) => publication.source.id == source.id)) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Remove this catalog’s downloaded publications first.'),
-      ),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.catalogHasPublications)));
     return;
   }
   final remove = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Remove catalog?'),
-      content: Text(
-        '“${source.name}” and its saved credentials will be removed.',
-      ),
+      title: Text(l10n.removeCatalogTitle),
+      content: Text(l10n.removeCatalogDescription(source.name)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Remove'),
+          child: Text(l10n.remove),
         ),
       ],
     ),
@@ -273,20 +267,21 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final acquisition = widget.publication.acquisitions.firstOrNull;
     return ListTile(
       leading: const Icon(Icons.menu_book_outlined),
       title: Text(widget.publication.title),
       subtitle: Text(
         widget.publication.authors.isEmpty
-            ? 'No author metadata'
+            ? l10n.noAuthorMetadata
             : widget.publication.authors.join(', '),
       ),
       trailing: acquisition == null
           ? null
           : _isDownloading
           ? IconButton(
-              tooltip: 'Cancel download',
+              tooltip: l10n.cancelDownload,
               onPressed: _cancellation?.cancel,
               icon: SizedBox(
                 width: 22,
@@ -298,7 +293,7 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
               ),
             )
           : IconButton(
-              tooltip: 'Download to library or refresh metadata',
+              tooltip: l10n.downloadToLibrary,
               onPressed: () => _download(acquisition),
               icon: const Icon(Icons.download_outlined),
             ),
@@ -306,6 +301,7 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
   }
 
   Future<void> _download(OpdsAcquisition acquisition) async {
+    final l10n = AppLocalizations.of(context);
     final cancellation = OpdsDownloadCancellation();
     setState(() {
       _isDownloading = true;
@@ -330,20 +326,24 @@ class _OpdsPublicationTileState extends ConsumerState<_OpdsPublicationTile> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${publication.title} added to the library.')),
+        SnackBar(
+          content: Text(l10n.publicationAddedToLibrary(publication.title)),
+        ),
       );
     } on OpdsDownloadCancelled {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Download cancelled.')));
-    } catch (error) {
+          .showSnackBar(SnackBar(content: Text(l10n.downloadCancelled)));
+    } catch (_) {
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to download publication: $error')),
+        SnackBar(
+          content: Text(l10n.unableToDownloadPublication(error.toString())),
+        ),
       );
     } finally {
       if (mounted) {

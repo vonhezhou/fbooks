@@ -11,11 +11,11 @@ import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html_table/flutter_html_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class FlowReaderPage extends ConsumerWidget {
   const FlowReaderPage({
     super.key,
@@ -44,7 +44,7 @@ class FlowReaderPage extends ConsumerWidget {
           centerTitle: !desktop && constraints.maxWidth < 720,
           actions: [
             IconButton(
-              tooltip: 'Reading settings',
+              tooltip: AppLocalizations.of(context).readingSettings,
               onPressed: () =>
                   _showTextReadingSettings(context, ref, desktop: desktop),
               icon: const Icon(Icons.tune),
@@ -62,7 +62,8 @@ class FlowReaderPage extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'Unable to open this publication.\n$error',
+                AppLocalizations.of(context)
+                    .unableToOpenPublication(error.toString()),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -122,7 +123,7 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
         .whenData(_restorePosition);
     final chapterCount = widget.session.document.chapters.length;
     if (chapterCount == 0) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Column(
@@ -130,10 +131,10 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
             children: [
               Icon(Icons.article_outlined, size: 52),
               SizedBox(height: 16),
-              Text('Nothing to read'),
+              Text(AppLocalizations.of(context).readerEmptyTitle),
               SizedBox(height: 8),
               Text(
-                'This publication does not contain readable text content.',
+                AppLocalizations.of(context).readerEmptyDescription,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -263,7 +264,7 @@ class _FlowChapterControls extends StatelessWidget {
         children: [
           if (tableOfContents.isNotEmpty)
             IconButton(
-              tooltip: 'Table of contents',
+              tooltip: AppLocalizations.of(context).tableOfContents,
               onPressed: () => _showTableOfContents(
                 context,
                 tableOfContents,
@@ -274,7 +275,7 @@ class _FlowChapterControls extends StatelessWidget {
               icon: const Icon(Icons.format_list_bulleted),
             ),
           IconButton(
-            tooltip: 'Previous chapter',
+            tooltip: AppLocalizations.of(context).previousChapter,
             onPressed: canGoBack
                 ? () => onChapterSelected(currentChapter - 1)
                 : null,
@@ -286,7 +287,8 @@ class _FlowChapterControls extends StatelessWidget {
               min: 0,
               max: (chapterCount - 1).toDouble(),
               divisions: chapterCount > 1 ? chapterCount - 1 : null,
-              label: 'Chapter ${currentChapter + 1} of $chapterCount',
+              label: AppLocalizations.of(context)
+                  .chapterProgress(currentChapter + 1, chapterCount),
               onChanged: chapterCount > 1
                   ? (value) => onChapterSelected(value.round())
                   : null,
@@ -294,7 +296,7 @@ class _FlowChapterControls extends StatelessWidget {
           ),
           Text('${currentChapter + 1} / $chapterCount'),
           IconButton(
-            tooltip: 'Next chapter',
+            tooltip: AppLocalizations.of(context).nextChapter,
             onPressed: canGoForward
                 ? () => onChapterSelected(currentChapter + 1)
                 : null,
@@ -386,12 +388,13 @@ class _TableOfContentsPanel extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        'Table of contents',
+                        AppLocalizations.of(context).tableOfContents,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Close table of contents',
+                      tooltip: AppLocalizations.of(context)
+                          .closeTableOfContents,
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
                     ),
@@ -453,7 +456,7 @@ class _DeferredFlowChapterView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            'Unable to load this chapter.\n$error',
+            AppLocalizations.of(context).unableToLoadChapter(error.toString()),
             textAlign: TextAlign.center,
           ),
         ),
@@ -793,12 +796,12 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Text reading settings',
+                        AppLocalizations.of(context).readingSettings,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Close settings',
+                      tooltip: AppLocalizations.of(context).closeSettings,
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
                     ),
@@ -806,7 +809,7 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                 ),
                 const SizedBox(height: 20),
                 _TextPreferenceSlider(
-                  label: 'Text size',
+                  label: AppLocalizations.of(context).textSize,
                   valueLabel: '${preferences.fontSize.round()} pt',
                   value: preferences.fontSize,
                   min: 14,
@@ -817,7 +820,7 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                 ),
                 const SizedBox(height: 12),
                 _TextPreferenceSlider(
-                  label: 'Line height',
+                  label: AppLocalizations.of(context).lineHeight,
                   valueLabel: preferences.lineHeight.toStringAsFixed(1),
                   value: preferences.lineHeight,
                   min: 1.3,
@@ -828,7 +831,7 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                 ),
                 const SizedBox(height: 12),
                 _TextPreferenceSlider(
-                  label: 'Page margins',
+                  label: AppLocalizations.of(context).pageMargins,
                   valueLabel: '${preferences.horizontalPadding.round()} px',
                   value: preferences.horizontalPadding,
                   min: 16,
@@ -839,26 +842,26 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Appearance',
+                  AppLocalizations.of(context).readerAppearance,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
                 SegmentedButton<TextReadingAppearance>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: TextReadingAppearance.light,
                       icon: Icon(Icons.light_mode_outlined),
-                      label: Text('Light'),
+                      label: Text(AppLocalizations.of(context).light),
                     ),
                     ButtonSegment(
                       value: TextReadingAppearance.sepia,
                       icon: Icon(Icons.auto_stories_outlined),
-                      label: Text('Sepia'),
+                      label: Text(AppLocalizations.of(context).sepia),
                     ),
                     ButtonSegment(
                       value: TextReadingAppearance.dark,
                       icon: Icon(Icons.dark_mode_outlined),
-                      label: Text('Dark'),
+                      label: Text(AppLocalizations.of(context).dark),
                     ),
                   ],
                   selected: {preferences.appearance},

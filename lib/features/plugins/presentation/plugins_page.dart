@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,43 +12,43 @@ class PluginsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sourceCount =
         ref.watch(libraryPublicationsProvider).asData?.value.length ?? 0;
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
       children: [
         Text(
-          'Plugins',
+          l10n.plugins,
           style: Theme.of(context).textTheme.headlineMedium
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
         Text(
-          'Built-in capabilities are reviewed and run locally with your library.',
+          l10n.pluginsDescription,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(height: 28),
         _CapabilityCard(
           icon: Icons.folder_open_outlined,
-          title: 'Local files',
-          description:
-              'Import and read CBZ, EPUB, and TXT files stored on this device.',
-          status: 'Enabled',
-          detail: '$sourceCount books in your local library',
+          title: l10n.localFilesPluginTitle,
+          description: l10n.localFilesDescription,
+          status: l10n.enabled,
+          detail: l10n.localLibraryBookCount(sourceCount),
         ),
         const SizedBox(height: 14),
-        const _CapabilityCard(
+        _CapabilityCard(
           icon: Icons.cloud_outlined,
-          title: 'OPDS catalogues',
-          description: 'Browse OPDS 1 and OPDS 2 catalogues and add readable titles to the library.',
-          status: 'Enabled',
-          detail: 'Configure catalogues from the Library toolbar',
+          title: l10n.opdsCatalogues,
+          description: l10n.opdsCataloguesDescription,
+          status: l10n.enabled,
+          detail: l10n.configureCatalogues,
         ),
         const SizedBox(height: 14),
-        const _CapabilityCard(
+        _CapabilityCard(
           icon: Icons.extension_outlined,
-          title: 'Third-party extensions',
-          description: 'No external extensions are installed. fBooks does not load unreviewed reader code.',
-          status: 'Not available',
-          detail: 'A plug-in API is deliberately outside the current local-first milestone',
+          title: l10n.thirdPartyExtensions,
+          description: l10n.thirdPartyExtensionsDescription,
+          status: l10n.notAvailable,
+          detail: l10n.thirdPartyExtensionsDetail,
           enabled: false,
         ),
       ],

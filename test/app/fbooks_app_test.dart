@@ -35,6 +35,33 @@ void main() {
     expect(find.text('Your library will appear here.'), findsOneWidget);
   });
 
+  testWidgets('uses the persisted Chinese locale for app navigation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _EmptyPublicationRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+          appSettingsRepositoryProvider.overrideWithValue(
+            _FixedAppSettingsRepository(
+              const AppSettings(locale: Locale('zh')),
+            ),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('书库'), findsOneWidget);
+    expect(find.text('你的书库将在这里显示。'), findsOneWidget);
+  });
+
   testWidgets('uses the desktop library shell in a wide window', (
     tester,
   ) async {
@@ -61,6 +88,43 @@ void main() {
     expect(find.byKey(const Key('brand-logo')), findsOneWidget);
     expect(find.text('Collections'), findsOneWidget);
     expect(find.text('Add books'), findsOneWidget);
+  });
+
+  testWidgets('shows the local diagnostics directory in settings', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _EmptyPublicationRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+          appLogDirectoryProvider.overrideWithValue('/diagnostics/fbooks/logs'),
+          appSettingsRepositoryProvider.overrideWithValue(
+            _FixedAppSettingsRepository(
+              const AppSettings(themeMode: ThemeMode.system),
+            ),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Settings').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Log directory'), findsOneWidget);
+    expect(find.text('Log level'), findsOneWidget);
+    expect(
+      find.text('Tap to copy the path for local diagnostics.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('uses a dark surface for every desktop primary page', (
