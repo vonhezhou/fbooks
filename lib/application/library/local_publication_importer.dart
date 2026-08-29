@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -34,8 +38,11 @@ class LocalPublicationImportResult {
 }
 
 class LocalPublicationImporter {
-  LocalPublicationImporter(this._repository, {Uuid? uuid})
-    : _uuid = uuid ?? const Uuid();
+  LocalPublicationImporter(
+    this._repository,
+    this._managedAssetStore, {
+    Uuid? uuid,
+  }) : _uuid = uuid ?? const Uuid();
 
   static const _localSource = LibrarySource(
     id: 'local-library',
@@ -44,6 +51,7 @@ class LocalPublicationImporter {
   );
 
   final PublicationRepository _repository;
+  final ManagedAssetStore _managedAssetStore;
   final Uuid _uuid;
 
   Future<LocalPublicationImportResult> importCandidates(
@@ -66,23 +74,46 @@ class LocalPublicationImporter {
       }
 
       final publicationId = _uuid.v4();
-      final publication = Publication(
-        id: publicationId,
-        source: _localSource,
-        title: path.basenameWithoutExtension(candidate.fileName),
-        format: format,
-        assets: [
-          PublicationAsset(
-            id: _uuid.v4(),
-            publicationId: publicationId,
-            kind: PublicationAssetKind.localFile,
-            location: candidate.location,
-            mediaType: PublicationFormatDetector.mediaTypeFor(format),
-          ),
-        ],
-      );
-      await _repository.save(publication);
-      imported.add(publication);
+      final managedAssetId = _uuid.v4();
+      Uri? managedLocation;
+      try {
+        managedLocation = await _managedAssetStore.save(
+          assetId: managedAssetId,
+          fileName: candidate.fileName,
+          bytes: File.fromUri(candidate.location)
+              .openRead()
+              .map(Uint8List.fromList),
+        );
+        final publication = Publication(
+          id: publicationId,
+          source: _localSource,
+          title: path.basenameWithoutExtension(candidate.fileName),
+          format: format,
+          assets: [
+            PublicationAsset(
+              id: _uuid.v4(),
+              publicationId: publicationId,
+              kind: PublicationAssetKind.importedSource,
+              location: candidate.location,
+              mediaType: PublicationFormatDetector.mediaTypeFor(format),
+            ),
+            PublicationAsset(
+              id: managedAssetId,
+              publicationId: publicationId,
+              kind: PublicationAssetKind.managedFile,
+              location: managedLocation,
+              mediaType: PublicationFormatDetector.mediaTypeFor(format),
+            ),
+          ],
+        );
+        await _repository.save(publication);
+        imported.add(publication);
+      } catch (_) {
+        if (managedLocation != null) {
+          await _managedAssetStore.delete(managedLocation);
+        }
+        rethrow;
+      }
     }
 
     return LocalPublicationImportResult(

@@ -21,9 +21,10 @@ class LibraryPublicationRemover {
       throw StateError('Publication $publicationId was not found');
     }
 
-    final filesToDelete = deleteManagedFiles
-        ? managedDownloadFiles(publication)
-        : const <Uri>[];
+    final filesToDelete = managedFilesToDelete(
+      publication,
+      deleteManagedFiles: deleteManagedFiles,
+    );
     await _repository.delete(publicationId);
 
     final filesNotDeleted = <Uri>[];
@@ -59,9 +60,31 @@ List<Uri> managedDownloadFiles(Publication publication) {
   return publication.assets
       .where(
         (asset) =>
-            asset.kind == PublicationAssetKind.localFile &&
+            (asset.kind.isManagedByFbooks ||
+                asset.kind == PublicationAssetKind.localFile) &&
             asset.location.scheme == 'file',
       )
+      .map((asset) => asset.location)
+      .toList(growable: false);
+}
+
+List<Uri> managedFilesToDelete(
+  Publication publication, {
+  required bool deleteManagedFiles,
+}) {
+  return publication.assets
+      .where((asset) {
+        final isCurrentManagedFile =
+            asset.kind.isManagedByFbooks &&
+            (publication.source.kind == LibrarySourceKind.local ||
+                deleteManagedFiles);
+        final isLegacyDownloadFile =
+            deleteManagedFiles &&
+            publication.source.kind == LibrarySourceKind.opds &&
+            asset.kind == PublicationAssetKind.localFile;
+        return asset.location.scheme == 'file' &&
+            (isCurrentManagedFile || isLegacyDownloadFile);
+      })
       .map((asset) => asset.location)
       .toList(growable: false);
 }

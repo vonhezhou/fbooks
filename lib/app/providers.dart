@@ -118,7 +118,10 @@ final localPublicationPickerProvider = Provider<LocalPublicationPicker>((ref) {
 final localPublicationImporterProvider = Provider<LocalPublicationImporter>((
   ref,
 ) {
-  return LocalPublicationImporter(ref.watch(publicationRepositoryProvider));
+  return LocalPublicationImporter(
+    ref.watch(publicationRepositoryProvider),
+    ref.watch(managedAssetStoreProvider),
+  );
 });
 
 final libraryPublicationRemoverProvider = Provider<LibraryPublicationRemover>(
@@ -129,7 +132,10 @@ final libraryPublicationRemoverProvider = Provider<LibraryPublicationRemover>(
 );
 
 final localPublicationRepairerProvider = Provider<LocalPublicationRepairer>(
-  (ref) => LocalPublicationRepairer(ref.watch(publicationRepositoryProvider)),
+  (ref) => LocalPublicationRepairer(
+    ref.watch(publicationRepositoryProvider),
+    ref.watch(managedAssetStoreProvider),
+  ),
 );
 
 final comicReaderSessionFactoryProvider = Provider<ComicReaderSessionFactory>(

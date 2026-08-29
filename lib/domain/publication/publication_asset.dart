@@ -4,7 +4,20 @@ import 'package:fbooks/domain/publication/publication_id.dart';
 ///
 /// The same publication can later have both an OPDS acquisition URL and an
 /// offline file cache, so assets are modeled independently from metadata.
-enum PublicationAssetKind { localFile, remoteAcquisition }
+enum PublicationAssetKind {
+  localFile,
+  managedFile,
+  importedSource,
+  remoteAcquisition,
+}
+
+extension PublicationAssetKindX on PublicationAssetKind {
+  bool get isReadableLocalFile =>
+      this == PublicationAssetKind.localFile ||
+      this == PublicationAssetKind.managedFile;
+
+  bool get isManagedByFbooks => this == PublicationAssetKind.managedFile;
+}
 
 class PublicationAsset {
   const PublicationAsset({

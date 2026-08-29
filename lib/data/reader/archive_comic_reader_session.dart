@@ -19,7 +19,7 @@ class ArchiveComicReaderSessionFactory implements ComicReaderSessionFactory {
     }
 
     final asset = publication.assets
-        .where((asset) => asset.kind == PublicationAssetKind.localFile)
+        .where((asset) => asset.kind.isReadableLocalFile)
         .firstOrNull;
     if (asset == null || asset.location.scheme != 'file') {
       throw UnsupportedError('A local comic archive is required');

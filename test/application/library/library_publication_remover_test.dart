@@ -22,6 +22,39 @@ void main() {
       expect(store.deletedLocations, isEmpty);
     });
 
+    test(
+      'deletes the managed copy of a locally imported publication',
+      () async {
+        final publication = Publication(
+          id: 'managed-local-book',
+          source: _localPublication.source,
+          title: 'Managed local book',
+          format: PublicationFormat.epub,
+          assets: [
+            PublicationAsset(
+              id: 'source-file',
+              publicationId: 'managed-local-book',
+              kind: PublicationAssetKind.importedSource,
+              location: Uri.file('/original/book.epub'),
+            ),
+            PublicationAsset(
+              id: 'managed-file',
+              publicationId: 'managed-local-book',
+              kind: PublicationAssetKind.managedFile,
+              location: Uri.file('/managed/book.epub'),
+            ),
+          ],
+        );
+        final repository = _MemoryPublicationRepository(publication);
+        final store = _RecordingManagedAssetStore();
+        final remover = LibraryPublicationRemover(repository, store);
+
+        await remover.remove(publication.id, deleteManagedFiles: false);
+
+        expect(store.deletedLocations, [Uri.file('/managed/book.epub')]);
+      },
+    );
+
     test('can delete only the managed file for an OPDS download', () async {
       final repository = _MemoryPublicationRepository(_opdsPublication);
       final store = _RecordingManagedAssetStore();

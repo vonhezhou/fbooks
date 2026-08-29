@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:fbooks/application/library/local_publication_importer.dart';
 import 'package:fbooks/application/library/local_publication_repairer.dart';
+import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_asset.dart';
@@ -34,7 +37,10 @@ void main() {
           ],
         );
         final repository = _MemoryPublicationRepository([original]);
-        final repairer = LocalPublicationRepairer(repository);
+        final repairer = LocalPublicationRepairer(
+          repository,
+          _FakeManagedAssetStore(),
+        );
 
         final repaired = await repairer.repair(
           publicationId: original.id,
@@ -48,21 +54,32 @@ void main() {
         expect(repaired.title, original.title);
         expect(repaired.authors, original.authors);
         expect(repaired.description, original.description);
-        expect(repaired.assets.single.id, 'book-1-file');
         expect(
-          repaired.assets.single.location,
+          repaired.assets
+              .singleWhere(
+                (asset) => asset.kind == PublicationAssetKind.importedSource,
+              )
+              .location,
           Uri.file('/replacement/Replacement.epub'),
         );
         expect(
-          (await repository.findById(original.id))?.assets.single.location,
-          Uri.file('/replacement/Replacement.epub'),
+          (await repository.findById(original.id))?.assets
+              .singleWhere(
+                (asset) => asset.kind == PublicationAssetKind.managedFile,
+              )
+              .location
+              .path,
+          startsWith('/managed/'),
         );
       },
     );
 
     test('rejects a replacement with a different format', () async {
       final repository = _MemoryPublicationRepository([_localEpub()]);
-      final repairer = LocalPublicationRepairer(repository);
+      final repairer = LocalPublicationRepairer(
+        repository,
+        _FakeManagedAssetStore(),
+      );
 
       expect(
         () => repairer.repair(
@@ -98,7 +115,10 @@ void main() {
           original,
           alreadyImported,
         ]);
-        final repairer = LocalPublicationRepairer(repository);
+        final repairer = LocalPublicationRepairer(
+          repository,
+          _FakeManagedAssetStore(),
+        );
 
         expect(
           () => repairer.repair(
@@ -172,4 +192,16 @@ class _MemoryPublicationRepository implements PublicationRepository {
   @override
   Stream<List<Publication>> watchPublications() =>
       Stream.value(_publications.values.toList());
+}
+
+class _FakeManagedAssetStore implements ManagedAssetStore {
+  @override
+  Future<void> delete(Uri location) async {}
+
+  @override
+  Future<Uri> save({
+    required String assetId,
+    required String fileName,
+    required Stream<Uint8List> bytes,
+  }) async => Uri.file('/managed/$assetId.$fileName');
 }

@@ -21,7 +21,7 @@ class LocalTextReaderSessionFactory implements TextReaderSessionFactory {
     }
 
     final asset = publication.assets
-        .where((asset) => asset.kind == PublicationAssetKind.localFile)
+        .where((asset) => asset.kind.isReadableLocalFile)
         .firstOrNull;
     if (asset == null || asset.location.scheme != 'file') {
       throw UnsupportedError('A local text asset is required');

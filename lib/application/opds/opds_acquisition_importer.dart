@@ -137,7 +137,7 @@ class OpdsAcquisitionImporter {
           PublicationAsset(
             id: localAssetId,
             publicationId: publicationId,
-            kind: PublicationAssetKind.localFile,
+            kind: PublicationAssetKind.managedFile,
             location: localLocation,
             mediaType: response.mediaType ?? acquisition.mediaType,
           ),

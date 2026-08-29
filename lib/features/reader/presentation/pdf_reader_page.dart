@@ -46,7 +46,7 @@ class _PdfReaderPageState extends ConsumerState<PdfReaderPage> {
             return const Center(child: CircularProgressIndicator());
           }
           final asset = snapshot.data?.assets
-              .where((asset) => asset.kind == PublicationAssetKind.localFile)
+              .where((asset) => asset.kind.isReadableLocalFile)
               .firstOrNull;
           if (asset == null || asset.location.scheme != 'file') {
             return const _PdfReaderError('A local PDF file is required.');
