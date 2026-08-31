@@ -104,6 +104,15 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   and added-time sorting in both directions; single and batch collection
   actions. System collections are Read later, Favorites, and Finished.
 
+- [ ] Extend library management with user-owned publication annotations:
+  editable rating and rating-based sorting; editable rich metadata (publisher,
+  publication date, GTIN, series and series number, language, and related
+  fields); sharing a publication file or its metadata; and, on desktop,
+  revealing the resolved local publication asset in the system file manager.
+  Design user edits as overrides of source metadata so OPDS refreshes do not
+  silently discard them; distinguish original local files from app-managed
+  downloads when revealing or sharing a file.
+
 - [x] Publication details: cover, authors, description, source, format, and
   last-opened state.
 - [x] Remove a publication while clearing its reading state and collection
