@@ -99,6 +99,19 @@ void main() {
         setup: (rawDatabase) {
           rawDatabase
             ..execute('''
+              CREATE TABLE stored_publications (
+                id TEXT NOT NULL PRIMARY KEY,
+                source_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                authors_json TEXT NOT NULL DEFAULT '[]',
+                format TEXT NOT NULL,
+                description TEXT,
+                cover_uri TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+              )
+            ''')
+            ..execute('''
               CREATE TABLE stored_book_collections (
                 id TEXT NOT NULL PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -161,6 +174,13 @@ void main() {
           )
           .get(),
       hasLength(1),
+    );
+    final publicationColumns = await migratedDatabase
+        .customSelect('PRAGMA table_info(stored_publications)')
+        .get();
+    expect(
+      publicationColumns.map((column) => column.data['name']),
+      containsAll(['published_at', 'tags_json']),
     );
   });
 }

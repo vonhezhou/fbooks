@@ -107,3 +107,15 @@
   non-descriptive.
 - Add a regression fixture with a non-descriptive image name and a
   `FrontCover` page declaration whenever changing archive-cover selection.
+
+## 2026-09-04 — Separate card media from card metadata padding
+
+- When a library-card cover should be edge-to-edge, never wrap the whole card
+  in a shared padding widget. Make the cover its own top media region and add
+  padding only around the title, progress, and actions below it.
+- Use the 1:1.6 width-to-height ebook-cover ratio for library cards, and
+  calculate each tile as the cover height plus a fixed metadata-footer height
+  through a custom grid delegate. Do not use the overall card aspect ratio or
+  an `Expanded` metadata region, which makes text whitespace depend on width.
+- Verify the computed cover and footer heights at both narrow and desktop
+  widths so the metadata area cannot overflow.

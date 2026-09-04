@@ -17,6 +17,8 @@ class OpdsPublication {
     required this.acquisitions,
     this.description,
     this.coverUri,
+    this.publishedAt,
+    this.tags = const [],
   });
 
   final String title;
@@ -24,6 +26,8 @@ class OpdsPublication {
   final List<OpdsAcquisition> acquisitions;
   final String? description;
   final Uri? coverUri;
+  final DateTime? publishedAt;
+  final List<String> tags;
 }
 
 class OpdsAcquisition {

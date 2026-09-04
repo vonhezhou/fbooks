@@ -12,11 +12,19 @@ class PublicationInspection {
 
 /// A non-persistent update for metadata embedded in a publication file.
 class PublicationMetadataPatch {
-  const PublicationMetadataPatch({this.title, this.authors, this.description});
+  const PublicationMetadataPatch({
+    this.title,
+    this.authors,
+    this.description,
+    this.publishedAt,
+    this.tags,
+  });
 
   final String? title;
   final List<String>? authors;
   final String? description;
+  final DateTime? publishedAt;
+  final List<String>? tags;
 
   Publication applyTo(Publication publication) => Publication(
     id: publication.id,
@@ -26,6 +34,8 @@ class PublicationMetadataPatch {
     format: publication.format,
     description: description ?? publication.description,
     coverUri: publication.coverUri,
+    publishedAt: publishedAt ?? publication.publishedAt,
+    tags: tags ?? publication.tags,
     assets: publication.assets,
     addedAt: publication.addedAt,
     lastReadAt: publication.lastReadAt,

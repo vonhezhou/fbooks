@@ -122,6 +122,8 @@ class OpdsAcquisitionImporter {
         format: format,
         description: publication.description,
         coverUri: publication.coverUri,
+        publishedAt: publication.publishedAt,
+        tags: publication.tags,
         assets: [
           PublicationAsset(
             id: remoteAssetId,
@@ -177,6 +179,8 @@ class OpdsAcquisitionImporter {
       format: existing.format,
       description: remote.description,
       coverUri: remote.coverUri,
+      publishedAt: remote.publishedAt,
+      tags: remote.tags,
       assets: existing.assets,
     );
     await _publicationRepository.save(refreshed);

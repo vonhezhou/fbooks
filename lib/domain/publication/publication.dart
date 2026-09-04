@@ -15,6 +15,8 @@ class Publication {
     this.authors = const [],
     this.description,
     this.coverUri,
+    this.publishedAt,
+    this.tags = const [],
     this.assets = const [],
     this.addedAt,
     this.lastReadAt,
@@ -27,6 +29,8 @@ class Publication {
   final PublicationFormat format;
   final String? description;
   final Uri? coverUri;
+  final DateTime? publishedAt;
+  final List<String> tags;
   final List<PublicationAsset> assets;
   final DateTime? addedAt;
   final DateTime? lastReadAt;

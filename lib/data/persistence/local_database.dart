@@ -22,6 +22,8 @@ class StoredPublications extends Table {
   TextColumn get format => text()();
   TextColumn get description => text().nullable()();
   TextColumn get coverUri => text().nullable()();
+  DateTimeColumn get publishedAt => dateTime().nullable()();
+  TextColumn get tagsJson => text().withDefault(const Constant('[]'))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -90,13 +92,13 @@ class LocalDatabase extends _$LocalDatabase {
   LocalDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      if (from < 1 || from > 5) {
+      if (from < 1 || from > 6) {
         throw StateError('Unsupported database migration: $from -> $to.');
       }
       if (from == 1) {
@@ -118,6 +120,16 @@ class LocalDatabase extends _$LocalDatabase {
         );
         await customStatement(
           "DELETE FROM stored_book_collections WHERE id = 'system:saved'",
+        );
+      }
+      if (from <= 5) {
+        await migrator.addColumn(
+          storedPublications,
+          storedPublications.publishedAt,
+        );
+        await migrator.addColumn(
+          storedPublications,
+          storedPublications.tagsJson,
         );
       }
     },

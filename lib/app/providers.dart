@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fbooks/application/managed_asset_store.dart';
 import 'package:fbooks/application/library/local_publication_importer.dart';
@@ -13,6 +14,7 @@ import 'package:fbooks/application/opds/opds_acquisition_importer.dart';
 import 'package:fbooks/application/opds/opds_catalog_client.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
+import 'package:fbooks/application/reader/publication_content_info.dart';
 import 'package:fbooks/app/window/window_controller.dart';
 import 'package:fbooks/data/import/file_picker_local_publication_picker.dart';
 import 'package:fbooks/data/preferences/shared_preferences_comic_reading_preferences_repository.dart';
@@ -35,6 +37,7 @@ import 'package:fbooks/data/reader/pdf_publication_inspector.dart';
 import 'package:fbooks/data/reader/text_publication_inspector.dart';
 import 'package:fbooks/data/storage/managed_asset_store.dart';
 import 'package:fbooks/domain/publication/publication.dart';
+import 'package:fbooks/domain/publication/publication_asset.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/publication/publication_repository.dart';
 import 'package:fbooks/domain/library/library_source_repository.dart';
@@ -51,6 +54,7 @@ import 'package:fbooks/domain/settings/app_settings.dart';
 import 'package:fbooks/domain/settings/app_settings_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:pdfrx/pdfrx.dart';
 
 final appLogDirectoryProvider = Provider<String?>((ref) => null);
 
@@ -266,6 +270,74 @@ final flowReadingSessionProvider =
       ref.onDispose(() => session.close());
       return session;
     });
+
+/// Loads an exact page count for fixed-layout publications, or the chapter
+/// count for reflowable publications whose page count changes with appearance.
+final publicationContentInfoProvider =
+    FutureProvider.family<PublicationContentInfo?, PublicationId>((
+      ref,
+      publicationId,
+    ) async {
+      final publication = await ref
+          .watch(publicationRepositoryProvider)
+          .findById(publicationId);
+      if (publication == null) {
+        return null;
+      }
+      return switch (publication.format) {
+        PublicationFormat.comicArchive => _comicContentInfo(ref, publication),
+        PublicationFormat.epub ||
+        PublicationFormat.text => _flowContentInfo(ref, publication),
+        PublicationFormat.pdf => _pdfContentInfo(publication),
+        PublicationFormat.comicDirectory => null,
+      };
+    });
+
+Future<PublicationContentInfo> _comicContentInfo(
+  Ref ref,
+  Publication publication,
+) async {
+  final session = await ref
+      .watch(comicReaderSessionFactoryProvider)
+      .open(publication);
+  try {
+    return PublicationContentInfo.pages(session.document.pages.length);
+  } finally {
+    await session.close();
+  }
+}
+
+Future<PublicationContentInfo> _flowContentInfo(
+  Ref ref,
+  Publication publication,
+) async {
+  final session = await ref
+      .watch(flowReadingSessionFactoryProvider)
+      .open(publication);
+  try {
+    return PublicationContentInfo.chapters(session.document.chapters.length);
+  } finally {
+    await session.close();
+  }
+}
+
+Future<PublicationContentInfo?> _pdfContentInfo(Publication publication) async {
+  final asset = publication.assets
+      .where((asset) => asset.kind.isReadableLocalFile)
+      .firstOrNull;
+  if (asset == null ||
+      asset.location.scheme != 'file' ||
+      !await File.fromUri(asset.location).exists()) {
+    return null;
+  }
+  await pdfrxFlutterInitialize();
+  final document = await PdfDocument.openFile(asset.location.toFilePath());
+  try {
+    return PublicationContentInfo.pages(document.pages.length);
+  } finally {
+    await document.dispose();
+  }
+}
 
 final opdsCatalogProvider =
     FutureProvider.family<OpdsCatalog, OpdsCatalogRequest>((

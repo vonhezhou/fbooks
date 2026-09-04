@@ -74,4 +74,25 @@ void main() {
       );
     },
   );
+
+  test('persists publication date and tags', () async {
+    final publication = Publication(
+      id: 'metadata-book',
+      source: LibrarySource(
+        id: 'local-library',
+        kind: LibrarySourceKind.local,
+        name: 'Local library',
+      ),
+      title: 'Metadata book',
+      format: PublicationFormat.epub,
+      publishedAt: DateTime(2024, 5, 6),
+      tags: const ['Fiction', 'Gardens'],
+    );
+
+    await publicationRepository.save(publication);
+
+    final reloaded = await publicationRepository.findById(publication.id);
+    expect(reloaded?.publishedAt, DateTime(2024, 5, 6));
+    expect(reloaded?.tags, ['Fiction', 'Gardens']);
+  });
 }

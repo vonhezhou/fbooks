@@ -110,8 +110,9 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   fields); sharing a publication file or its metadata; and, on desktop,
   revealing the resolved local publication asset in the system file manager.
   Design user edits as overrides of source metadata so OPDS refreshes do not
-  silently discard them; distinguish original local files from app-managed
-  downloads when revealing or sharing a file.
+  silently discard them. The publication details page remains read-only until
+  this override model is implemented; distinguish original local files from
+  app-managed downloads when revealing or sharing a file.
 
 - [x] Publication details: cover, authors, description, source, format, and
   last-opened state.

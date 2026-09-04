@@ -48,6 +48,8 @@ void main() {
 
       expect(result?.metadata?.title, 'Embedded EPUB title');
       expect(result?.metadata?.authors, ['Author']);
+      expect(result?.metadata?.publishedAt, DateTime(2024, 5, 6));
+      expect(result?.metadata?.tags, ['Fiction', 'Gardens']);
       expect(result?.cover?.fileName, 'front.png');
       expect(result?.cover?.bytes, [1, 2, 3]);
       expect(result?.cover?.mediaType, 'image/png');
@@ -67,6 +69,9 @@ const _packageDocument = '''<?xml version="1.0" encoding="utf-8"?>
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
     <dc:title>Embedded EPUB title</dc:title>
     <dc:creator>Author</dc:creator>
+    <dc:date>2024-05-06</dc:date>
+    <dc:subject>Fiction</dc:subject>
+    <dc:subject>Gardens</dc:subject>
   </metadata>
   <manifest>
     <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />

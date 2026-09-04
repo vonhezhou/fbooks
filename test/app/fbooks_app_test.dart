@@ -394,9 +394,7 @@ void main() {
     expect(find.text('Details'), findsOneWidget);
   });
 
-  testWidgets('aligns desktop library content and keeps details compact', (
-    tester,
-  ) async {
+  testWidgets('aligns content and puts card actions at bottom', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1200, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -441,8 +439,73 @@ void main() {
     );
     expect(
       tester.getSize(find.byKey(const Key('publication-details-aligned-book'))),
-      const Size(32, 32),
+      const Size(40, 40),
     );
+    expect(
+      tester
+          .getBottomRight(
+            find.byKey(const Key('publication-details-aligned-book')),
+          )
+          .dy,
+      closeTo(
+        tester
+                .getBottomRight(
+                  find.byKey(const Key('publication-card-aligned-book')),
+                )
+                .dy -
+            12,
+        .01,
+      ),
+    );
+  });
+
+  testWidgets('uses an edge-to-edge portrait cover in a narrow card', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(420, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(const [
+              Publication(
+                id: 'edge-cover-book',
+                source: LibrarySource(
+                  id: 'local-library',
+                  kind: LibrarySourceKind.local,
+                  name: 'Local library',
+                ),
+                title: 'Edge-to-edge cover',
+                format: PublicationFormat.epub,
+              ),
+            ]),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _EmptyReadingProgressRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final card = find.byKey(const Key('publication-card-edge-cover-book'));
+    final cover = find.byKey(
+      const Key('publication-card-cover-edge-cover-book'),
+    );
+    final cardRect = tester.getRect(card);
+    final coverRect = tester.getRect(cover);
+
+    expect(coverRect.left, closeTo(cardRect.left, .01));
+    expect(coverRect.top, closeTo(cardRect.top, .01));
+    expect(coverRect.width / coverRect.height, closeTo(1 / 1.6, .01));
+    expect(cardRect.height - coverRect.height, closeTo(84, .01));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('shows the not-found page for an unknown named route', (

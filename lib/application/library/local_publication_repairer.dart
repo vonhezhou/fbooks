@@ -131,6 +131,8 @@ class LocalPublicationRepairer {
         format: publication.format,
         description: publication.description,
         coverUri: publication.coverUri,
+        publishedAt: publication.publishedAt,
+        tags: publication.tags,
         assets: repairedAssets,
       );
       if (inspection?.metadata case final metadata?) {

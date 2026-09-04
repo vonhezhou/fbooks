@@ -10,6 +10,7 @@ import 'package:fbooks/domain/reading/reading_progress.dart';
 import 'package:fbooks/features/collections/presentation/collections_page.dart';
 import 'package:fbooks/features/collections/presentation/collection_membership_manager.dart';
 import 'package:fbooks/features/library/presentation/publication_details_page.dart';
+import 'package:fbooks/features/library/presentation/publication_card_grid_delegate.dart';
 import 'package:fbooks/features/library/presentation/publication_cover.dart';
 import 'package:fbooks/features/opds/presentation/opds_catalog_page.dart';
 import 'package:fbooks/features/plugins/presentation/plugins_page.dart';
@@ -31,6 +32,9 @@ enum _LibraryFormatFilter { all, comic, epub, text }
 enum _LibrarySort { title, author, lastRead, added }
 
 enum _LibraryViewMode { cards, list }
+
+const _libraryCoverAspectRatio = 1 / 1.6;
+const _publicationCardFooterExtent = 84.0;
 
 enum _PublicationAction {
   open,
@@ -1268,9 +1272,10 @@ class _PublicationList extends ConsumerWidget {
             padding: desktop
                 ? const EdgeInsets.only(top: 20)
                 : const EdgeInsets.fromLTRB(36, 8, 36, 36),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            gridDelegate: const PublicationCardGridDelegate(
               maxCrossAxisExtent: 240,
-              mainAxisExtent: 304,
+              coverAspectRatio: _libraryCoverAspectRatio,
+              footerExtent: _publicationCardFooterExtent,
               mainAxisSpacing: 20,
               crossAxisSpacing: 20,
             ),
@@ -1470,30 +1475,67 @@ class _PublicationCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          InkWell(
-            onTap: selectionMode ? onSelected : onTap,
-            onLongPress: onLongPress,
-            onSecondaryTapUp: onSecondaryTapUp,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
+          Positioned.fill(
+            child: InkWell(
+              onTap: selectionMode ? onSelected : onTap,
+              onLongPress: onLongPress,
+              onSecondaryTapUp: onSecondaryTapUp,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(child: PublicationCover(publication: publication)),
-                  const SizedBox(height: 12),
-                  Text(
-                    publication.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                  AspectRatio(
+                    aspectRatio: _libraryCoverAspectRatio,
+                    child: PublicationCover(
+                      key: Key('publication-card-cover-${publication.id}'),
+                      publication: publication,
+                      borderRadius: BorderRadius.zero,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    progress == null ? formatLabel : _resumeLabel(progress!),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  SizedBox(
+                    height: _publicationCardFooterExtent,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            publication.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  progress == null
+                                      ? formatLabel
+                                      : _resumeLabel(progress!),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                              SizedBox(
+                                key: Key(
+                                  'publication-details-${publication.id}',
+                                ),
+                                width: 40,
+                                height: 40,
+                                child: _PublicationActionsButton(
+                                  publication: publication,
+                                  onOpen: onTap,
+                                  onDetails: onDetails,
+                                  compact: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1507,21 +1549,6 @@ class _PublicationCard extends StatelessWidget {
                 child: Checkbox(value: selected, onChanged: null),
               ),
             ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: SizedBox(
-              key: Key('publication-details-${publication.id}'),
-              width: 32,
-              height: 32,
-              child: _PublicationActionsButton(
-                publication: publication,
-                onOpen: onTap,
-                onDetails: onDetails,
-                compact: true,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -1556,11 +1583,9 @@ class _PublicationActionsButton extends ConsumerWidget {
         iconSize: compact ? 18 : null,
         style: compact
             ? IconButton.styleFrom(
-                padding: const EdgeInsets.all(7),
-                minimumSize: Size.zero,
+                padding: EdgeInsets.zero,
+                fixedSize: const Size.square(40),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                backgroundColor: Theme.of(context).colorScheme.surface
-                    .withValues(alpha: .82),
               )
             : null,
         onSelected: (action) async {

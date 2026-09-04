@@ -17,6 +17,10 @@ void main() {
       <Title>漫画标题</Title>
       <Writer>作者</Writer>
       <Summary>漫画简介</Summary>
+      <Year>2024</Year>
+      <Month>5</Month>
+      <Day>6</Day>
+      <Genre>Action, Drama</Genre>
       <Pages><Page Image="2" Type="FrontCover" /></Pages>
     </ComicInfo>''';
     final bytes = gbk.encode(xml);
@@ -35,6 +39,8 @@ void main() {
     expect(importData?.metadata?.title, '漫画标题');
     expect(importData?.metadata?.authors, ['作者']);
     expect(importData?.metadata?.description, '漫画简介');
+    expect(importData?.metadata?.publishedAt, DateTime(2024, 5, 6));
+    expect(importData?.metadata?.tags, ['Action', 'Drama']);
     expect(importData?.cover?.fileName, 'z9.jpg');
     expect(importData?.cover?.bytes, [9]);
   });

@@ -55,6 +55,8 @@ class PublicationCoverStore {
       coverUri: generatedCoverLocations.contains(publication.coverUri)
           ? null
           : publication.coverUri,
+      publishedAt: publication.publishedAt,
+      tags: publication.tags,
       assets: assets,
       addedAt: publication.addedAt,
       lastReadAt: publication.lastReadAt,

@@ -90,6 +90,8 @@ class DriftPublicationRepository implements PublicationRepository {
               format: publication.format.name,
               description: Value(publication.description),
               coverUri: Value(publication.coverUri?.toString()),
+              publishedAt: Value(publication.publishedAt),
+              tagsJson: Value(jsonEncode(publication.tags)),
               createdAt: existing?.createdAt ?? publication.addedAt ?? now,
               updatedAt: now,
             ),
@@ -215,6 +217,10 @@ class DriftPublicationRepository implements PublicationRepository {
       coverUri: publication.coverUri == null
           ? null
           : Uri.parse(publication.coverUri!),
+      publishedAt: publication.publishedAt,
+      tags: (jsonDecode(publication.tagsJson) as List<Object?>)
+          .whereType<String>()
+          .toList(growable: false),
       assets: assets
           .map(
             (asset) => PublicationAsset(

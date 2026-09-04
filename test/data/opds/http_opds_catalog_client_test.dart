@@ -12,7 +12,7 @@ void main() {
           "metadata": {"title": "Library"},
           "navigation": [{"title": "Fiction", "href": "fiction.json"}],
           "publications": [{
-            "metadata": {"title": "Book", "author": [{"name": "Ada"}], "description": "A readable book."},
+            "metadata": {"title": "Book", "author": [{"name": "Ada"}], "description": "A readable book.", "published": "2024-05-06", "subject": ["Fiction", {"name": "Gardens"}]},
             "links": [
               {"rel": "http://opds-spec.org/acquisition", "href": "book.epub"},
               {"rel": "thumbnail", "href": "covers/book.jpg"}
@@ -33,6 +33,8 @@ void main() {
     );
     expect(catalog.publications.single.authors, ['Ada']);
     expect(catalog.publications.single.description, 'A readable book.');
+    expect(catalog.publications.single.publishedAt, DateTime(2024, 5, 6));
+    expect(catalog.publications.single.tags, ['Fiction', 'Gardens']);
     expect(
       catalog.publications.single.coverUri,
       Uri.parse('https://books.example.org/opds/covers/book.jpg'),

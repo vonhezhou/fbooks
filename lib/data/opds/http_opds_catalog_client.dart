@@ -113,6 +113,8 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
       acquisitions: acquisitions,
       description: _nonEmptyString(metadata['description']),
       coverUri: _coverFromJsonLinks(publication['links'], endpoint),
+      publishedAt: _dateValue(metadata['published']),
+      tags: _jsonTags(metadata['subject']),
     );
   }
 
@@ -174,6 +176,16 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
       description:
           _elementText(entry, 'summary') ?? _elementText(entry, 'content'),
       coverUri: _coverFromAtomLinks(entry, endpoint),
+      publishedAt: _dateValue(
+        _elementText(entry, 'published') ??
+            _elementText(entry, 'date') ??
+            _elementText(entry, 'issued'),
+      ),
+      tags: entry
+          .findAllElements('subject')
+          .map((subject) => subject.innerText.trim())
+          .where((subject) => subject.isNotEmpty)
+          .toList(growable: false),
     );
   }
 
@@ -232,6 +244,28 @@ class HttpOpdsCatalogClient implements OpdsCatalogClient {
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
   }
+
+  DateTime? _dateValue(Object? value) {
+    final text = _nonEmptyString(value);
+    return text == null ? null : DateTime.tryParse(text);
+  }
+
+  List<String> _jsonTags(Object? value) => switch (value) {
+    String tag when tag.trim().isNotEmpty => [tag.trim()],
+    List<Object?> values =>
+      values
+          .map(
+            (tag) => switch (tag) {
+              String value => value.trim(),
+              Map<Object?, Object?> value =>
+                (value['name'] as String? ?? '').trim(),
+              _ => '',
+            },
+          )
+          .where((tag) => tag.isNotEmpty)
+          .toList(growable: false),
+    _ => const [],
+  };
 
   bool _isAcquisition(Object? rel) {
     return rel is String && rel.contains('acquisition');

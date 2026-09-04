@@ -79,6 +79,8 @@ class ArchiveComicPublicationInspector implements PublicationFormatInspector {
             null => null,
           },
           description: _value(document, 'Summary'),
+          publishedAt: _publicationDate(document),
+          tags: _tags(document),
         ),
         frontCoverIndex: _frontCoverIndex(document),
       );
@@ -155,6 +157,37 @@ class ArchiveComicPublicationInspector implements PublicationFormatInspector {
       .map((page) => int.tryParse(page.getAttribute('Image') ?? ''))
       .whereType<int>()
       .firstOrNull;
+
+  DateTime? _publicationDate(XmlDocument document) {
+    final year = int.tryParse(_value(document, 'Year') ?? '');
+    if (year == null || year < 1) {
+      return null;
+    }
+    final month = int.tryParse(_value(document, 'Month') ?? '') ?? 1;
+    final day = int.tryParse(_value(document, 'Day') ?? '') ?? 1;
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      return DateTime(year);
+    }
+    final candidate = DateTime(year, month, day);
+    return candidate.year == year &&
+            candidate.month == month &&
+            candidate.day == day
+        ? candidate
+        : DateTime(year);
+  }
+
+  List<String>? _tags(XmlDocument document) {
+    final genre = _value(document, 'Genre');
+    if (genre == null) {
+      return null;
+    }
+    final tags = genre
+        .split(RegExp(r'[,;]'))
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toList(growable: false);
+    return tags.isEmpty ? null : tags;
+  }
 
   String? _coverMediaType(String entryName) =>
       switch (path.extension(entryName).toLowerCase()) {

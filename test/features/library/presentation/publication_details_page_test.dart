@@ -1,4 +1,5 @@
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/application/reader/publication_content_info.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
@@ -27,10 +28,13 @@ void main() {
               ),
             ),
           ),
+          publicationContentInfoProvider(publicationId).overrideWith(
+            (ref) async => const PublicationContentInfo.chapters(6),
+          ),
         ],
         child: MaterialApp(
           home: PublicationDetailsPage(
-            publication: const Publication(
+            publication: Publication(
               id: publicationId,
               source: LibrarySource(
                 id: 'local-library',
@@ -40,6 +44,8 @@ void main() {
               title: 'The Garden',
               authors: ['Ada Lovelace'],
               description: 'An illustrated story about a garden.',
+              publishedAt: DateTime(2024, 5, 6),
+              tags: ['Fiction', 'Gardens'],
               format: PublicationFormat.epub,
             ),
           ),
@@ -52,13 +58,15 @@ void main() {
     expect(find.text('Ada Lovelace'), findsOneWidget);
     expect(find.text('EPUB ebook'), findsOneWidget);
     expect(find.text('Local library'), findsOneWidget);
-    expect(find.text('Chapter 3'), findsOneWidget);
+    expect(find.text('Chapter 3 of 6'), findsOneWidget);
+    expect(find.text('6 chapters'), findsOneWidget);
+    expect(find.text('Fiction, Gardens'), findsOneWidget);
+    expect(find.text('Continue reading'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('An illustrated story about a garden.'),
       240,
     );
     expect(find.text('An illustrated story about a garden.'), findsOneWidget);
-    expect(find.text('Continue reading'), findsOneWidget);
   });
 
   testWidgets('uses a constrained two-column layout on desktop', (
@@ -72,6 +80,9 @@ void main() {
         overrides: [
           readingProgressRepositoryProvider.overrideWithValue(
             _FixedProgressRepository(null),
+          ),
+          publicationContentInfoProvider(publicationId).overrideWith(
+            (ref) async => const PublicationContentInfo.chapters(6),
           ),
         ],
         child: MaterialApp(

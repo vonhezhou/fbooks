@@ -1,6 +1,7 @@
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/application/library/library_publication_remover.dart';
+import 'package:fbooks/application/reader/publication_content_info.dart';
 import 'package:fbooks/domain/library/library_source.dart';
 import 'package:fbooks/domain/publication/publication.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
@@ -24,6 +25,9 @@ class PublicationDetailsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = ref.watch(readingProgressProvider(publication.id));
+    final contentInfo = ref.watch(
+      publicationContentInfoProvider(publication.id),
+    );
     return Scaffold(
       appBar: fbooksAppBar(
         title: const Text('Publication details'),
@@ -47,6 +51,7 @@ class PublicationDetailsPage extends ConsumerWidget {
         builder: (context, constraints) => _PublicationDetailsContent(
           publication: publication,
           progress: progress,
+          contentInfo: contentInfo,
           desktop: constraints.maxWidth >= 960,
         ),
       ),
@@ -58,11 +63,13 @@ class _PublicationDetailsContent extends StatelessWidget {
   const _PublicationDetailsContent({
     required this.publication,
     required this.progress,
+    required this.contentInfo,
     required this.desktop,
   });
 
   final Publication publication;
   final AsyncValue<ReadingProgress?> progress;
+  final AsyncValue<PublicationContentInfo?> contentInfo;
   final bool desktop;
 
   @override
@@ -90,15 +97,42 @@ class _PublicationDetailsContent extends StatelessWidget {
     );
     final details = _DetailsCard(
       children: [
-        _DetailRow(label: 'Format', value: _formatLabel(publication.format)),
-        _DetailRow(label: 'Source', value: _sourceLabel(publication)),
         _DetailRow(
-          label: 'Last reading position',
-          value: progress.when(
-            data: _readingPositionLabel,
+          label: 'Published',
+          value: _dateLabel(context, publication.publishedAt),
+        ),
+        _DetailRow(label: 'Format', value: _formatLabel(publication.format)),
+        _DetailRow(
+          label: _contentLengthLabel(contentInfo),
+          value: contentInfo.when(
+            data: _contentLengthValue,
             loading: () => 'Loading…',
             error: (_, _) => 'Unavailable',
           ),
+        ),
+        _DetailRow(label: 'Source', value: _sourceLabel(publication)),
+        _DetailRow(
+          label: 'Reading progress',
+          value: progress.when(
+            data: (value) =>
+                _readingPositionLabel(value, contentInfo.asData?.value),
+            loading: () => 'Loading…',
+            error: (_, _) => 'Unavailable',
+          ),
+        ),
+        _DetailRow(
+          label: 'Last opened',
+          value: _lastOpenedLabel(context, publication.lastReadAt),
+        ),
+        _DetailRow(
+          label: 'Added to library',
+          value: _dateLabel(context, publication.addedAt),
+        ),
+        _DetailRow(
+          label: 'Tags',
+          value: publication.tags.isEmpty
+              ? 'No tags'
+              : publication.tags.join(', '),
         ),
       ],
     );
@@ -412,11 +446,61 @@ String _sourceLabel(Publication publication) {
       : '${publication.source.name} · ${endpoint.host}';
 }
 
-String _readingPositionLabel(ReadingProgress? progress) =>
-    switch (progress?.locator) {
-      ComicPageLocator(:final pageIndex) => 'Page ${pageIndex + 1}',
-      PdfPageLocator(:final pageNumber) => 'Page $pageNumber',
-      TextOffsetLocator(:final chapterIndex) => 'Chapter ${chapterIndex + 1}',
-      EpubCfiLocator() => 'Resume reading',
-      null => 'Not opened yet',
+String _contentLengthLabel(AsyncValue<PublicationContentInfo?> contentInfo) =>
+    switch (contentInfo.asData?.value?.unit) {
+      PublicationContentUnit.page => 'Total pages',
+      PublicationContentUnit.chapter => 'Chapters',
+      null => 'Length',
     };
+
+String _contentLengthValue(PublicationContentInfo? info) => switch (info) {
+  PublicationContentInfo(:final total, unit: PublicationContentUnit.page) =>
+    '$total pages',
+  PublicationContentInfo(:final total, unit: PublicationContentUnit.chapter) =>
+    '$total chapters',
+  null => 'Unavailable',
+};
+
+String _readingPositionLabel(
+  ReadingProgress? progress,
+  PublicationContentInfo? contentInfo,
+) => switch (progress?.locator) {
+  ComicPageLocator(:final pageIndex) => _positionWithTotal(
+    label: 'Page',
+    current: pageIndex + 1,
+    contentInfo: contentInfo,
+  ),
+  PdfPageLocator(:final pageNumber) => _positionWithTotal(
+    label: 'Page',
+    current: pageNumber,
+    contentInfo: contentInfo,
+  ),
+  TextOffsetLocator(:final chapterIndex) => _positionWithTotal(
+    label: 'Chapter',
+    current: chapterIndex + 1,
+    contentInfo: contentInfo,
+  ),
+  EpubCfiLocator() => 'Saved reading position',
+  null => 'Not opened yet',
+};
+
+String _positionWithTotal({
+  required String label,
+  required int current,
+  required PublicationContentInfo? contentInfo,
+}) => contentInfo == null
+    ? '$label $current'
+    : '$label $current of ${contentInfo.total}';
+
+String _dateLabel(BuildContext context, DateTime? date) => date == null
+    ? 'Not available'
+    : MaterialLocalizations.of(context).formatMediumDate(date.toLocal());
+
+String _lastOpenedLabel(BuildContext context, DateTime? date) {
+  if (date == null) {
+    return 'Never opened';
+  }
+  final localizations = MaterialLocalizations.of(context);
+  final local = date.toLocal();
+  return '${localizations.formatMediumDate(local)} ${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(local))}';
+}

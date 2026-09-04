@@ -436,6 +436,29 @@ class $StoredPublicationsTable extends StoredPublications
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _publishedAtMeta = const VerificationMeta(
+    'publishedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> publishedAt = GeneratedColumn<DateTime>(
+    'published_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tagsJsonMeta = const VerificationMeta(
+    'tagsJson',
+  );
+  @override
+  late final GeneratedColumn<String> tagsJson = GeneratedColumn<String>(
+    'tags_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -467,6 +490,8 @@ class $StoredPublicationsTable extends StoredPublications
     format,
     description,
     coverUri,
+    publishedAt,
+    tagsJson,
     createdAt,
     updatedAt,
   ];
@@ -535,6 +560,21 @@ class $StoredPublicationsTable extends StoredPublications
         coverUri.isAcceptableOrUnknown(data['cover_uri']!, _coverUriMeta),
       );
     }
+    if (data.containsKey('published_at')) {
+      context.handle(
+        _publishedAtMeta,
+        publishedAt.isAcceptableOrUnknown(
+          data['published_at']!,
+          _publishedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tags_json')) {
+      context.handle(
+        _tagsJsonMeta,
+        tagsJson.isAcceptableOrUnknown(data['tags_json']!, _tagsJsonMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -588,6 +628,14 @@ class $StoredPublicationsTable extends StoredPublications
         DriftSqlType.string,
         data['${effectivePrefix}cover_uri'],
       ),
+      publishedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}published_at'],
+      ),
+      tagsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags_json'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -614,6 +662,8 @@ class StoredPublication extends DataClass
   final String format;
   final String? description;
   final String? coverUri;
+  final DateTime? publishedAt;
+  final String tagsJson;
   final DateTime createdAt;
   final DateTime updatedAt;
   const StoredPublication({
@@ -624,6 +674,8 @@ class StoredPublication extends DataClass
     required this.format,
     this.description,
     this.coverUri,
+    this.publishedAt,
+    required this.tagsJson,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -641,6 +693,10 @@ class StoredPublication extends DataClass
     if (!nullToAbsent || coverUri != null) {
       map['cover_uri'] = Variable<String>(coverUri);
     }
+    if (!nullToAbsent || publishedAt != null) {
+      map['published_at'] = Variable<DateTime>(publishedAt);
+    }
+    map['tags_json'] = Variable<String>(tagsJson);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -659,6 +715,10 @@ class StoredPublication extends DataClass
       coverUri: coverUri == null && nullToAbsent
           ? const Value.absent()
           : Value(coverUri),
+      publishedAt: publishedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publishedAt),
+      tagsJson: Value(tagsJson),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -677,6 +737,8 @@ class StoredPublication extends DataClass
       format: serializer.fromJson<String>(json['format']),
       description: serializer.fromJson<String?>(json['description']),
       coverUri: serializer.fromJson<String?>(json['coverUri']),
+      publishedAt: serializer.fromJson<DateTime?>(json['publishedAt']),
+      tagsJson: serializer.fromJson<String>(json['tagsJson']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -692,6 +754,8 @@ class StoredPublication extends DataClass
       'format': serializer.toJson<String>(format),
       'description': serializer.toJson<String?>(description),
       'coverUri': serializer.toJson<String?>(coverUri),
+      'publishedAt': serializer.toJson<DateTime?>(publishedAt),
+      'tagsJson': serializer.toJson<String>(tagsJson),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -705,6 +769,8 @@ class StoredPublication extends DataClass
     String? format,
     Value<String?> description = const Value.absent(),
     Value<String?> coverUri = const Value.absent(),
+    Value<DateTime?> publishedAt = const Value.absent(),
+    String? tagsJson,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => StoredPublication(
@@ -715,6 +781,8 @@ class StoredPublication extends DataClass
     format: format ?? this.format,
     description: description.present ? description.value : this.description,
     coverUri: coverUri.present ? coverUri.value : this.coverUri,
+    publishedAt: publishedAt.present ? publishedAt.value : this.publishedAt,
+    tagsJson: tagsJson ?? this.tagsJson,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -731,6 +799,10 @@ class StoredPublication extends DataClass
           ? data.description.value
           : this.description,
       coverUri: data.coverUri.present ? data.coverUri.value : this.coverUri,
+      publishedAt: data.publishedAt.present
+          ? data.publishedAt.value
+          : this.publishedAt,
+      tagsJson: data.tagsJson.present ? data.tagsJson.value : this.tagsJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -746,6 +818,8 @@ class StoredPublication extends DataClass
           ..write('format: $format, ')
           ..write('description: $description, ')
           ..write('coverUri: $coverUri, ')
+          ..write('publishedAt: $publishedAt, ')
+          ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -761,6 +835,8 @@ class StoredPublication extends DataClass
     format,
     description,
     coverUri,
+    publishedAt,
+    tagsJson,
     createdAt,
     updatedAt,
   );
@@ -775,6 +851,8 @@ class StoredPublication extends DataClass
           other.format == this.format &&
           other.description == this.description &&
           other.coverUri == this.coverUri &&
+          other.publishedAt == this.publishedAt &&
+          other.tagsJson == this.tagsJson &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -787,6 +865,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
   final Value<String> format;
   final Value<String?> description;
   final Value<String?> coverUri;
+  final Value<DateTime?> publishedAt;
+  final Value<String> tagsJson;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -798,6 +878,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
     this.format = const Value.absent(),
     this.description = const Value.absent(),
     this.coverUri = const Value.absent(),
+    this.publishedAt = const Value.absent(),
+    this.tagsJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -810,6 +892,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
     required String format,
     this.description = const Value.absent(),
     this.coverUri = const Value.absent(),
+    this.publishedAt = const Value.absent(),
+    this.tagsJson = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -827,6 +911,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
     Expression<String>? format,
     Expression<String>? description,
     Expression<String>? coverUri,
+    Expression<DateTime>? publishedAt,
+    Expression<String>? tagsJson,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -839,6 +925,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
       if (format != null) 'format': format,
       if (description != null) 'description': description,
       if (coverUri != null) 'cover_uri': coverUri,
+      if (publishedAt != null) 'published_at': publishedAt,
+      if (tagsJson != null) 'tags_json': tagsJson,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -853,6 +941,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
     Value<String>? format,
     Value<String?>? description,
     Value<String?>? coverUri,
+    Value<DateTime?>? publishedAt,
+    Value<String>? tagsJson,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -865,6 +955,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
       format: format ?? this.format,
       description: description ?? this.description,
       coverUri: coverUri ?? this.coverUri,
+      publishedAt: publishedAt ?? this.publishedAt,
+      tagsJson: tagsJson ?? this.tagsJson,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -895,6 +987,12 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
     if (coverUri.present) {
       map['cover_uri'] = Variable<String>(coverUri.value);
     }
+    if (publishedAt.present) {
+      map['published_at'] = Variable<DateTime>(publishedAt.value);
+    }
+    if (tagsJson.present) {
+      map['tags_json'] = Variable<String>(tagsJson.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -917,6 +1015,8 @@ class StoredPublicationsCompanion extends UpdateCompanion<StoredPublication> {
           ..write('format: $format, ')
           ..write('description: $description, ')
           ..write('coverUri: $coverUri, ')
+          ..write('publishedAt: $publishedAt, ')
+          ..write('tagsJson: $tagsJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2696,6 +2796,8 @@ typedef $$StoredPublicationsTableCreateCompanionBuilder =
       required String format,
       Value<String?> description,
       Value<String?> coverUri,
+      Value<DateTime?> publishedAt,
+      Value<String> tagsJson,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -2709,6 +2811,8 @@ typedef $$StoredPublicationsTableUpdateCompanionBuilder =
       Value<String> format,
       Value<String?> description,
       Value<String?> coverUri,
+      Value<DateTime?> publishedAt,
+      Value<String> tagsJson,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -2755,6 +2859,16 @@ class $$StoredPublicationsTableFilterComposer
 
   ColumnFilters<String> get coverUri => $composableBuilder(
     column: $table.coverUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get publishedAt => $composableBuilder(
+    column: $table.publishedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tagsJson => $composableBuilder(
+    column: $table.tagsJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2813,6 +2927,16 @@ class $$StoredPublicationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get publishedAt => $composableBuilder(
+    column: $table.publishedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tagsJson => $composableBuilder(
+    column: $table.tagsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2857,6 +2981,14 @@ class $$StoredPublicationsTableAnnotationComposer
 
   GeneratedColumn<String> get coverUri =>
       $composableBuilder(column: $table.coverUri, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get publishedAt => $composableBuilder(
+    column: $table.publishedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get tagsJson =>
+      $composableBuilder(column: $table.tagsJson, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2912,6 +3044,8 @@ class $$StoredPublicationsTableTableManager
                 Value<String> format = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> coverUri = const Value.absent(),
+                Value<DateTime?> publishedAt = const Value.absent(),
+                Value<String> tagsJson = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2923,6 +3057,8 @@ class $$StoredPublicationsTableTableManager
                 format: format,
                 description: description,
                 coverUri: coverUri,
+                publishedAt: publishedAt,
+                tagsJson: tagsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -2936,6 +3072,8 @@ class $$StoredPublicationsTableTableManager
                 required String format,
                 Value<String?> description = const Value.absent(),
                 Value<String?> coverUri = const Value.absent(),
+                Value<DateTime?> publishedAt = const Value.absent(),
+                Value<String> tagsJson = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -2947,6 +3085,8 @@ class $$StoredPublicationsTableTableManager
                 format: format,
                 description: description,
                 coverUri: coverUri,
+                publishedAt: publishedAt,
+                tagsJson: tagsJson,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

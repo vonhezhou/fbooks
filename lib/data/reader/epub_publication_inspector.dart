@@ -52,12 +52,30 @@ class EpubPublicationInspector implements PublicationFormatInspector {
         .map((author) => author.trim())
         .where((author) => author.isNotEmpty)
         .toList(growable: false);
-    if ((title == null || title.isEmpty) && authors.isEmpty) {
+    final metadata = book.schema?.package?.metadata;
+    final tags =
+        metadata?.subjects
+            .map((tag) => tag.trim())
+            .where((tag) => tag.isNotEmpty)
+            .toList(growable: false) ??
+        const [];
+    final publishedAt = metadata?.dates
+        .map((date) => date.date)
+        .whereType<String>()
+        .map(DateTime.tryParse)
+        .whereType<DateTime>()
+        .firstOrNull;
+    if ((title == null || title.isEmpty) &&
+        authors.isEmpty &&
+        tags.isEmpty &&
+        publishedAt == null) {
       return null;
     }
     return PublicationMetadataPatch(
       title: title?.isEmpty ?? true ? null : title,
       authors: authors.isEmpty ? null : authors,
+      publishedAt: publishedAt,
+      tags: tags.isEmpty ? null : tags,
     );
   }
 
