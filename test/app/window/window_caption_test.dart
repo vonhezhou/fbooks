@@ -93,6 +93,15 @@ class _CaptionTestApp extends StatelessWidget {
 class _FakeWindowController extends ChangeNotifier
     implements AppWindowController {
   @override
+  bool get canFullScreen => false;
+
+  @override
+  bool get isFullScreen => false;
+
+  @override
+  Future<void> setFullScreen(bool value) async {}
+
+  @override
   bool isMaximized = false;
 
   var minimizeCalls = 0;

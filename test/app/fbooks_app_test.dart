@@ -67,8 +67,7 @@ void main() {
   testWidgets('uses the desktop library shell in a wide window', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(1200, 800));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -89,18 +88,15 @@ void main() {
     expect(find.text('fBooks'), findsOneWidget);
     expect(find.byKey(const Key('brand-logo')), findsOneWidget);
     expect(find.text('Collections'), findsOneWidget);
-    expect(find.text('Add books'), findsOneWidget);
+    expect(find.byTooltip('Add books'), findsOneWidget);
   });
 
   testWidgets('switches between desktop and compact library layouts', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-    addTearDown(() {
-      tester.binding.setSurfaceSize(null);
-    });
     try {
-      await tester.binding.setSurfaceSize(const Size(1200, 800));
+      await _setWindowSize(tester, const Size(1200, 800));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -117,7 +113,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.binding.setSurfaceSize(const Size(800, 800));
+      await _setWindowSize(tester, const Size(800, 800));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('window-close')), findsOneWidget);
@@ -130,8 +126,7 @@ void main() {
   testWidgets('shows the local diagnostics directory in settings', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(1200, 800));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -155,6 +150,16 @@ void main() {
 
     await tester.tap(find.text('Settings').first);
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Log directory'),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const Key('primary-content-surface')),
+            matching: find.byType(Scrollable),
+          )
+          .last,
+    );
 
     expect(find.text('Log directory'), findsOneWidget);
     expect(find.text('Log level'), findsOneWidget);
@@ -167,8 +172,7 @@ void main() {
   testWidgets('uses a dark surface for every desktop primary page', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(1200, 800));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -193,7 +197,7 @@ void main() {
     final primarySurface = tester.widget<Material>(
       find.byKey(const Key('primary-content-surface')),
     );
-    expect(primarySurface.color, const Color(0xFF1C1D20));
+    expect(primarySurface.color, const Color(0xFF1C1B1F));
     _expectDarkTheme(tester, find.text('Your library'));
 
     await tester.tap(find.text('Collections').first);
@@ -212,8 +216,7 @@ void main() {
   testWidgets('expands desktop collections and shows a selected list inline', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(1200, 800));
     final collection = BookCollection(
       id: 'weekend-reads',
       name: 'Weekend reads',
@@ -276,8 +279,7 @@ void main() {
   testWidgets('renders an imported book in a medium desktop window', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(900, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(900, 800));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -394,9 +396,10 @@ void main() {
     expect(find.text('Details'), findsOneWidget);
   });
 
-  testWidgets('aligns content and puts card actions at bottom', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('aligns content and overlays card actions on the cover', (
+    tester,
+  ) async {
+    await _setWindowSize(tester, const Size(1200, 800));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -439,22 +442,24 @@ void main() {
     );
     expect(
       tester.getSize(find.byKey(const Key('publication-details-aligned-book'))),
-      const Size(40, 40),
+      const Size(32, 32),
     );
+    final cardRect = tester.getRect(
+      find.byKey(const Key('publication-card-aligned-book')),
+    );
+    final actionRect = tester.getRect(
+      find.byKey(const Key('publication-details-aligned-book')),
+    );
+    expect(actionRect.top, closeTo(cardRect.top + 4, .01));
+    expect(actionRect.right, closeTo(cardRect.right - 4, .01));
     expect(
-      tester
-          .getBottomRight(
-            find.byKey(const Key('publication-details-aligned-book')),
-          )
-          .dy,
-      closeTo(
+      actionRect.bottom,
+      lessThan(
         tester
-                .getBottomRight(
-                  find.byKey(const Key('publication-card-aligned-book')),
-                )
-                .dy -
-            12,
-        .01,
+            .getBottomRight(
+              find.byKey(const Key('publication-card-cover-aligned-book')),
+            )
+            .dy,
       ),
     );
   });
@@ -462,8 +467,7 @@ void main() {
   testWidgets('uses an edge-to-edge portrait cover in a narrow card', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(420, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(420, 800));
 
     await tester.pumpWidget(
       ProviderScope(
@@ -503,8 +507,22 @@ void main() {
 
     expect(coverRect.left, closeTo(cardRect.left, .01));
     expect(coverRect.top, closeTo(cardRect.top, .01));
-    expect(coverRect.width / coverRect.height, closeTo(1 / 1.6, .01));
-    expect(cardRect.height - coverRect.height, closeTo(84, .01));
+    expect(coverRect.width / coverRect.height, closeTo(3 / 4, .01));
+    expect(cardRect.height - coverRect.height, closeTo(90, .01));
+    expect(tester.takeException(), isNull);
+
+    await _setWindowSize(tester, const Size(1200, 800));
+    await tester.pumpAndSettle();
+
+    final desktopCardRect = tester.getRect(card);
+    final desktopCoverRect = tester.getRect(cover);
+    expect(desktopCoverRect.left, closeTo(desktopCardRect.left, .01));
+    expect(desktopCoverRect.top, closeTo(desktopCardRect.top, .01));
+    expect(
+      desktopCoverRect.width / desktopCoverRect.height,
+      closeTo(3 / 4, .01),
+    );
+    expect(desktopCardRect.height - desktopCoverRect.height, closeTo(95, .01));
     expect(tester.takeException(), isNull);
   });
 
@@ -577,6 +595,121 @@ void main() {
 
     expect(find.text('The Garden'), findsNothing);
     expect(find.text('Ocean Stories'), findsOneWidget);
+  });
+
+  testWidgets('combines library categories and exact formats with search', (
+    tester,
+  ) async {
+    await _setWindowSize(tester, const Size(1440, 1000));
+    const source = LibrarySource(
+      id: 'local-library',
+      kind: LibrarySourceKind.local,
+      name: 'Local library',
+    );
+    const books = [
+      Publication(
+        id: 'shared-comic',
+        source: source,
+        title: 'Shared comic',
+        format: PublicationFormat.comicArchive,
+      ),
+      Publication(
+        id: 'shared-epub',
+        source: source,
+        title: 'Shared EPUB',
+        format: PublicationFormat.epub,
+      ),
+      Publication(
+        id: 'shared-pdf',
+        source: source,
+        title: 'Shared PDF',
+        format: PublicationFormat.pdf,
+      ),
+      Publication(
+        id: 'shared-text',
+        source: source,
+        title: 'Shared TXT',
+        format: PublicationFormat.text,
+      ),
+      Publication(
+        id: 'other-epub',
+        source: source,
+        title: 'Other EPUB',
+        format: PublicationFormat.epub,
+      ),
+    ];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          publicationRepositoryProvider.overrideWithValue(
+            _FixedPublicationRepository(books),
+          ),
+          readingProgressRepositoryProvider.overrideWithValue(
+            _EmptyReadingProgressRepository(),
+          ),
+          bookCollectionRepositoryProvider.overrideWithValue(
+            _EmptyBookCollectionRepository(),
+          ),
+        ],
+        child: const FbooksApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    void expectBooks(Set<String> visibleIds) {
+      for (final book in books) {
+        expect(
+          find.byKey(Key('publication-card-${book.id}')),
+          visibleIds.contains(book.id) ? findsOneWidget : findsNothing,
+          reason: book.title,
+        );
+      }
+    }
+
+    expectBooks({for (final book in books) book.id});
+    await tester.enterText(find.byType(TextFormField), 'shared');
+    await tester.pumpAndSettle();
+    expectBooks({'shared-comic', 'shared-epub', 'shared-pdf', 'shared-text'});
+
+    await tester.tap(find.widgetWithText(Tab, 'Comic'));
+    await tester.pumpAndSettle();
+    expectBooks({'shared-comic'});
+
+    await tester.tap(find.widgetWithText(Tab, 'Ebooks'));
+    await tester.pumpAndSettle();
+    expectBooks({'shared-epub', 'shared-pdf', 'shared-text'});
+
+    await tester.tap(find.widgetWithText(Tab, 'All'));
+    await tester.pumpAndSettle();
+    expectBooks({'shared-comic', 'shared-epub', 'shared-pdf', 'shared-text'});
+
+    await tester.tap(find.byTooltip('Filter and sort'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Format'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('pdf'));
+    await tester.pumpAndSettle();
+    expectBooks({'shared-pdf'});
+
+    await _setWindowSize(tester, const Size(390, 844));
+    await tester.pumpAndSettle();
+    expectBooks({'shared-pdf'});
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller?.text,
+      'shared',
+    );
+    expect(tester.takeException(), isNull);
+  });
+}
+
+Future<void> _setWindowSize(WidgetTester tester, Size size) async {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = size;
+  await tester.binding.setSurfaceSize(size);
+  addTearDown(() async {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+    await tester.binding.setSurfaceSize(null);
   });
 }
 

@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/app/window/window_caption.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
@@ -11,6 +13,8 @@ import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+
+const _collectionCardFooterExtent = 96.0;
 
 /// The collection library mirrors the playlist-style Figma screen, while using
 /// the user's real publications and durable local memberships.
@@ -39,60 +43,41 @@ class _CollectionsView extends ConsumerWidget {
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(28, 24, 28, 36),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           sliver: SliverList.list(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Collections',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                  FilledButton.icon(
-                    onPressed: () => _showCollectionEditor(context, ref),
-                    icon: const Icon(Icons.add),
-                    label: const Text('New collection'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'YOUR LISTS',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.1,
-                ),
-              ),
-              const SizedBox(height: 8),
               for (final collection in SystemBookCollections.all)
                 _SystemCollectionTile(collection: collection),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Divider(),
-              ),
-              Row(
-                children: [
-                  Text(
-                    'CREATED COLLECTIONS',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            ],
+          ),
+        ),
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Divider(height: 1),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          sliver: SliverToBoxAdapter(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Created collections ${customCollections.length}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.1,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    '${customCollections.length}',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-            ],
+                ),
+                IconButton(
+                  tooltip: 'New collection',
+                  onPressed: () => _showCollectionEditor(context, ref),
+                  icon: const Icon(Icons.add, size: 20),
+                ),
+              ],
+            ),
           ),
         ),
         if (customCollections.isEmpty)
@@ -104,14 +89,10 @@ class _CollectionsView extends ConsumerWidget {
           )
         else
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(28, 0, 28, 36),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
             sliver: SliverLayoutBuilder(
               builder: (context, constraints) {
-                final columns = constraints.crossAxisExtent >= 1050
-                    ? 4
-                    : constraints.crossAxisExtent >= 700
-                    ? 3
-                    : 2;
+                final tileWidth = (constraints.crossAxisExtent - 16) / 2;
                 return SliverGrid(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) =>
@@ -119,8 +100,8 @@ class _CollectionsView extends ConsumerWidget {
                     childCount: customCollections.length,
                   ),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    childAspectRatio: .84,
+                    crossAxisCount: 2,
+                    mainAxisExtent: tileWidth + _collectionCardFooterExtent,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
                   ),
@@ -147,17 +128,34 @@ class _SystemCollectionTile extends ConsumerWidget {
       SystemBookCollections.finished => Icons.check_circle_outline,
       _ => Icons.collections_bookmark_outlined,
     };
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-        child: Icon(icon),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        minLeadingWidth: 24,
+        leading: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        title: Text(
+          collection.name,
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w500),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${ids.asData?.value.length ?? 0}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, size: 20),
+          ],
+        ),
+        onTap: () => _openCollection(context, collection),
       ),
-      title: Text(collection.name),
-      subtitle: Text('${ids.asData?.value.length ?? 0} books'),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => _openCollection(context, collection),
     );
   }
 }
@@ -172,61 +170,92 @@ class _CollectionCard extends ConsumerWidget {
     final ids = ref.watch(collectionPublicationIdsProvider(collection.id));
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => _openCollection(context, collection),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _CollectionCover(
-                  collection: collection,
-                  size: double.infinity,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: InkWell(
+              onTap: () => _openCollection(context, collection),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Text(
-                      collection.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: _CollectionCover(
+                      collection: collection,
+                      size: double.infinity,
+                      borderRadius: BorderRadius.zero,
                     ),
                   ),
-                  PopupMenuButton<_CollectionAction>(
-                    tooltip: 'Collection actions',
-                    onSelected: (action) => _handleCollectionAction(
-                      context,
-                      ref,
-                      collection,
-                      action,
+                  SizedBox(
+                    height: _collectionCardFooterExtent,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            collection.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${ids.asData?.value.length ?? 0} books',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatDate(collection.createdAt),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  fontSize: 10.4,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: _CollectionAction.edit,
-                        child: Text('Edit'),
-                      ),
-                      PopupMenuItem(
-                        value: _CollectionAction.delete,
-                        child: Text('Delete'),
-                      ),
-                    ],
-                    icon: const Icon(Icons.more_horiz),
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                '${ids.asData?.value.length ?? 0} books · ${_formatDate(collection.createdAt)}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: PopupMenuButton<_CollectionAction>(
+              tooltip: 'Collection actions',
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black.withValues(alpha: .4),
+                foregroundColor: Colors.white,
+                fixedSize: const Size.square(28),
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onSelected: (action) =>
+                  _handleCollectionAction(context, ref, collection, action),
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: _CollectionAction.edit,
+                  child: Text('Edit'),
+                ),
+                PopupMenuItem(
+                  value: _CollectionAction.delete,
+                  child: Text('Delete'),
+                ),
+              ],
+              icon: const Icon(Icons.more_vert, size: 16),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -385,7 +414,7 @@ class _CollectionDetailView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
     builder: (context, constraints) {
-      final desktop = desktopLayout ?? constraints.maxWidth >= 960;
+      final desktop = desktopLayout ?? MediaQuery.sizeOf(context).width >= 900;
       return _buildScrollView(context, ref, desktop: desktop);
     },
   );
@@ -495,81 +524,142 @@ class _CollectionDetailView extends ConsumerWidget {
             ],
           ),
         SliverToBoxAdapter(
-          child: Container(
-            color: _coverColor(collection.id),
-            child: Center(
-              child: ConstrainedBox(
-                key: desktop
-                    ? const Key('collection-detail-desktop-content')
-                    : null,
-                constraints: const BoxConstraints(maxWidth: 1180),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    desktop ? 48 : 28,
-                    desktop ? 36 : 24,
-                    desktop ? 48 : 28,
-                    desktop ? 40 : 28,
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 560;
-                      final cover = _CollectionCover(
-                        collection: collection,
-                        size: desktop ? 232 : 196,
-                      );
-                      final details = _CollectionDetails(
-                        collection: collection,
-                        bookCount: books.length,
-                        canStartReading: canStartReading,
-                        onStartReading: () =>
-                            _openFirstReadable(context, books),
-                        showManageAction: !showAppBar,
-                        onManageBooks: () => _showMembershipEditor(
-                          context,
-                          ref,
-                          collection,
-                          allPublications,
-                          books.map((book) => book.id).toSet(),
-                        ),
-                      );
-                      return isWide
-                          ? Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                cover,
-                                SizedBox(width: desktop ? 40 : 28),
-                                Expanded(child: details),
-                              ],
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                cover,
-                                const SizedBox(height: 20),
-                                details,
-                              ],
-                            );
-                    },
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              Positioned.fill(
+                child: ImageFiltered(
+                  imageFilter: ui.ImageFilter.blur(sigmaX: 48, sigmaY: 48),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      image: collection.coverUri == null
+                          ? null
+                          : DecorationImage(
+                              image: NetworkImage(
+                                collection.coverUri.toString(),
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.black.withValues(alpha: .45),
+                        Colors.black.withValues(alpha: .72),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                key: desktop
+                    ? const Key('collection-detail-desktop-content')
+                    : null,
+                padding: EdgeInsets.fromLTRB(
+                  desktop ? 32 : 24,
+                  desktop ? 32 : 56,
+                  desktop ? 32 : 24,
+                  24,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = desktop;
+                    final cover = _CollectionCover(
+                      collection: collection,
+                      size: isWide ? 196 : 156,
+                    );
+                    final details = _CollectionDetails(
+                      collection: collection,
+                      bookCount: books.length,
+                      centered: !isWide,
+                    );
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isWide)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              cover,
+                              const SizedBox(width: 24),
+                              Expanded(child: details),
+                            ],
+                          )
+                        else
+                          Column(
+                            children: [
+                              cover,
+                              const SizedBox(height: 16),
+                              details,
+                            ],
+                          ),
+                        const SizedBox(height: 20),
+                        Wrap(
+                          alignment: isWide
+                              ? WrapAlignment.start
+                              : WrapAlignment.center,
+                          spacing: 12,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            FilledButton.icon(
+                              onPressed: canStartReading
+                                  ? () => _openFirstReadable(context, books)
+                                  : null,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF1C1B1F),
+                              ),
+                              icon: const Icon(Icons.menu_book_outlined),
+                              label: const Text('Start reading'),
+                            ),
+                            if (!showAppBar)
+                              IconButton(
+                                tooltip: 'Manage books',
+                                onPressed: () => _showMembershipEditor(
+                                  context,
+                                  ref,
+                                  collection,
+                                  allPublications,
+                                  books.map((book) => book.id).toSet(),
+                                ),
+                                color: Colors.white70,
+                                icon: const Icon(Icons.more_vert),
+                              ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
         SliverLayoutBuilder(
           builder: (context, constraints) {
-            final horizontal = desktop
-                ? ((constraints.crossAxisExtent - 1180) / 2)
-                      .clamp(28, double.infinity)
-                      .toDouble()
-                : 28.0;
+            final horizontal = desktop ? 32.0 : 16.0;
+            final columns = MediaQuery.sizeOf(context).width < 600
+                ? 2
+                : MediaQuery.sizeOf(context).width < 900
+                ? 3
+                : 5;
+            final spacing = desktop ? 24.0 : 16.0;
+            final tileWidth =
+                (constraints.crossAxisExtent -
+                    horizontal * 2 -
+                    spacing * (columns - 1)) /
+                columns;
             return SliverPadding(
-              padding: EdgeInsets.fromLTRB(
-                horizontal,
-                desktop ? 36 : 28,
-                horizontal,
-                desktop ? 48 : 36,
-              ),
+              padding: EdgeInsets.fromLTRB(horizontal, 24, horizontal, 36),
               sliver: books.isEmpty
                   ? SliverFillRemaining(
                       hasScrollBody: false,
@@ -589,11 +679,11 @@ class _CollectionDetailView extends ConsumerWidget {
                         (context, index) => _BookCard(book: books[index]),
                         childCount: books.length,
                       ),
-                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: desktop ? 220 : 200,
-                        mainAxisExtent: desktop ? 304 : 280,
-                        mainAxisSpacing: desktop ? 20 : 16,
-                        crossAxisSpacing: desktop ? 20 : 16,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        mainAxisExtent: tileWidth / (3 / 4) + 72,
+                        mainAxisSpacing: spacing,
+                        crossAxisSpacing: spacing,
                       ),
                     )
                   : SliverList.separated(
@@ -646,72 +736,58 @@ class _CollectionDetails extends StatelessWidget {
   const _CollectionDetails({
     required this.collection,
     required this.bookCount,
-    required this.canStartReading,
-    required this.onStartReading,
-    required this.showManageAction,
-    required this.onManageBooks,
+    required this.centered,
   });
 
   final BookCollection collection;
   final int bookCount;
-  final bool canStartReading;
-  final VoidCallback onStartReading;
-  final bool showManageAction;
-  final VoidCallback onManageBooks;
+  final bool centered;
 
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: centered
+        ? CrossAxisAlignment.center
+        : CrossAxisAlignment.start,
     children: [
       Text(
         collection.kind == BookCollectionKind.system
             ? 'SYSTEM COLLECTION'
             : 'COLLECTION',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Colors.white70,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.1,
-        ),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: Colors.white70, letterSpacing: 1.5),
       ),
-      const SizedBox(height: 6),
+      const SizedBox(height: 4),
       Text(
         collection.name,
-        style: Theme.of(context).textTheme.headlineMedium
-            ?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+        textAlign: centered ? TextAlign.center : TextAlign.start,
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          color: Colors.white,
+          fontSize: centered ? 24 : 34,
+          fontWeight: FontWeight.w800,
+          height: 1.15,
+        ),
       ),
+      if (collection.description case final description?) ...[
+        const SizedBox(height: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Text(
+            description,
+            textAlign: centered ? TextAlign.center : TextAlign.start,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              height: 1.6,
+            ),
+          ),
+        ),
+      ],
       const SizedBox(height: 8),
       Text(
         '$bookCount books · Created ${_formatDate(collection.createdAt)}',
-        style: Theme.of(context).textTheme.bodyMedium
+        textAlign: centered ? TextAlign.center : TextAlign.start,
+        style: Theme.of(context).textTheme.bodySmall
             ?.copyWith(color: Colors.white70),
-      ),
-      if (collection.description case final description?) ...[
-        const SizedBox(height: 14),
-        Text(description, style: const TextStyle(color: Colors.white)),
-      ],
-      const SizedBox(height: 20),
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FilledButton.icon(
-            onPressed: canStartReading ? onStartReading : null,
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF1C1D20),
-            ),
-            icon: const Icon(Icons.menu_book_outlined),
-            label: const Text('Start reading'),
-          ),
-          if (showManageAction) ...[
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Manage books',
-              onPressed: onManageBooks,
-              color: Colors.white,
-              icon: const Icon(Icons.more_vert),
-            ),
-          ],
-        ],
       ),
     ],
   );
@@ -727,49 +803,66 @@ class _BookCard extends StatelessWidget {
     clipBehavior: Clip.antiAlias,
     child: InkWell(
       onTap: _isReadable(book) ? () => _openPublication(context, book) : null,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: PublicationCover(publication: book)),
-            const SizedBox(height: 10),
-            Text(
-              book.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AspectRatio(
+            aspectRatio: 3 / 4,
+            child: PublicationCover(
+              publication: book,
+              borderRadius: BorderRadius.zero,
             ),
-            const SizedBox(height: 3),
-            Text(
-              book.authors.isEmpty
-                  ? _formatName(book.format)
-                  : book.authors.join(', '),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  book.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  book.authors.isEmpty
+                      ? _formatName(book.format)
+                      : book.authors.join(', '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     ),
   );
 }
 
 class _CollectionCover extends StatelessWidget {
-  const _CollectionCover({required this.collection, required this.size});
+  const _CollectionCover({
+    required this.collection,
+    required this.size,
+    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
+  });
 
   final BookCollection collection;
   final double size;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) => Container(
     width: size.isFinite ? size : null,
     height: size.isFinite ? size : null,
     decoration: BoxDecoration(
-      color: _coverColor(collection.id),
-      borderRadius: BorderRadius.circular(14),
+      color: collection.kind == BookCollectionKind.system
+          ? Theme.of(context).colorScheme.primary
+          : Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: borderRadius,
       image: collection.coverUri == null
           ? null
           : DecorationImage(
@@ -779,9 +872,16 @@ class _CollectionCover extends StatelessWidget {
     ),
     child: collection.coverUri == null
         ? Icon(
-            Icons.collections_bookmark_rounded,
-            size: size.isFinite ? size * .36 : 54,
-            color: Colors.white,
+            switch (collection.id) {
+              SystemBookCollections.readLater => Icons.schedule_outlined,
+              SystemBookCollections.favorites => Icons.favorite,
+              SystemBookCollections.finished => Icons.check_circle,
+              _ => Icons.image_outlined,
+            },
+            size: size.isFinite ? 64 : 40,
+            color: collection.kind == BookCollectionKind.system
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           )
         : null,
   );
@@ -1075,7 +1175,7 @@ void _openPublication(BuildContext context, Publication publication) {
 }
 
 String _formatDate(DateTime date) =>
-    '$date.year-${date.month.toString().padLeft(2, '0')}';
+    '${date.year}-${date.month.toString().padLeft(2, '0')}';
 
 String _formatName(PublicationFormat format) => switch (format) {
   PublicationFormat.comicArchive || PublicationFormat.comicDirectory => 'Comic',
@@ -1083,15 +1183,3 @@ String _formatName(PublicationFormat format) => switch (format) {
   PublicationFormat.text => 'Text',
   PublicationFormat.pdf => 'PDF',
 };
-
-Color _coverColor(String id) {
-  const colors = [
-    Color(0xFF3B5BDB),
-    Color(0xFF6D597A),
-    Color(0xFF00897B),
-    Color(0xFF9B3D3D),
-    Color(0xFF6D4C41),
-  ];
-  return colors[id.codeUnits.fold(0, (value, item) => value + item) %
-      colors.length];
-}

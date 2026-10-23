@@ -542,6 +542,30 @@ abstract class AppLocalizations {
   /// **'All formats'**
   String get allFormats;
 
+  /// No description provided for @allPublications.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allPublications;
+
+  /// No description provided for @ebookFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Ebooks'**
+  String get ebookFormat;
+
+  /// No description provided for @enterFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter full screen'**
+  String get enterFullScreen;
+
+  /// No description provided for @exitFullScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit full screen'**
+  String get exitFullScreen;
+
   /// No description provided for @comicFormat.
   ///
   /// In en, this message translates to:
@@ -781,6 +805,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reading mode'**
   String get readingMode;
+
+  /// No description provided for @textPagedMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Horizontal pages'**
+  String get textPagedMode;
+
+  /// No description provided for @textScrollMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuous scroll'**
+  String get textScrollMode;
 
   /// No description provided for @doublePageSpread.
   ///

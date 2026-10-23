@@ -250,6 +250,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get allFormats => '全部格式';
 
   @override
+  String get allPublications => '全部';
+
+  @override
+  String get ebookFormat => '电子书';
+
+  @override
+  String get enterFullScreen => '进入全屏';
+
+  @override
+  String get exitFullScreen => '退出全屏';
+
+  @override
   String get comicFormat => '漫画';
 
   @override
@@ -378,6 +390,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get readingMode => '阅读模式';
+
+  @override
+  String get textPagedMode => '左右翻页';
+
+  @override
+  String get textScrollMode => '连续滚动';
 
   @override
   String get doublePageSpread => '双页显示';

@@ -9,13 +9,18 @@ Future<void> showReaderSettingsSurface(
   Alignment desktopAlignment = Alignment.centerRight,
   Offset desktopEntryOffset = const Offset(1, 0),
   String barrierLabel = 'Dismiss reading panel',
+  double desktopWidth = 360,
 }) {
   if (!desktop) {
     return showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => child,
+      constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width),
+      builder: (context) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: child,
+      ),
     );
   }
 
@@ -28,7 +33,7 @@ Future<void> showReaderSettingsSurface(
       alignment: desktopAlignment,
       child: SizedBox(
         key: desktopKey,
-        width: 420,
+        width: desktopWidth.clamp(0, MediaQuery.sizeOf(context).width),
         height: MediaQuery.sizeOf(context).height,
         child: child,
       ),

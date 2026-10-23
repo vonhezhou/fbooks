@@ -41,14 +41,16 @@ class DesktopWindowCaption extends StatelessWidget
 
 /// The shared Flutter-rendered desktop window controls.
 class DesktopWindowControls extends ConsumerWidget {
-  const DesktopWindowControls({super.key});
+  const DesktopWindowControls({super.key, this.brightness});
+
+  final Brightness? brightness;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!isDesktopTargetPlatform) return const SizedBox.shrink();
     final controller = ref.watch(appWindowControllerProvider);
     final l10n = AppLocalizations.of(context);
-    final brightness = Theme.of(context).brightness;
+    final brightness = this.brightness ?? Theme.of(context).brightness;
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) => LimitedBox(

@@ -259,6 +259,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allFormats => 'All formats';
 
   @override
+  String get allPublications => 'All';
+
+  @override
+  String get ebookFormat => 'Ebooks';
+
+  @override
+  String get enterFullScreen => 'Enter full screen';
+
+  @override
+  String get exitFullScreen => 'Exit full screen';
+
+  @override
   String get comicFormat => 'Comic';
 
   @override
@@ -390,6 +402,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readingMode => 'Reading mode';
+
+  @override
+  String get textPagedMode => 'Horizontal pages';
+
+  @override
+  String get textScrollMode => 'Continuous scroll';
 
   @override
   String get doublePageSpread => 'Double-page spread';

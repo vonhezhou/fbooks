@@ -119,3 +119,16 @@
   an `Expanded` metadata region, which makes text whitespace depend on width.
 - Verify the computed cover and footer heights at both narrow and desktop
   widths so the metadata area cannot overflow.
+
+## 2026-09-30 — Validate pages within chapters and responsive text layout
+
+- Chapter navigation does not provide text pagination. Validate a long single
+  TXT chapter and a long EPUB chapter with real page boundaries before claiming
+  paginated reading support.
+- Use the actual available viewport width and height for layout; do not silently
+  cap desktop body width when the requested behavior is to fit the window.
+- Keep text lines intact at page boundaries and test phone, tablet, and desktop
+  widths, including resizing and typography changes while reading.
+- Preserve a text anchor across reflow and reopening; retain legacy pixel
+  offsets as a compatibility fallback rather than treating them as stable text
+  positions. Verify both paged and continuous modes.

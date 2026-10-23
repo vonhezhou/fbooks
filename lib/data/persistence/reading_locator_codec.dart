@@ -24,10 +24,17 @@ class ReadingLocatorCodec {
         type: 'pdf-page',
         value: '$pageNumber',
       ),
-      TextOffsetLocator(:final chapterIndex, :final offset) =>
+      TextOffsetLocator(
+        :final chapterIndex,
+        :final offset,
+        :final paragraphIndex,
+        :final characterOffset,
+      ) =>
         StoredReadingLocator(
           type: 'text-offset',
-          value: '$chapterIndex:$offset',
+          value: paragraphIndex == null
+              ? '$chapterIndex:$offset'
+              : '$chapterIndex:$offset:$paragraphIndex:$characterOffset',
         ),
     };
   }
@@ -44,13 +51,15 @@ class ReadingLocatorCodec {
 
   static TextOffsetLocator _decodeTextOffset(String value) {
     final pieces = value.split(':');
-    if (pieces.length != 2) {
+    if (pieces.length != 2 && pieces.length != 4) {
       throw FormatException('Invalid text offset locator: $value');
     }
 
     return TextOffsetLocator(
       chapterIndex: int.parse(pieces[0]),
       offset: int.parse(pieces[1]),
+      paragraphIndex: pieces.length == 4 ? int.parse(pieces[2]) : null,
+      characterOffset: pieces.length == 4 ? int.parse(pieces[3]) : null,
     );
   }
 }

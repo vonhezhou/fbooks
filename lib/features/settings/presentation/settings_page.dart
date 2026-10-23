@@ -18,85 +18,96 @@ class SettingsPage extends ConsumerWidget {
     final collections =
         ref.watch(bookCollectionsProvider).asData?.value.length ?? 0;
     final logDirectory = ref.watch(appLogDirectoryProvider);
-    return ListView(
-      padding: const EdgeInsets.all(28),
-      children: [
-        Text(
-          l10n.settings,
-          style: Theme.of(context).textTheme.headlineMedium
-              ?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 28),
-        _SettingsSection(
-          title: l10n.appearance.toUpperCase(),
-          child: settings.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (error, stackTrace) => ListTile(
-              title: Text(l10n.appearance),
-              subtitle: Text(l10n.unableToLoad(error.toString())),
-            ),
-            data: (value) => Column(
-              children: [
-                _ThemeModeSelector(settings: value),
-                const Divider(height: 1),
-                _LanguageSelector(settings: value),
-              ],
-            ),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        width: 800,
+        child: ListView(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.sizeOf(context).width < 900 ? 16 : 24,
+            vertical: MediaQuery.sizeOf(context).width < 900 ? 16 : 32,
           ),
-        ),
-        const SizedBox(height: 24),
-        _SettingsSection(
-          title: l10n.library.toUpperCase(),
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.menu_book_outlined),
-                title: Text(l10n.localLibrary),
-                subtitle: Text(l10n.booksCount(books)),
+          children: [
+            if (MediaQuery.sizeOf(context).width >= 900) ...[
+              Text(
+                l10n.settings,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.collections_bookmark_outlined),
-                title: Text(l10n.collections),
-                subtitle: Text(l10n.collectionsCount(collections)),
+              const SizedBox(height: 24),
+            ],
+            _SettingsSection(
+              title: l10n.appearance,
+              child: settings.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => ListTile(
+                  title: Text(l10n.appearance),
+                  subtitle: Text(l10n.unableToLoad(error.toString())),
+                ),
+                data: (value) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _ThemeModeSelector(settings: value),
+                    const Divider(height: 1),
+                    _LanguageSelector(settings: value),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+            _SettingsSection(
+              title: l10n.library,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.menu_book_outlined),
+                    title: Text(l10n.localLibrary),
+                    subtitle: Text(l10n.booksCount(books)),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.collections_bookmark_outlined),
+                    title: Text(l10n.collections),
+                    subtitle: Text(l10n.collectionsCount(collections)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _SettingsSection(
+              title: l10n.reading,
+              child: ListTile(
+                leading: const Icon(Icons.tune_outlined),
+                title: Text(l10n.comicReadingMode),
+                subtitle: Text(l10n.comicReadingModeDescription),
+              ),
+            ),
+            const SizedBox(height: 24),
+            _SettingsSection(
+              title: 'Diagnostics',
+              child: Column(
+                children: [
+                  _LogLevelSelector(settings: settings.asData?.value),
+                  const Divider(height: 1),
+                  _LogDirectoryTile(directory: logDirectory),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _SettingsSection(
+              title: l10n.about,
+              child: ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.appTitle),
+                subtitle: Text(l10n.appDescription),
+                trailing: const Text('1.0.0'),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 24),
-        _SettingsSection(
-          title: l10n.reading.toUpperCase(),
-          child: ListTile(
-            leading: const Icon(Icons.tune_outlined),
-            title: Text(l10n.comicReadingMode),
-            subtitle: Text(l10n.comicReadingModeDescription),
-          ),
-        ),
-        const SizedBox(height: 24),
-        _SettingsSection(
-          title: 'DIAGNOSTICS',
-          child: Column(
-            children: [
-              _LogLevelSelector(settings: settings.asData?.value),
-              const Divider(height: 1),
-              _LogDirectoryTile(directory: logDirectory),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        _SettingsSection(
-          title: l10n.about.toUpperCase(),
-          child: ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: Text(l10n.appTitle),
-            subtitle: Text(l10n.appDescription),
-            trailing: const Text('1.0.0'),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -182,44 +193,60 @@ class _ThemeModeSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Padding(
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.symmetric(vertical: 8),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppLocalizations.of(context).colorMode,
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w700),
+          style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 6),
         Text(AppLocalizations.of(context).colorModeDescription),
         const SizedBox(height: 16),
-        SegmentedButton<ThemeMode>(
-          segments: [
-            ButtonSegment(
-              value: ThemeMode.system,
-              icon: Icon(Icons.brightness_auto_outlined),
-              label: Text(AppLocalizations.of(context).system),
-            ),
-            ButtonSegment(
-              value: ThemeMode.light,
-              icon: Icon(Icons.light_mode_outlined),
-              label: Text(AppLocalizations.of(context).light),
-            ),
-            ButtonSegment(
-              value: ThemeMode.dark,
-              icon: Icon(Icons.dark_mode_outlined),
-              label: Text(AppLocalizations.of(context).dark),
-            ),
-          ],
-          selected: {settings.themeMode},
-          onSelectionChanged: (modes) async {
-            final next = modes.single;
+        RadioGroup<ThemeMode>(
+          groupValue: settings.themeMode,
+          onChanged: (next) async {
+            if (next == null) return;
             await ref
                 .read(appSettingsRepositoryProvider)
                 .save(settings.copyWith(themeMode: next));
             ref.invalidate(appSettingsProvider);
           },
+          child: Column(
+            children: [
+              for (final (value, icon, label) in [
+                (
+                  ThemeMode.light,
+                  Icons.light_mode_outlined,
+                  AppLocalizations.of(context).light,
+                ),
+                (
+                  ThemeMode.dark,
+                  Icons.dark_mode_outlined,
+                  AppLocalizations.of(context).dark,
+                ),
+                (
+                  ThemeMode.system,
+                  Icons.brightness_auto_outlined,
+                  AppLocalizations.of(context).system,
+                ),
+              ])
+                RadioListTile<ThemeMode>(
+                  value: value,
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  contentPadding: EdgeInsets.zero,
+                  title: Row(
+                    children: [
+                      Icon(icon, size: 20),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text(label)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
     ),
@@ -240,15 +267,11 @@ class _LanguageSelector extends ConsumerWidget {
       _ => 'system',
     };
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.language,
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
+          Text(l10n.language, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 6),
           Text(l10n.languageDescription),
           const SizedBox(height: 16),
@@ -292,19 +315,21 @@ class _SettingsSection extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        title,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.1,
-        ),
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 900 ? 16 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          ListTileTheme.merge(contentPadding: EdgeInsets.zero, child: child),
+        ],
       ),
-      const SizedBox(height: 8),
-      Card(child: child),
-    ],
+    ),
   );
 }

@@ -27,14 +27,14 @@ enum _AppSection { library, collections, plugins, settings }
 
 enum _LibrarySourceFilter { all, local, opds }
 
-enum _LibraryFormatFilter { all, comic, epub, text }
+enum _LibraryFormatFilter { all, comic, ebook, epub, pdf, text }
 
 enum _LibrarySort { title, author, lastRead, added }
 
 enum _LibraryViewMode { cards, list }
 
-const _libraryCoverAspectRatio = 1 / 1.6;
-const _publicationCardFooterExtent = 84.0;
+const _libraryCoverAspectRatio = 3 / 4;
+const _publicationCardFooterExtent = 95.0;
 
 enum _PublicationAction {
   open,
@@ -74,10 +74,8 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     final publications = ref.watch(libraryPublicationsProvider);
     final libraryBody = publications.when(
       data: (items) {
-        if (items.isEmpty) {
-          return const _EmptyLibraryView();
-        }
         return _LibraryContent(
+          isLibraryEmpty: items.isEmpty,
           publications: _filterPublications(items),
           query: _query,
           sourceFilter: _sourceFilter,
@@ -143,8 +141,6 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     final desktopBody = switch (_section) {
       _AppSection.library => _DesktopLibraryPage(
         body: libraryBody,
-        isImporting: _isImporting,
-        onImport: _importLocalPublications,
         onConnectOpds: _connectOpdsCatalog,
         onBrowseOpds: _showOpdsCatalogs,
       ),
@@ -159,7 +155,7 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     };
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 840) {
+        if (constraints.maxWidth < 900) {
           return Scaffold(
             appBar: fbooksAppBar(
               title: Text(_sectionLabel(context)),
@@ -168,6 +164,9 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
                   : [],
             ),
             body: body,
+            floatingActionButton: _section == _AppSection.library
+                ? _addBooksButton()
+                : null,
             bottomNavigationBar: NavigationBar(
               selectedIndex: _section.index,
               onDestinationSelected: (index) =>
@@ -194,35 +193,44 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
           );
         }
         return Scaffold(
-          body: Row(
+          floatingActionButton: _section == _AppSection.library
+              ? Padding(
+                  padding: const EdgeInsets.only(right: 8, bottom: 8),
+                  child: _addBooksButton(),
+                )
+              : null,
+          body: Column(
             children: [
-              _DesktopSidebar(
-                section: _section,
-                onSelected: (section) => setState(() => _section = section),
-                collectionsExpanded: _collectionsExpanded,
-                selectedCollection: _selectedDesktopCollection,
-                onCollectionsExpandedChanged: (expanded) =>
-                    setState(() => _collectionsExpanded = expanded),
-                onCollectionsOverviewSelected: () => setState(() {
-                  _section = _AppSection.collections;
-                  _selectedDesktopCollection = null;
-                }),
-                onCollectionSelected: (collection) => setState(() {
-                  _section = _AppSection.collections;
-                  _collectionsExpanded = true;
-                  _selectedDesktopCollection = collection;
-                }),
-              ),
+              const DesktopWindowCaption(),
               Expanded(
-                child: Material(
-                  key: const Key('primary-content-surface'),
-                  color: colorScheme.surface,
-                  child: Column(
-                    children: [
-                      const DesktopWindowCaption(),
-                      Expanded(child: desktopBody),
-                    ],
-                  ),
+                child: Row(
+                  children: [
+                    _DesktopSidebar(
+                      section: _section,
+                      onSelected: (section) =>
+                          setState(() => _section = section),
+                      collectionsExpanded: _collectionsExpanded,
+                      selectedCollection: _selectedDesktopCollection,
+                      onCollectionsExpandedChanged: (expanded) =>
+                          setState(() => _collectionsExpanded = expanded),
+                      onCollectionsOverviewSelected: () => setState(() {
+                        _section = _AppSection.collections;
+                        _selectedDesktopCollection = null;
+                      }),
+                      onCollectionSelected: (collection) => setState(() {
+                        _section = _AppSection.collections;
+                        _collectionsExpanded = true;
+                        _selectedDesktopCollection = collection;
+                      }),
+                    ),
+                    Expanded(
+                      child: Material(
+                        key: const Key('primary-content-surface'),
+                        color: colorScheme.surface,
+                        child: desktopBody,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -292,8 +300,13 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
         _LibraryFormatFilter.comic =>
           publication.format == PublicationFormat.comicArchive ||
               publication.format == PublicationFormat.comicDirectory,
+        _LibraryFormatFilter.ebook =>
+          publication.format == PublicationFormat.epub ||
+              publication.format == PublicationFormat.pdf ||
+              publication.format == PublicationFormat.text,
         _LibraryFormatFilter.epub =>
           publication.format == PublicationFormat.epub,
+        _LibraryFormatFilter.pdf => publication.format == PublicationFormat.pdf,
         _LibraryFormatFilter.text =>
           publication.format == PublicationFormat.text,
       };
@@ -324,18 +337,22 @@ class _LibraryLandingPageState extends ConsumerState<LibraryLandingPage> {
     return filtered;
   }
 
+  Widget _addBooksButton() => FloatingActionButton(
+    tooltip: AppLocalizations.of(context).addBooks,
+    shape: const CircleBorder(),
+    onPressed: _isImporting ? null : _importLocalPublications,
+    child: _isImporting
+        ? SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+          )
+        : const Icon(Icons.add),
+  );
+
   List<Widget> _compactActions(BuildContext context) => [
-    IconButton(
-      tooltip: AppLocalizations.of(context).addLocalPublications,
-      onPressed: _isImporting ? null : _importLocalPublications,
-      icon: _isImporting
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.add_circle_outline),
-    ),
     IconButton(
       tooltip: AppLocalizations.of(context).connectOpdsCatalog,
       onPressed: _connectOpdsCatalog,
@@ -578,72 +595,85 @@ class _DesktopSidebar extends ConsumerWidget {
         ref.watch(bookCollectionsProvider).asData?.value ??
         const <BookCollection>[];
     final collections = [...SystemBookCollections.all, ...customCollections];
+    final colors = Theme.of(context).colorScheme;
     return Container(
-      width: 248,
-      color: const Color(0xFF1C1D20),
+      key: const Key('desktop-sidebar'),
+      width: 280,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(
+          right: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Image(
-                    key: Key('brand-logo'),
-                    image: Assets.launcherIcon.fbooksIcon.provider(),
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.contain,
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    AppLocalizations.of(context).appTitle,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 64,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
                   children: [
-                    _SidebarItem(
-                      icon: Icons.library_books_outlined,
-                      label: AppLocalizations.of(context).library,
-                      selected: section == _AppSection.library,
-                      onTap: () => onSelected(_AppSection.library),
+                    Image(
+                      key: Key('brand-logo'),
+                      image: Assets.launcherIcon.fbooksIcon.provider(),
+                      width: 24,
+                      height: 24,
+                      fit: BoxFit.contain,
                     ),
-                    _CollectionsSidebarGroup(
-                      collections: collections,
-                      expanded: collectionsExpanded,
-                      selectedCollection: selectedCollection,
-                      selected: section == _AppSection.collections,
-                      onExpandedChanged: onCollectionsExpandedChanged,
-                      onOverviewSelected: onCollectionsOverviewSelected,
-                      onCollectionSelected: onCollectionSelected,
+                    SizedBox(width: 12),
+                    Text(
+                      AppLocalizations.of(context).appTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ],
                 ),
               ),
-              _SidebarItem(
-                icon: Icons.extension_outlined,
-                label: AppLocalizations.of(context).plugins,
-                selected: section == _AppSection.plugins,
-                onTap: () => onSelected(_AppSection.plugins),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                children: [
+                  _SidebarItem(
+                    icon: Icons.local_library,
+                    label: AppLocalizations.of(context).library,
+                    selected: section == _AppSection.library,
+                    onTap: () => onSelected(_AppSection.library),
+                  ),
+                  _CollectionsSidebarGroup(
+                    collections: collections,
+                    expanded: collectionsExpanded,
+                    selectedCollection: selectedCollection,
+                    selected: section == _AppSection.collections,
+                    onExpandedChanged: onCollectionsExpandedChanged,
+                    onOverviewSelected: onCollectionsOverviewSelected,
+                    onCollectionSelected: onCollectionSelected,
+                  ),
+                  _SidebarItem(
+                    icon: Icons.extension,
+                    label: AppLocalizations.of(context).plugins,
+                    selected: section == _AppSection.plugins,
+                    onTap: () => onSelected(_AppSection.plugins),
+                  ),
+                ],
               ),
-              _SidebarItem(
-                icon: Icons.settings_outlined,
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: _SidebarItem(
+                icon: Icons.settings,
                 label: AppLocalizations.of(context).settings,
                 selected: section == _AppSection.settings,
                 onTap: () => onSelected(_AppSection.settings),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -673,7 +703,7 @@ class _CollectionsSidebarGroup extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     children: [
       _SidebarItem(
-        icon: Icons.collections_bookmark_outlined,
+        icon: Icons.bookmark,
         label: AppLocalizations.of(context).collections,
         selected: selected && selectedCollection == null,
         onTap: onOverviewSelected,
@@ -682,15 +712,25 @@ class _CollectionsSidebarGroup extends StatelessWidget {
               ? AppLocalizations.of(context).collapseCollections
               : AppLocalizations.of(context).expandCollections,
           onPressed: () => onExpandedChanged(!expanded),
-          color: Colors.white70,
-          icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
+          style: IconButton.styleFrom(
+            minimumSize: const Size.square(32),
+            padding: EdgeInsets.zero,
+            foregroundColor: selected && selectedCollection == null
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          icon: Icon(
+            expanded ? Icons.expand_less : Icons.expand_more,
+            size: 20,
+          ),
         ),
       ),
       if (expanded)
         for (final collection in collections)
           _CollectionSidebarItem(
             collection: collection,
-            selected: selectedCollection?.id == collection.id,
+            selected: selected && selectedCollection?.id == collection.id,
             onTap: () => onCollectionSelected(collection),
           ),
     ],
@@ -722,13 +762,17 @@ class _CollectionSidebarItem extends ConsumerWidget {
         icon: _collectionIcon(collection.id),
         label: collection.name,
         selected: selected,
+        compact: true,
         onTap: onTap,
         trailing: count == null
             ? const SizedBox(width: 24, height: 24)
             : Text(
                 '$count',
                 style: TextStyle(
-                  color: selected ? Colors.white70 : Colors.white54,
+                  color: selected
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
@@ -739,9 +783,9 @@ class _CollectionSidebarItem extends ConsumerWidget {
 
 IconData _collectionIcon(String id) => switch (id) {
   SystemBookCollections.readLater => Icons.schedule_outlined,
-  SystemBookCollections.favorites => Icons.favorite_border,
+  SystemBookCollections.favorites => Icons.favorite,
   SystemBookCollections.finished => Icons.check_circle_outline,
-  _ => Icons.bookmark_outline,
+  _ => Icons.bookmark,
 };
 
 class _SidebarItem extends StatelessWidget {
@@ -751,49 +795,61 @@ class _SidebarItem extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.selected = false,
+    this.compact = false,
     this.trailing,
   });
 
   final IconData icon;
   final String label;
   final bool selected;
+  final bool compact;
   final VoidCallback onTap;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final foreground = selected ? colors.onPrimary : colors.onSurface;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF35373C) : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: selected ? const Color(0xFFD8FF67) : Colors.white60,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: selected ? Colors.white : Colors.white70,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: selected ? colors.primary : Colors.transparent,
+        borderRadius: BorderRadius.circular(compact ? 24 : 36),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(compact ? 24 : 36),
+          child: SizedBox(
+            height: compact ? 44 : 48,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: compact ? 36 : 56,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(
+                        icon,
+                        size: 24,
+                        color: selected ? foreground : colors.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                ),
-                ?trailing,
-              ],
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: foreground,
+                        fontSize: compact ? 14 : 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                  ?trailing,
+                ],
+              ),
             ),
           ),
         ),
@@ -804,88 +860,63 @@ class _SidebarItem extends StatelessWidget {
 
 class _DesktopHeader extends StatelessWidget {
   const _DesktopHeader({
-    required this.isImporting,
-    required this.onImport,
     required this.onConnectOpds,
     required this.onBrowseOpds,
   });
 
-  final bool isImporting;
-  final VoidCallback onImport;
   final VoidCallback onConnectOpds;
   final VoidCallback onBrowseOpds;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      key: const Key('desktop-library-header'),
-      children: [
-        Expanded(
-          child: Text(
-            AppLocalizations.of(context).yourLibrary,
-            style: Theme.of(context).textTheme.headlineMedium
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
+  Widget build(BuildContext context) => Row(
+    key: const Key('desktop-library-header'),
+    children: [
+      Expanded(
+        child: Text(
+          AppLocalizations.of(context).yourLibrary,
+          style: Theme.of(context).textTheme.headlineMedium,
         ),
-        IconButton(
-          tooltip: AppLocalizations.of(context).browseOpdsCatalogs,
-          onPressed: onBrowseOpds,
-          icon: const Icon(Icons.cloud_outlined),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          onPressed: onConnectOpds,
-          icon: const Icon(Icons.add_to_queue_outlined),
-          label: Text(AppLocalizations.of(context).connectOpds),
-        ),
-        const SizedBox(width: 12),
-        FilledButton.icon(
-          onPressed: isImporting ? null : onImport,
-          icon: isImporting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.add),
-          label: Text(AppLocalizations.of(context).addBooks),
-        ),
-      ],
-    );
-  }
+      ),
+      IconButton(
+        tooltip: AppLocalizations.of(context).browseOpdsCatalogs,
+        onPressed: onBrowseOpds,
+        icon: const Icon(Icons.cloud_outlined),
+        visualDensity: VisualDensity.compact,
+      ),
+      IconButton(
+        tooltip: AppLocalizations.of(context).connectOpdsCatalog,
+        onPressed: onConnectOpds,
+        icon: const Icon(Icons.add_to_queue_outlined),
+        visualDensity: VisualDensity.compact,
+      ),
+    ],
+  );
 }
 
 class _DesktopLibraryPage extends StatelessWidget {
   const _DesktopLibraryPage({
     required this.body,
-    required this.isImporting,
-    required this.onImport,
     required this.onConnectOpds,
     required this.onBrowseOpds,
   });
 
   final Widget body;
-  final bool isImporting;
-  final VoidCallback onImport;
   final VoidCallback onConnectOpds;
   final VoidCallback onBrowseOpds;
 
   @override
   Widget build(BuildContext context) => _DesktopLibraryLayout(
-    child: Padding(
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        children: [
-          _DesktopHeader(
-            isImporting: isImporting,
-            onImport: onImport,
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+          child: _DesktopHeader(
             onConnectOpds: onConnectOpds,
             onBrowseOpds: onBrowseOpds,
           ),
-          const SizedBox(height: 20),
-          Expanded(child: body),
-        ],
-      ),
+        ),
+        Expanded(child: body),
+      ],
     ),
   );
 }
@@ -932,6 +963,7 @@ class _EmptyLibraryView extends StatelessWidget {
 
 class _LibraryContent extends StatelessWidget {
   const _LibraryContent({
+    required this.isLibraryEmpty,
     required this.publications,
     required this.query,
     required this.sourceFilter,
@@ -955,6 +987,7 @@ class _LibraryContent extends StatelessWidget {
     required this.onDeleteSelected,
   });
 
+  final bool isLibraryEmpty;
   final List<Publication> publications;
   final String query;
   final _LibrarySourceFilter sourceFilter;
@@ -1005,7 +1038,9 @@ class _LibraryContent extends StatelessWidget {
           onSelectionModeChanged: onSelectionModeChanged,
         ),
       Expanded(
-        child: publications.isEmpty
+        child: isLibraryEmpty
+            ? const _EmptyLibraryView()
+            : publications.isEmpty
             ? const _NoSearchResults()
             : _PublicationList(
                 publications: publications,
@@ -1054,132 +1089,212 @@ class _LibraryFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final desktop = _DesktopLibraryLayout.of(context);
-    return Padding(
-      key: const Key('library-filter-bar'),
-      padding: desktop
-          ? EdgeInsets.zero
-          : const EdgeInsets.fromLTRB(24, 12, 24, 8),
-      child: LayoutBuilder(
-        key: const Key('library-filter-controls'),
-        builder: (context, constraints) {
-          final search = TextFormField(
-            initialValue: query,
-            onChanged: onQueryChanged,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context).searchLibrary,
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: query.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: AppLocalizations.of(context).clearSearch,
-                      onPressed: () => onQueryChanged(''),
-                      icon: const Icon(Icons.clear),
+    final mobile = MediaQuery.sizeOf(context).width < 900;
+    final l10n = AppLocalizations.of(context);
+    final tabIndex = switch (formatFilter) {
+      _LibraryFormatFilter.all => 0,
+      _LibraryFormatFilter.comic => 1,
+      _ => 2,
+    };
+    return Column(
+      children: [
+        Padding(
+          key: const Key('library-filter-bar'),
+          padding: EdgeInsets.fromLTRB(
+            mobile ? 16 : 24,
+            desktop ? 0 : 16,
+            mobile ? 16 : 24,
+            16,
+          ),
+          child: LayoutBuilder(
+            key: const Key('library-filter-controls'),
+            builder: (context, constraints) {
+              final search = TextFormField(
+                initialValue: query,
+                onChanged: onQueryChanged,
+                style: const TextStyle(fontSize: 16, height: 1.4375),
+                decoration: InputDecoration(
+                  hintText: l10n.searchBooks,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: query.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: AppLocalizations.of(context).clearSearch,
+                          onPressed: () => onQueryChanged(''),
+                          icon: const Icon(Icons.clear),
+                        ),
+                ),
+              );
+              final controls = Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  MenuAnchor(
+                    menuChildren: [
+                      SubmenuButton(
+                        menuChildren: [
+                          for (final value in _LibrarySourceFilter.values)
+                            RadioMenuButton(
+                              value: value,
+                              groupValue: sourceFilter,
+                              onChanged: (value) =>
+                                  onSourceFilterChanged(value!),
+                              child: Text(value.name),
+                            ),
+                        ],
+                        child: const Text('Source'),
+                      ),
+                      SubmenuButton(
+                        menuChildren: [
+                          for (final value in _LibraryFormatFilter.values)
+                            RadioMenuButton(
+                              value: value,
+                              groupValue: formatFilter,
+                              onChanged: (value) =>
+                                  onFormatFilterChanged(value!),
+                              child: Text(value.name),
+                            ),
+                        ],
+                        child: const Text('Format'),
+                      ),
+                      const Divider(),
+                      SubmenuButton(
+                        menuChildren: [
+                          for (final value in _LibrarySort.values)
+                            RadioMenuButton(
+                              value: value,
+                              groupValue: sort,
+                              onChanged: (value) => onSortChanged(value!),
+                              child: Text(value.name),
+                            ),
+                        ],
+                        child: const Text('Sort by'),
+                      ),
+                      RadioMenuButton(
+                        value: false,
+                        groupValue: sortDescending,
+                        onChanged: (value) => onSortDescendingChanged(value!),
+                        child: const Text('Ascending'),
+                      ),
+                      RadioMenuButton(
+                        value: true,
+                        groupValue: sortDescending,
+                        onChanged: (value) => onSortDescendingChanged(value!),
+                        child: const Text('Descending'),
+                      ),
+                    ],
+                    builder: (context, controller, child) => IconButton(
+                      tooltip: 'Filter and sort',
+                      onPressed: () => controller.isOpen
+                          ? controller.close()
+                          : controller.open(),
+                      icon: const Icon(Icons.tune),
                     ),
-              border: const OutlineInputBorder(),
-            ),
-          );
-          final controls = Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              MenuAnchor(
-                menuChildren: [
-                  SubmenuButton(
-                    menuChildren: [
-                      for (final value in _LibrarySourceFilter.values)
-                        RadioMenuButton(
-                          value: value,
-                          groupValue: sourceFilter,
-                          onChanged: (value) => onSourceFilterChanged(value!),
-                          child: Text(value.name),
-                        ),
-                    ],
-                    child: const Text('Source'),
                   ),
-                  SubmenuButton(
-                    menuChildren: [
-                      for (final value in _LibraryFormatFilter.values)
-                        RadioMenuButton(
-                          value: value,
-                          groupValue: formatFilter,
-                          onChanged: (value) => onFormatFilterChanged(value!),
-                          child: Text(value.name),
-                        ),
-                    ],
-                    child: const Text('Format'),
+                  IconButton(
+                    tooltip: viewMode == _LibraryViewMode.cards
+                        ? 'Show list'
+                        : 'Show cards',
+                    onPressed: () => onViewModeChanged(
+                      viewMode == _LibraryViewMode.cards
+                          ? _LibraryViewMode.list
+                          : _LibraryViewMode.cards,
+                    ),
+                    icon: Icon(
+                      viewMode == _LibraryViewMode.cards
+                          ? Icons.view_list_outlined
+                          : Icons.grid_view_outlined,
+                    ),
                   ),
-                  const Divider(),
-                  SubmenuButton(
-                    menuChildren: [
-                      for (final value in _LibrarySort.values)
-                        RadioMenuButton(
-                          value: value,
-                          groupValue: sort,
-                          onChanged: (value) => onSortChanged(value!),
-                          child: Text(value.name),
-                        ),
-                    ],
-                    child: const Text('Sort by'),
-                  ),
-                  RadioMenuButton(
-                    value: false,
-                    groupValue: sortDescending,
-                    onChanged: (value) => onSortDescendingChanged(value!),
-                    child: const Text('Ascending'),
-                  ),
-                  RadioMenuButton(
-                    value: true,
-                    groupValue: sortDescending,
-                    onChanged: (value) => onSortDescendingChanged(value!),
-                    child: const Text('Descending'),
+                  IconButton(
+                    tooltip: 'Select books',
+                    onPressed: () => onSelectionModeChanged(true),
+                    icon: const Icon(Icons.checklist),
                   ),
                 ],
-                builder: (context, controller, child) => IconButton(
-                  tooltip: 'Filter and sort',
-                  onPressed: () => controller.isOpen
-                      ? controller.close()
-                      : controller.open(),
-                  icon: const Icon(Icons.tune),
-                ),
-              ),
-              IconButton(
-                tooltip: viewMode == _LibraryViewMode.cards
-                    ? 'Show list'
-                    : 'Show cards',
-                onPressed: () => onViewModeChanged(
-                  viewMode == _LibraryViewMode.cards
-                      ? _LibraryViewMode.list
-                      : _LibraryViewMode.cards,
-                ),
-                icon: Icon(
-                  viewMode == _LibraryViewMode.cards
-                      ? Icons.view_list_outlined
-                      : Icons.grid_view_outlined,
-                ),
-              ),
-              IconButton(
-                tooltip: 'Select books',
-                onPressed: () => onSelectionModeChanged(true),
-                icon: const Icon(Icons.checklist),
-              ),
-            ],
-          );
-          return constraints.maxWidth < 900
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [search, const SizedBox(height: 8), controls],
-                )
-              : Row(
-                  children: [
-                    Expanded(child: search),
-                    const SizedBox(width: 12),
-                    controls,
-                  ],
-                );
-        },
-      ),
+              );
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  search,
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DefaultTabController(
+                          key: ValueKey(tabIndex),
+                          length: 3,
+                          initialIndex: tabIndex,
+                          child: TabBar(
+                            isScrollable: !mobile,
+                            tabAlignment: mobile
+                                ? TabAlignment.fill
+                                : TabAlignment.start,
+                            dividerColor: Colors.transparent,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            labelPadding: EdgeInsets.symmetric(
+                              horizontal: mobile ? 8 : 16,
+                            ),
+                            onTap: (index) => onFormatFilterChanged(
+                              [
+                                _LibraryFormatFilter.all,
+                                _LibraryFormatFilter.comic,
+                                _LibraryFormatFilter.ebook,
+                              ][index],
+                            ),
+                            tabs: [
+                              Tab(
+                                height: 72,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: mobile ? 0 : 58,
+                                  ),
+                                  child: Text(l10n.allPublications),
+                                ),
+                              ),
+                              _formatTab(l10n.comicFormat, Icons.image, mobile),
+                              _formatTab(
+                                l10n.ebookFormat,
+                                Icons.menu_book,
+                                mobile,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      controls,
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        const Divider(),
+      ],
     );
   }
+
+  Widget _formatTab(String label, IconData icon, bool mobile) => Tab(
+    height: 72,
+    child: mobile
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(height: 4),
+              Text(label),
+            ],
+          )
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24),
+              const SizedBox(width: 8),
+              Text(label),
+            ],
+          ),
+  );
 }
 
 class _NoSearchResults extends StatelessWidget {
@@ -1266,43 +1381,53 @@ class _PublicationList extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (viewMode == _LibraryViewMode.cards) {
-          final desktop = _DesktopLibraryLayout.of(context);
-          return GridView.builder(
-            key: const Key('library-publication-grid'),
-            padding: desktop
-                ? const EdgeInsets.only(top: 20)
-                : const EdgeInsets.fromLTRB(36, 8, 36, 36),
-            gridDelegate: const PublicationCardGridDelegate(
-              maxCrossAxisExtent: 240,
-              coverAspectRatio: _libraryCoverAspectRatio,
-              footerExtent: _publicationCardFooterExtent,
-              mainAxisSpacing: 20,
-              crossAxisSpacing: 20,
-            ),
-            itemCount: publications.length,
-            itemBuilder: (context, index) => _PublicationCard(
-              publication: publications[index],
-              progress: ref
-                  .watch(readingProgressProvider(publications[index].id))
-                  .asData
-                  ?.value,
-              onTap: () => _openPublication(context, ref, publications[index]),
-              onDetails: () =>
-                  _showPublicationDetails(context, publications[index]),
-              formatLabel: _formatLabel(publications[index].format),
-              selected: selectedPublicationIds.contains(publications[index].id),
-              selectionMode: selectionMode,
-              onSelected: () => onSelectionChanged(publications[index].id),
-              onLongPress: () => onSelectionStarted(publications[index].id),
-              onSecondaryTapUp: (details) => _showPublicationActionMenu(
-                context: context,
-                ref: ref,
+          final windowWidth = MediaQuery.sizeOf(context).width;
+          final mobile = windowWidth < 900;
+          final spacing = mobile ? 16.0 : 24.0;
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: spacing),
+            child: GridView.builder(
+              key: const Key('library-publication-grid'),
+              padding: const EdgeInsets.only(top: 24, bottom: 96),
+              gridDelegate: PublicationCardGridDelegate(
+                crossAxisCount: windowWidth >= 900
+                    ? 5
+                    : windowWidth >= 600
+                    ? 3
+                    : 2,
+                coverAspectRatio: _libraryCoverAspectRatio,
+                footerExtent: mobile ? 90 : _publicationCardFooterExtent,
+                mainAxisSpacing: spacing,
+                crossAxisSpacing: spacing,
+              ),
+              itemCount: publications.length,
+              itemBuilder: (context, index) => _PublicationCard(
                 publication: publications[index],
-                onOpen: () =>
+                progress: ref
+                    .watch(readingProgressProvider(publications[index].id))
+                    .asData
+                    ?.value,
+                onTap: () =>
                     _openPublication(context, ref, publications[index]),
                 onDetails: () =>
                     _showPublicationDetails(context, publications[index]),
-                position: _menuPosition(context, details.globalPosition),
+                formatLabel: _formatLabel(publications[index].format),
+                selected: selectedPublicationIds.contains(
+                  publications[index].id,
+                ),
+                selectionMode: selectionMode,
+                onSelected: () => onSelectionChanged(publications[index].id),
+                onLongPress: () => onSelectionStarted(publications[index].id),
+                onSecondaryTapUp: (details) => _showPublicationActionMenu(
+                  context: context,
+                  ref: ref,
+                  publication: publications[index],
+                  onOpen: () =>
+                      _openPublication(context, ref, publications[index]),
+                  onDetails: () =>
+                      _showPublicationDetails(context, publications[index]),
+                  position: _menuPosition(context, details.globalPosition),
+                ),
               ),
             ),
           );
@@ -1470,6 +1595,7 @@ class _PublicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = MediaQuery.sizeOf(context).width < 900;
     return Card(
       key: Key('publication-card-${publication.id}'),
       clipBehavior: Clip.antiAlias,
@@ -1492,52 +1618,72 @@ class _PublicationCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    height: _publicationCardFooterExtent,
+                    height: mobile ? 90 : _publicationCardFooterExtent,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                      padding: EdgeInsets.fromLTRB(
+                        mobile ? 8 : 16,
+                        12,
+                        mobile ? 8 : 16,
+                        24,
+                      ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            publication.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w700),
+                          SizedBox(
+                            height: mobile ? 35 : 40,
+                            child: Text(
+                              publication.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: mobile ? 12 : 14,
+                                height: 1.43,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  progress == null
-                                      ? formatLabel
-                                      : _resumeLabel(progress!),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Text(
+                                progress == null
+                                    ? formatLabel
+                                    : _resumeLabel(progress!),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      fontSize: mobile ? 10.4 : 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                    ),
                               ),
-                              SizedBox(
-                                key: Key(
-                                  'publication-details-${publication.id}',
-                                ),
-                                width: 40,
-                                height: 40,
-                                child: _PublicationActionsButton(
-                                  publication: publication,
-                                  onOpen: onTap,
-                                  onDetails: onDetails,
-                                  compact: true,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Material(
+              key: Key('publication-details-${publication.id}'),
+              color: Colors.black.withValues(alpha: .5),
+              shape: const CircleBorder(),
+              child: SizedBox.square(
+                dimension: 32,
+                child: _PublicationActionsButton(
+                  publication: publication,
+                  onOpen: onTap,
+                  onDetails: onDetails,
+                  compact: true,
+                ),
               ),
             ),
           ),
@@ -1584,7 +1730,9 @@ class _PublicationActionsButton extends ConsumerWidget {
         style: compact
             ? IconButton.styleFrom(
                 padding: EdgeInsets.zero,
-                fixedSize: const Size.square(40),
+                fixedSize: const Size.square(32),
+                minimumSize: const Size.square(32),
+                foregroundColor: Colors.white,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               )
             : null,

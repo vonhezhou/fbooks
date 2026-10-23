@@ -11,11 +11,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('uses constrained hero and grid spacing on desktop', (
+  testWidgets('adapts the collection hero to desktop and compact windows', (
     tester,
   ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 840);
     await tester.binding.setSurfaceSize(const Size(1280, 840));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    addTearDown(() async {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      await tester.binding.setSurfaceSize(null);
+    });
     final collection = BookCollection(
       id: 'weekend-reads',
       name: 'Weekend reads',
@@ -59,6 +65,19 @@ void main() {
     expect(find.text('Bobby Make-Believe'), findsOneWidget);
     expect(find.text('Start reading'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    for (final width in [800.0, 390.0]) {
+      tester.view.physicalSize = Size(width, 840);
+      await tester.binding.setSurfaceSize(Size(width, 840));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('collection-detail-desktop-content')),
+        findsNothing,
+      );
+      expect(find.text('Start reading'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
   });
 }
 

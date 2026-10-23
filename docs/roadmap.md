@@ -77,6 +77,9 @@ focused commit and pass `flutter analyze` plus `flutter test`.
   width-fitted, uncropped images for vertical scroll. Keep alternative
   fit/crop settings for a later reader-preferences milestone; confirm
   right-to-left spread order with sample manga.
+- [x] Add viewport-based text pagination for TXT and EPUB: default to horizontal
+  page navigation, retain continuous scrolling, adapt body width to the window,
+  and restore paragraph/character anchors with legacy pixel-offset fallback.
 - [x] Add text-reading preferences: font size, line height, margins, and
   light/dark/sepia appearance. Persist them locally and retain the reading
   position when they change.
@@ -94,7 +97,8 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 - Comics support left-to-right, right-to-left, and continuous vertical reading;
   horizontal modes support optional spreads without losing the current page.
 - Text is comfortably readable and its appearance can be adjusted without
-  losing a chapter or scroll position.
+  losing the current text anchor. Horizontal pages are the default; continuous
+  scrolling remains available in reading settings.
 - The app has been manually checked at phone, tablet, and desktop sizes in
   addition to automated analysis and tests.
 

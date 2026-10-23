@@ -1,0 +1,192 @@
+import 'package:fbooks/domain/reading/flow_document.dart';
+import 'package:fbooks/domain/reading/reading_locator.dart';
+import 'package:fbooks/domain/reading/text_reading_preferences.dart';
+import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:fbooks/l10n/app_localizations.dart';
+
+void main() {
+  final text = List.generate(
+    100,
+    (i) =>
+        'Paragraph $i: 阅读内容随窗口宽度换行。 👨‍👩‍👧‍👦 café ABCDEFGHIJKLMNOPQRSTUVWXYZ\n',
+  ).join();
+  TextOffsetLocator? saved;
+  Widget reader({
+    TextReadingPreferences preferences = TextReadingPreferences.defaults,
+    TextOffsetLocator position = const TextOffsetLocator(
+      chapterIndex: 0,
+      offset: 0,
+    ),
+    bool html = false,
+  }) => MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: FlowChapterRenderer(
+        chapter: FlowChapter(
+          index: 0,
+          title: 'A chapter',
+          text: text,
+          transitionalHtml: html
+              ? '<p>${text.replaceAll('\n', '</p><p>')}</p>'
+              : null,
+        ),
+        initialPosition: position,
+        preferences: preferences,
+        onPositionChanged: (value) => saved = value,
+        onChapterSelected: (_) {},
+      ),
+    ),
+  );
+
+  for (final width in [390.0, 768.0, 1440.0]) {
+    for (final html in [false, true]) {
+      testWidgets(
+        '${html ? 'EPUB' : 'TXT'} paginates at $width without cutting lines',
+        (tester) async {
+          await tester.binding.setSurfaceSize(Size(width, 700));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          await tester.pumpWidget(reader(html: html));
+          await tester.pumpAndSettle();
+          final scrollFinder = find.byKey(const Key('flow-content-scroll'));
+          expect(tester.getSize(scrollFinder).width, width - 48);
+          final scroll = tester
+              .widget<SingleChildScrollView>(scrollFinder)
+              .controller!;
+          expect(scroll.offset, 0);
+          var pages = 0;
+          var previousEnd = 0.0;
+          while (true) {
+            final clipFinder = find
+                .ancestor(of: scrollFinder, matching: find.byType(ClipRect))
+                .first;
+            final clip = tester.widget<ClipRect>(clipFinder);
+            final rect = clip.clipper!.getClip(tester.getSize(clipFinder));
+            final origin = tester.getTopLeft(scrollFinder);
+            expect(scroll.offset, closeTo(previousEnd, 0.1));
+            previousEnd = scroll.offset + rect.height;
+            for (final paragraph in tester.renderObjectList<RenderParagraph>(
+              find.byType(RichText),
+            )) {
+              if (!paragraph.text.toPlainText().contains('Paragraph')) continue;
+              for (final box in paragraph.getBoxesForSelection(
+                TextSelection(
+                  baseOffset: 0,
+                  extentOffset: paragraph.text.toPlainText().length,
+                ),
+              )) {
+                final top =
+                    paragraph.localToGlobal(Offset(0, box.top)).dy - origin.dy;
+                final bottom =
+                    paragraph.localToGlobal(Offset(0, box.bottom)).dy -
+                    origin.dy;
+                expect(
+                  top < rect.height - 0.1 && bottom > rect.height + 0.1,
+                  isFalse,
+                  reason: 'Page ends inside a line',
+                );
+                expect(
+                  top < -0.1 && bottom > 0.1,
+                  isFalse,
+                  reason: 'Page starts inside a line',
+                );
+              }
+            }
+            pages++;
+            final next = tester.widget<IconButton>(
+              find.widgetWithIcon(IconButton, Icons.chevron_right),
+            );
+            if (next.onPressed == null) break;
+            await tester.tap(find.byTooltip('Next page'));
+            await tester.pumpAndSettle();
+            expect(pages, lessThan(100));
+          }
+          expect(pages, greaterThan(1));
+          expect(saved!.characterOffset, isNotNull);
+          await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+          await tester.pumpAndSettle();
+          expect(scroll.offset, lessThan(saved!.offset + 1));
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('reflows, switches modes and restores a text anchor', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(reader());
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 4; i++) {
+      await tester.tap(find.byTooltip('Next page'));
+      await tester.pumpAndSettle();
+    }
+    final anchor = saved!;
+    await tester.binding.setSurfaceSize(const Size(1440, 800));
+    await tester.pumpAndSettle();
+    expect(saved!.paragraphIndex, anchor.paragraphIndex);
+    expect(saved!.characterOffset, lessThanOrEqualTo(anchor.characterOffset!));
+    expect(saved!.characterOffset, greaterThan(0));
+    final reflowed = saved!;
+    await tester.pumpWidget(
+      reader(
+        preferences: const TextReadingPreferences(
+          mode: TextReadingMode.scroll,
+          fontSize: 24,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('flow-page-progress')), findsNothing);
+    expect(saved!.characterOffset, closeTo(reflowed.characterOffset!, 100));
+    await tester.drag(
+      find.byKey(const Key('flow-content-scroll')),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+    expect(saved!.characterOffset, greaterThan(reflowed.characterOffset!));
+    final resume = saved!;
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(reader(position: resume));
+    await tester.pumpAndSettle();
+    expect(saved!.paragraphIndex, resume.paragraphIndex);
+    expect(saved!.characterOffset, lessThanOrEqualTo(resume.characterOffset!));
+    expect(saved!.characterOffset, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('clamps an old pixel position beyond the last page', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      reader(
+        position: const TextOffsetLocator(chapterIndex: 0, offset: 1 << 31),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<IconButton>(
+            find.widgetWithIcon(IconButton, Icons.chevron_right),
+          )
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<IconButton>(
+            find.widgetWithIcon(IconButton, Icons.chevron_left),
+          )
+          .onPressed,
+      isNotNull,
+    );
+    expect(saved!.offset, lessThan(1 << 31));
+    expect(tester.takeException(), isNull);
+  });
+}

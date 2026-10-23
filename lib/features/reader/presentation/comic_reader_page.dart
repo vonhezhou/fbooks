@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
-import 'package:fbooks/app/window/window_caption.dart';
+import 'package:fbooks/features/reader/presentation/reader_chrome.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
 import 'package:fbooks/application/reader/comic_spread_index.dart';
 import 'package:fbooks/application/reader/vertical_comic_page_position.dart';
@@ -18,7 +19,7 @@ import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ComicReaderPage extends ConsumerWidget {
+class ComicReaderPage extends ConsumerStatefulWidget {
   const ComicReaderPage({
     super.key,
     required this.publicationId,
@@ -29,47 +30,74 @@ class ComicReaderPage extends ConsumerWidget {
   final String title;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
-    builder: (context, constraints) {
-      final desktop = constraints.maxWidth >= 960;
-      final session = ref.watch(comicReaderSessionProvider(publicationId));
-      final preferences =
-          ref.watch(comicReadingPreferencesProvider).value ??
-          ComicReadingPreferences.defaults;
-      return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: fbooksAppBar(
-          toolbarHeight: desktop ? 64 : null,
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          surfaceTintColor: Colors.black,
-          title: Text(title, overflow: TextOverflow.ellipsis),
-          actions: [
-            IconButton(
-              tooltip: AppLocalizations.of(context).readingSettings,
-              onPressed: () => _showComicReadingSettings(
-                context,
-                ref,
-                publicationId: publicationId,
+  ConsumerState<ComicReaderPage> createState() => _ComicReaderPageState();
+}
+
+class _ComicReaderPageState extends ConsumerState<ComicReaderPage> {
+  var _controlsVisible = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final desktop = MediaQuery.sizeOf(context).width >= 900;
+    final session = ref.watch(comicReaderSessionProvider(widget.publicationId));
+    final preferences =
+        ref.watch(comicReadingPreferencesProvider).value ??
+        ComicReadingPreferences.defaults;
+    return Scaffold(
+      backgroundColor: const Color(0xFF111111),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: session.when(
+              data: (value) => _ComicPageView(
+                publicationId: widget.publicationId,
+                session: value,
+                preferences: preferences,
                 desktop: desktop,
+                controlsVisible: _controlsVisible,
+                onToggleControls: () =>
+                    setState(() => _controlsVisible = !_controlsVisible),
               ),
-              icon: const Icon(Icons.tune),
+              error: (error, stackTrace) => _ReaderErrorView(error: error),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: Colors.white70),
+              ),
             ),
-          ],
-        ),
-        body: session.when(
-          data: (value) => _ComicPageView(
-            publicationId: publicationId,
-            session: value,
-            preferences: preferences,
-            desktop: desktop,
           ),
-          error: (error, stackTrace) => _ReaderErrorView(error: error),
-          loading: () => const Center(child: CircularProgressIndicator()),
-        ),
-      );
-    },
-  );
+          Align(
+            alignment: Alignment.topCenter,
+            child: IgnorePointer(
+              ignoring: !_controlsVisible,
+              child: AnimatedOpacity(
+                key: const Key('comic-reader-toolbar-visibility'),
+                opacity: _controlsVisible ? 1 : 0,
+                duration: const Duration(milliseconds: 250),
+                child: ReaderToolbar(
+                  key: const Key('comic-reader-toolbar'),
+                  title: widget.title,
+                  overlay: true,
+                  height: MediaQuery.sizeOf(context).width < 600 ? 56 : 64,
+                  actions: [
+                    const ReaderFullscreenButton(color: Colors.white),
+                    IconButton(
+                      tooltip: AppLocalizations.of(context).readingSettings,
+                      color: Colors.white,
+                      onPressed: () => _showComicReadingSettings(
+                        context,
+                        ref,
+                        publicationId: widget.publicationId,
+                      ),
+                      icon: const Icon(Icons.settings),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ComicPageView extends ConsumerStatefulWidget {
@@ -78,12 +106,16 @@ class _ComicPageView extends ConsumerStatefulWidget {
     required this.session,
     required this.preferences,
     required this.desktop,
+    required this.controlsVisible,
+    required this.onToggleControls,
   });
 
   final PublicationId publicationId;
   final ComicReaderSession session;
   final ComicReadingPreferences preferences;
   final bool desktop;
+  final bool controlsVisible;
+  final VoidCallback onToggleControls;
 
   @override
   ConsumerState<_ComicPageView> createState() => _ComicPageViewState();
@@ -135,13 +167,13 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
   @override
   Widget build(BuildContext context) {
     final progress = ref.watch(readingProgressProvider(widget.publicationId));
-    progress.whenData(_restorePosition);
     final pageCount = widget.session.document.pages.length;
     if (pageCount == 0) {
       return const _ReaderEmptyContentView(
         message: 'This comic does not contain any readable image pages.',
       );
     }
+    progress.whenData(_restorePosition);
     final reader = widget.preferences.mode == ComicReadingMode.vertical
         ? _buildVerticalReader(pageCount)
         : PageView.builder(
@@ -159,23 +191,121 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
               );
             },
           );
-    return Column(
+    final vertical = widget.preferences.mode == ComicReadingMode.vertical;
+    final rightToLeft = widget.preferences.mode == ComicReadingMode.rightToLeft;
+    final lastVisiblePage =
+        widget.preferences.usesDoublePage && _currentPage > 0
+        ? (_currentPage + 1).clamp(0, pageCount - 1)
+        : _currentPage;
+    final canGoBack = _currentPage > 0;
+    final canGoForward = lastVisiblePage < pageCount - 1;
+    return Stack(
       children: [
-        Expanded(
-          child: _ComicReaderStage(
-            desktop: widget.desktop,
-            vertical: widget.preferences.mode == ComicReadingMode.vertical,
-            child: reader,
+        Positioned.fill(
+          child: GestureDetector(
+            key: const Key('comic-reader-stage-gesture'),
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onToggleControls,
+            child: _ComicReaderStage(
+              desktop: widget.desktop,
+              vertical: vertical,
+              child: reader,
+            ),
           ),
         ),
-        _ComicPageControls(
-          currentPage: _currentPage,
-          pageCount: pageCount,
-          onPageSelected: _goToPage,
-          onPrevious: _goToPrevious,
-          onNext: _goToNext,
-          doublePage: widget.preferences.usesDoublePage,
-          desktop: widget.desktop,
+        if (vertical)
+          Positioned(
+            right: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: AnimatedOpacity(
+                opacity: widget.controlsVisible ? 1 : .3,
+                duration: const Duration(milliseconds: 250),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ComicTurnButton(
+                      icon: Icons.keyboard_arrow_up,
+                      tooltip: AppLocalizations.of(context).previousPage,
+                      onPressed: canGoBack ? _goToPrevious : null,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 8),
+                    _ComicTurnButton(
+                      icon: Icons.keyboard_arrow_down,
+                      tooltip: AppLocalizations.of(context).nextPage,
+                      onPressed: canGoForward ? _goToNext : null,
+                      size: 40,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else ...[
+          Positioned(
+            left: 10,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: AnimatedOpacity(
+                opacity: widget.controlsVisible ? 1 : .4,
+                duration: const Duration(milliseconds: 250),
+                child: _ComicTurnButton(
+                  key: const Key('comic-turn-left'),
+                  icon: rightToLeft ? Icons.chevron_right : Icons.chevron_left,
+                  tooltip: rightToLeft
+                      ? AppLocalizations.of(context).nextPage
+                      : AppLocalizations.of(context).previousPage,
+                  onPressed: rightToLeft
+                      ? (canGoForward ? _goToNext : null)
+                      : (canGoBack ? _goToPrevious : null),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 10,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: AnimatedOpacity(
+                opacity: widget.controlsVisible ? 1 : .4,
+                duration: const Duration(milliseconds: 250),
+                child: _ComicTurnButton(
+                  key: const Key('comic-turn-right'),
+                  icon: rightToLeft ? Icons.chevron_left : Icons.chevron_right,
+                  tooltip: rightToLeft
+                      ? AppLocalizations.of(context).previousPage
+                      : AppLocalizations.of(context).nextPage,
+                  onPressed: rightToLeft
+                      ? (canGoBack ? _goToPrevious : null)
+                      : (canGoForward ? _goToNext : null),
+                ),
+              ),
+            ),
+          ),
+        ],
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            ignoring: !widget.controlsVisible,
+            child: AnimatedOpacity(
+              key: const Key('comic-reader-progress-visibility'),
+              opacity: widget.controlsVisible ? 1 : 0,
+              duration: const Duration(milliseconds: 250),
+              child: _ComicPageControls(
+                currentPage: _currentPage,
+                pageCount: pageCount,
+                onPageSelected: _goToPage,
+                doublePage: widget.preferences.usesDoublePage,
+                rightToLeft: rightToLeft,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -399,82 +529,130 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
   }
 }
 
+class _ComicTurnButton extends StatelessWidget {
+  const _ComicTurnButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.size = 48,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => ClipOval(
+    child: BackdropFilter(
+      filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          fixedSize: Size.square(size),
+          padding: EdgeInsets.zero,
+          backgroundColor: Colors.white.withValues(alpha: .13),
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.white.withValues(alpha: .04),
+          disabledForegroundColor: Colors.white.withValues(alpha: .18),
+          shape: const CircleBorder(),
+        ),
+        icon: Icon(icon),
+      ),
+    ),
+  );
+}
+
 class _ComicPageControls extends StatelessWidget {
   const _ComicPageControls({
     required this.currentPage,
     required this.pageCount,
     required this.onPageSelected,
-    required this.onPrevious,
-    required this.onNext,
     required this.doublePage,
-    required this.desktop,
+    required this.rightToLeft,
   });
 
   final int currentPage;
   final int pageCount;
   final ValueChanged<int> onPageSelected;
-  final VoidCallback onPrevious;
-  final VoidCallback onNext;
   final bool doublePage;
-  final bool desktop;
+  final bool rightToLeft;
 
   @override
   Widget build(BuildContext context) {
-    final canGoBack = currentPage > 0;
     final lastVisiblePage = doublePage && currentPage > 0
         ? (currentPage + 1).clamp(0, pageCount - 1)
         : currentPage;
-    final canGoForward = lastVisiblePage < pageCount - 1;
     final pageLabel = lastVisiblePage == currentPage
         ? '${currentPage + 1} / $pageCount'
         : '${currentPage + 1}–${lastVisiblePage + 1} / $pageCount';
-    final controls = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: AppLocalizations.of(context).previousPage,
-            onPressed: canGoBack ? onPrevious : null,
-            icon: const Icon(Icons.chevron_left),
+    return GestureDetector(
+      onTap: () {},
+      behavior: HitTestBehavior.opaque,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [Colors.black.withValues(alpha: .8), Colors.transparent],
           ),
-          Expanded(
-            child: Slider(
-              value: currentPage.toDouble(),
-              min: 0,
-              max: (pageCount - 1).toDouble(),
-              divisions: pageCount > 1 ? pageCount - 1 : null,
-              label: pageLabel,
-              onChanged: pageCount > 1
-                  ? (value) => onPageSelected(value.round())
-                  : null,
-            ),
-          ),
-          Text(pageLabel),
-          IconButton(
-            tooltip: AppLocalizations.of(context).nextPage,
-            onPressed: canGoForward ? onNext : null,
-            icon: const Icon(Icons.chevron_right),
-          ),
-        ],
-      ),
-    );
-    if (!desktop) {
-      return SafeArea(
-        top: false,
-        child: Material(color: const Color(0xFF161616), child: controls),
-      );
-    }
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 0, 32, 20),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Material(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(14),
-              child: controls,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 72,
+                      child: Text(
+                        pageLabel,
+                        key: const Key('comic-page-label'),
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: .65),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Directionality(
+                        textDirection: rightToLeft
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Colors.white,
+                            inactiveTrackColor: Colors.white24,
+                            thumbColor: Colors.white,
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 7,
+                            ),
+                            trackHeight: 4,
+                          ),
+                          child: Slider(
+                            key: const Key('comic-page-slider'),
+                            value: currentPage.toDouble(),
+                            min: 0,
+                            max: (pageCount - 1).toDouble(),
+                            divisions: pageCount > 1 ? pageCount - 1 : null,
+                            label: pageLabel,
+                            onChanged: pageCount > 1
+                                ? (value) => onPageSelected(value.round())
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -489,40 +667,29 @@ class _ComicReaderStage extends StatelessWidget {
     required this.vertical,
     required this.child,
   });
-
   final bool desktop;
   final bool vertical;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    if (!desktop) {
-      return child;
-    }
-    return ColoredBox(
-      color: const Color(0xFF101010),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(48, 28, 48, 24),
-        child: Center(
-          child: ConstrainedBox(
-            key: const Key('comic-reader-desktop-stage'),
-            constraints: BoxConstraints(maxWidth: vertical ? 920 : 1360),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black,
-                border: Border.all(color: const Color(0xFF2C2C2C)),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(11),
-                child: child,
-              ),
-            ),
+  Widget build(BuildContext context) => SizedBox.expand(
+    key: desktop
+        ? const Key('comic-reader-desktop-stage')
+        : const Key('comic-reader-compact-stage'),
+    child: Padding(
+      padding: vertical
+          ? const EdgeInsets.only(top: 64)
+          : const EdgeInsets.symmetric(horizontal: 56, vertical: 8),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: vertical ? 800 : double.infinity,
           ),
+          child: child,
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _ComicPageSpread extends StatelessWidget {
@@ -549,10 +716,12 @@ class _ComicPageSpread extends StatelessWidget {
         : [firstPage, firstPage + 1];
     return Row(
       children: [
-        for (final pageIndex in pageIndexes)
+        for (final pageIndex in pageIndexes) ...[
+          if (pageIndex != pageIndexes.first) const SizedBox(width: 4),
           Expanded(
             child: _ComicImage(session: session, pageIndex: pageIndex),
           ),
+        ],
       ],
     );
   }
@@ -575,7 +744,7 @@ class _VerticalComicPage extends StatelessWidget {
   );
 }
 
-class _ComicImage extends StatelessWidget {
+class _ComicImage extends StatefulWidget {
   const _ComicImage({
     required this.session,
     required this.pageIndex,
@@ -587,9 +756,32 @@ class _ComicImage extends StatelessWidget {
   final bool fitWidth;
 
   @override
+  State<_ComicImage> createState() => _ComicImageState();
+}
+
+class _ComicImageState extends State<_ComicImage> {
+  // 工具栏显隐只重建界面，沿用同一图片请求以避免重新读取和闪烁。
+  late Future<Uint8List> _pageBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageBytes = widget.session.readPage(widget.pageIndex);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ComicImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session ||
+        oldWidget.pageIndex != widget.pageIndex) {
+      _pageBytes = widget.session.readPage(widget.pageIndex);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<Uint8List>(
-      future: session.readPage(pageIndex),
+      future: _pageBytes,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _ReaderErrorView(error: snapshot.error!);
@@ -600,7 +792,7 @@ class _ComicImage extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) => InteractiveViewer(
             maxScale: 4,
-            child: fitWidth
+            child: widget.fitWidth
                 ? Image.memory(
                     snapshot.data!,
                     width: constraints.maxWidth,
@@ -620,17 +812,12 @@ Future<void> _showComicReadingSettings(
   BuildContext context,
   WidgetRef ref, {
   required PublicationId publicationId,
-  required bool desktop,
 }) {
   return showReaderSettingsSurface(
     context,
-    desktop: desktop,
+    desktop: false,
     desktopKey: const Key('comic-reader-desktop-settings'),
-    child: _ComicReadingSettingsPanel(
-      ref: ref,
-      publicationId: publicationId,
-      desktop: desktop,
-    ),
+    child: _ComicReadingSettingsPanel(ref: ref, publicationId: publicationId),
   );
 }
 
@@ -638,12 +825,10 @@ class _ComicReadingSettingsPanel extends StatefulWidget {
   const _ComicReadingSettingsPanel({
     required this.ref,
     required this.publicationId,
-    required this.desktop,
   });
 
   final WidgetRef ref;
   final PublicationId publicationId;
-  final bool desktop;
 
   @override
   State<_ComicReadingSettingsPanel> createState() =>
@@ -694,102 +879,146 @@ class _ComicReadingSettingsPanelState
 
   @override
   Widget build(BuildContext context) {
-    final theme = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFD8FF67),
-        brightness: Brightness.dark,
-        surface: const Color(0xFF202124),
-      ),
-    );
-    return Theme(
-      data: theme,
-      child: Material(
-        key: const Key('comic-reading-settings-surface'),
-        color: const Color(0xFF202124),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(widget.desktop ? 32 : 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context).readingSettings,
-                        style: Theme.of(context).textTheme.titleLarge,
+    final theme = Theme.of(context);
+    final vertical = preferences.mode == ComicReadingMode.vertical;
+    return Material(
+      key: const Key('comic-reading-settings-surface'),
+      color: theme.colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context).readingSettings,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    IconButton(
-                      tooltip: AppLocalizations.of(context).closeSettings,
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
+                  ),
+                  IconButton(
+                    tooltip: AppLocalizations.of(context).closeSettings,
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context).readingMode,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: 300,
-                  child: DropdownMenu<ComicReadingMode>(
-                    initialSelection: preferences.mode,
-                    label: Text(AppLocalizations.of(context).readingMode),
-                    dropdownMenuEntries: [
-                      for (final mode in ComicReadingMode.values)
-                        DropdownMenuEntry(
-                          value: mode,
-                          label: _modeLabel(context, mode),
-                        ),
-                    ],
-                    onSelected: (value) {
-                      if (value != null) {
-                        _update(preferences.copyWith(mode: value));
-                      }
-                    },
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<ComicReadingMode>(
+                key: const Key('comic-reading-direction'),
+                showSelectedIcon: false,
+                style: const ButtonStyle(
+                  padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 6, vertical: 10),
                   ),
                 ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(AppLocalizations.of(context).doublePageSpread),
-                  subtitle: Text(
-                    preferences.mode == ComicReadingMode.vertical
-                        ? 'Available in horizontal reading modes.'
-                        : 'Keep the cover single, then pair following pages.',
-                  ),
-                  value: preferences.doublePage,
-                  onChanged: preferences.mode == ComicReadingMode.vertical
-                      ? null
-                      : (value) =>
-                            _update(preferences.copyWith(doublePage: value)),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: 300,
-                  child: DropdownButtonFormField<ComicArchiveFileNameEncoding>(
-                    key: ValueKey(fileNameEncoding),
-                    initialValue: fileNameEncoding,
-                    decoration: const InputDecoration(
-                      labelText: 'Archive file name encoding',
+                segments: [
+                  for (final mode in ComicReadingMode.values)
+                    ButtonSegment(
+                      value: mode,
+                      tooltip: _modeLabel(context, mode),
+                      label: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(switch (mode) {
+                            ComicReadingMode.leftToRight => Icons.chevron_right,
+                            ComicReadingMode.rightToLeft => Icons.chevron_left,
+                            ComicReadingMode.vertical =>
+                              Icons.keyboard_arrow_down,
+                          }, size: 18),
+                          const SizedBox(height: 2),
+                          Text(
+                            _modeLabel(context, mode),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
-                    items: [
-                      for (final encoding
-                          in ComicArchiveFileNameEncoding.values)
-                        DropdownMenuItem(
-                          value: encoding,
-                          child: Text(encoding.displayName),
-                        ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        _updateFileNameEncoding(value);
-                      }
-                    },
+                ],
+                selected: {preferences.mode},
+                onSelectionChanged: (selection) =>
+                    _update(preferences.copyWith(mode: selection.single)),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Divider(),
+              ),
+              Text(
+                AppLocalizations.of(context).doublePageSpread,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<bool>(
+                key: const Key('comic-reading-page-layout'),
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                    value: false,
+                    label: Text('Single page'),
+                    icon: Icon(Icons.view_carousel_outlined),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    label: Text('Double page'),
+                    icon: Icon(Icons.view_column_outlined),
+                  ),
+                ],
+                selected: {preferences.doublePage},
+                onSelectionChanged: vertical
+                    ? null
+                    : (selection) => _update(
+                        preferences.copyWith(doublePage: selection.single),
+                      ),
+              ),
+              if (vertical) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Available in horizontal reading modes.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
-            ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Divider(),
+              ),
+              DropdownButtonFormField<ComicArchiveFileNameEncoding>(
+                key: ValueKey(fileNameEncoding),
+                initialValue: fileNameEncoding,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Archive file name encoding',
+                ),
+                items: [
+                  for (final encoding in ComicArchiveFileNameEncoding.values)
+                    DropdownMenuItem(
+                      value: encoding,
+                      child: Text(encoding.displayName),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value != null) _updateFileNameEncoding(value);
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -829,11 +1058,19 @@ class _ReaderErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 52),
+            const Icon(Icons.error_outline, size: 52, color: Colors.white70),
             const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(color: Colors.white),
+            ),
             const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70),
+            ),
           ],
         ),
       ),
@@ -853,14 +1090,23 @@ class _ReaderEmptyContentView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.hide_image_outlined, size: 52),
+          const Icon(
+            Icons.hide_image_outlined,
+            size: 52,
+            color: Colors.white70,
+          ),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context).readerEmptyTitle,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70),
+          ),
         ],
       ),
     ),

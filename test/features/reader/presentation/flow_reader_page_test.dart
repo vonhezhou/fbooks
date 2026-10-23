@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/domain/library/library_source.dart';
@@ -10,12 +13,96 @@ import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences_repository.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/reader_chrome.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'page buttons cross chapter boundaries and return to the last page',
+    (tester) async {
+      final repository = _ReadingProgressRepository();
+      await tester.pumpWidget(
+        _readerApp(
+          FlowDocument(
+            publicationId: _publicationId,
+            chapters: [
+              FlowChapter(
+                index: 0,
+                title: 'Long first',
+                text: List.filled(100, 'First chapter line\n').join(),
+              ),
+              const FlowChapter(index: 1, title: 'Second', text: 'Arrival'),
+            ],
+          ),
+          progressRepository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Table of contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Second'));
+      await tester.pumpAndSettle();
+      expect(find.text('Arrival'), findsOneWidget);
+      await tester.tap(find.byTooltip('Previous page'));
+      await tester.pumpAndSettle();
+      final page = int.parse(_pageInput(tester).controller!.text);
+      final count = tester
+          .widget<ReaderPageNavigation>(find.byType(ReaderPageNavigation))
+          .pageCount;
+      expect(page, count);
+      expect(page, greaterThan(1));
+      await tester.tap(find.byTooltip('Next page'));
+      await tester.pumpAndSettle();
+      expect(find.text('Arrival'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'waits for saved progress and keeps reading after a write failure',
+    (tester) async {
+      final pending = Completer<ReadingProgress?>();
+      final repository = _ReadingProgressRepository(
+        pending: pending.future,
+        failWrites: true,
+      );
+      await tester.pumpWidget(
+        _readerApp(
+          _documentWithTableOfContents,
+          progressRepository: repository,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(repository.saved, isNull);
+      expect(find.text('Read'), findsNothing);
+      pending.complete(
+        ReadingProgress(
+          publicationId: _publicationId,
+          locator: const TextOffsetLocator(chapterIndex: 1, offset: 0),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Continue'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byTooltip('Previous page'));
+      await tester.pumpAndSettle();
+      expect(find.text('Read'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      repository.failWrites = false;
+      await tester.tap(find.byTooltip('Next page'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   testWidgets('follows an internal EPUB link rendered from XHTML', (
     tester,
   ) async {
@@ -69,9 +156,10 @@ void main() {
     expect(find.text('Sales'), findsOneWidget);
   });
 
-  testWidgets('uses floating controls on desktop', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 820));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+  testWidgets('uses a full-width footer and persistent desktop outline', (
+    tester,
+  ) async {
+    await _setWindowSize(tester, const Size(1200, 820));
     await tester.pumpWidget(
       _readerApp(
         const FlowDocument(
@@ -86,6 +174,17 @@ void main() {
       find.byKey(const Key('text-reader-desktop-controls')),
       findsOneWidget,
     );
+    final footer = tester.getRect(
+      find.byKey(const Key('text-reader-desktop-controls')),
+    );
+    expect(footer.left, 0);
+    expect(footer.right, 1200);
+    expect(footer.bottom, 820);
+    final outline = tester.getRect(
+      find.byKey(const Key('text-reader-desktop-table-of-contents')),
+    );
+    expect(outline.width, 320);
+    expect(outline.bottom, footer.top);
     expect(find.byTooltip('Reading settings'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -93,8 +192,7 @@ void main() {
   testWidgets('uses a dark right-side panel for desktop settings', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 820));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(1200, 820));
     await tester.pumpWidget(
       _readerApp(
         const FlowDocument(
@@ -124,10 +222,11 @@ void main() {
     final surface = tester.widget<Material>(
       find.byKey(const Key('text-reading-settings-surface')),
     );
-    expect(surface.color, const Color(0xFF1C1D20));
+    expect(surface.color, const Color(0xFF1C1B1F));
   });
 
   testWidgets('uses a bottom sheet for compact settings', (tester) async {
+    await _setWindowSize(tester, const Size(390, 844));
     await tester.pumpWidget(
       _readerApp(
         const FlowDocument(
@@ -148,8 +247,7 @@ void main() {
   testWidgets('uses a dark left-side panel for the desktop table of contents', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(1200, 820));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await _setWindowSize(tester, const Size(1200, 820));
     await tester.pumpWidget(
       _readerApp(
         _documentWithTableOfContents,
@@ -160,9 +258,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Table of contents'));
-    await tester.pumpAndSettle();
-
     final panel = find.byKey(
       const Key('text-reader-desktop-table-of-contents'),
     );
@@ -171,12 +266,166 @@ void main() {
     final surface = tester.widget<Material>(
       find.byKey(const Key('text-reader-table-of-contents-surface')),
     );
-    expect(surface.color, const Color(0xFF1C1D20));
+    expect(surface.color, const Color(0xFF1C1B1F));
+    expect(tester.getSize(panel).width, 320);
+    expect(find.byType(Dialog), findsNothing);
+
+    await tester.tap(find.byTooltip('Close table of contents'));
+    await tester.pumpAndSettle();
+    expect(panel, findsNothing);
+    await tester.tap(find.byTooltip('Table of contents'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Second chapter'));
+    await tester.pumpAndSettle();
+    expect(find.text('Continue'), findsOneWidget);
+    expect(panel, findsOneWidget);
   });
+
+  for (final html in [false, true]) {
+    testWidgets(
+      '${html ? 'EPUB' : 'TXT'} page input follows real pagination and preserves its anchor on resize',
+      (tester) async {
+        await _setWindowSize(tester, const Size(1440, 1000));
+        final repository = _ReadingProgressRepository();
+        final text = List.generate(
+          100,
+          (index) =>
+              'Paragraph $index. A long chapter remains readable when the window changes size.',
+        ).join('\n');
+        await tester.pumpWidget(
+          _readerApp(
+            FlowDocument(
+              publicationId: _publicationId,
+              chapters: [
+                FlowChapter(
+                  index: 0,
+                  title: 'A long chapter',
+                  text: text,
+                  transitionalHtml: html
+                      ? '<p>${text.replaceAll('\n', '</p><p>')}</p>'
+                      : null,
+                ),
+              ],
+            ),
+            progressRepository: repository,
+          ),
+        );
+        await tester.pumpAndSettle();
+        final navigation = tester.widget<ReaderPageNavigation>(
+          find.byType(ReaderPageNavigation),
+        );
+        expect(navigation.currentPage, 1);
+        expect(navigation.pageCount, greaterThan(3));
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('text-reader-position')))
+              .data,
+          contains('Chapter 1 of 1'),
+        );
+
+        await tester.enterText(find.byKey(const Key('reader-page-input')), '3');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(_pageInput(tester).controller!.text, '3');
+        await tester.pump(const Duration(milliseconds: 500));
+        final anchor = repository.saved!.locator as TextOffsetLocator;
+        expect(anchor.offset, greaterThan(0));
+
+        await tester.enterText(
+          find.byKey(const Key('reader-page-input')),
+          '${navigation.pageCount + 1}',
+        );
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(_pageInput(tester).controller!.text, '3');
+
+        await _setWindowSize(tester, const Size(768, 1000));
+        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 500));
+        final resized = repository.saved!.locator as TextOffsetLocator;
+        expect(resized.paragraphIndex, anchor.paragraphIndex);
+        expect(resized.characterOffset, anchor.characterOffset);
+        expect(
+          find.byKey(const Key('text-reader-desktop-table-of-contents')),
+          findsNothing,
+        );
+        expect(
+          tester.getSize(find.byKey(const Key('flow-content-scroll'))).width,
+          720,
+        );
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+      },
+    );
+  }
+
+  testWidgets(
+    'settings switch to continuous reading without discarding the text anchor',
+    (tester) async {
+      await _setWindowSize(tester, const Size(390, 844));
+      final repository = _ReadingProgressRepository();
+      final preferences = _TextReadingPreferencesRepository(
+        TextReadingPreferences.defaults,
+      );
+      await tester.pumpWidget(
+        _readerApp(
+          FlowDocument(
+            publicationId: _publicationId,
+            chapters: [
+              FlowChapter(
+                index: 0,
+                title: 'Long chapter',
+                text: List.generate(
+                  100,
+                  (index) =>
+                      'Paragraph $index. Keep the reader at this text anchor.',
+                ).join('\n'),
+              ),
+            ],
+          ),
+          progressRepository: repository,
+          preferencesRepository: preferences,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Next page'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      final anchor = repository.saved!.locator as TextOffsetLocator;
+
+      await tester.tap(find.byTooltip('Reading settings'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<TextReadingMode>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continuous scroll').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Close settings'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(preferences.preferences.mode, TextReadingMode.scroll);
+      expect(
+        preferences.preferences.fontSize,
+        TextReadingPreferences.defaults.fontSize,
+      );
+      expect(
+        preferences.preferences.horizontalPadding,
+        TextReadingPreferences.defaults.horizontalPadding,
+      );
+      expect(find.byType(ReaderPageNavigation), findsNothing);
+      expect(find.byTooltip('Next chapter'), findsOneWidget);
+      final resumed = repository.saved!.locator as TextOffsetLocator;
+      expect(resumed.paragraphIndex, anchor.paragraphIndex);
+      expect(resumed.characterOffset, anchor.characterOffset);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets('uses a full-screen dialog for the compact table of contents', (
     tester,
   ) async {
+    await _setWindowSize(tester, const Size(390, 844));
     await tester.pumpWidget(_readerApp(_documentWithTableOfContents));
     await tester.pumpAndSettle();
 
@@ -191,6 +440,20 @@ void main() {
     expect(tester.getSize(surface), tester.getSize(find.byType(MaterialApp)));
   });
 }
+
+Future<void> _setWindowSize(WidgetTester tester, Size size) async {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = size;
+  await tester.binding.setSurfaceSize(size);
+  addTearDown(() async {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+    await tester.binding.setSurfaceSize(null);
+  });
+}
+
+TextField _pageInput(WidgetTester tester) =>
+    tester.widget<TextField>(find.byKey(const Key('reader-page-input')));
 
 const _publicationId = 'linked-book';
 
@@ -220,6 +483,8 @@ const _documentWithTableOfContents = FlowDocument(
 Widget _readerApp(
   FlowDocument document, {
   TextReadingPreferences preferences = TextReadingPreferences.defaults,
+  _ReadingProgressRepository? progressRepository,
+  _TextReadingPreferencesRepository? preferencesRepository,
 }) => ProviderScope(
   overrides: [
     publicationRepositoryProvider.overrideWithValue(
@@ -229,10 +494,10 @@ Widget _readerApp(
       _FlowReadingSessionFactory(document),
     ),
     readingProgressRepositoryProvider.overrideWithValue(
-      _ReadingProgressRepository(),
+      progressRepository ?? _ReadingProgressRepository(),
     ),
     textReadingPreferencesRepositoryProvider.overrideWithValue(
-      _TextReadingPreferencesRepository(preferences),
+      preferencesRepository ?? _TextReadingPreferencesRepository(preferences),
     ),
   ],
   child: const MaterialApp(
@@ -291,11 +556,19 @@ class _FlowReadingSession implements FlowReadingSession {
 }
 
 class _ReadingProgressRepository implements ReadingProgressRepository {
+  _ReadingProgressRepository({this.pending, this.failWrites = false});
+  final Future<ReadingProgress?>? pending;
+  bool failWrites;
+  ReadingProgress? saved;
   @override
-  Future<ReadingProgress?> load(PublicationId publicationId) async => null;
+  Future<ReadingProgress?> load(PublicationId publicationId) async =>
+      pending == null ? null : await pending;
 
   @override
-  Future<void> save(ReadingProgress progress) async {}
+  Future<void> save(ReadingProgress progress) async {
+    if (failWrites) throw StateError('Storage unavailable');
+    saved = progress;
+  }
 }
 
 class _TextReadingPreferencesRepository

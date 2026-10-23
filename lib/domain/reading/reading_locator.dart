@@ -25,10 +25,19 @@ class PdfPageLocator extends ReadingLocator {
 }
 
 class TextOffsetLocator extends ReadingLocator {
-  const TextOffsetLocator({required this.chapterIndex, required this.offset})
-    : assert(chapterIndex >= 0),
-      assert(offset >= 0);
+  const TextOffsetLocator({
+    required this.chapterIndex,
+    required this.offset,
+    this.paragraphIndex,
+    this.characterOffset,
+  }) : assert(chapterIndex >= 0),
+       assert(offset >= 0),
+       assert((paragraphIndex == null) == (characterOffset == null)),
+       assert(paragraphIndex == null || paragraphIndex >= 0),
+       assert(characterOffset == null || characterOffset >= 0);
 
   final int chapterIndex;
   final int offset;
+  final int? paragraphIndex;
+  final int? characterOffset;
 }

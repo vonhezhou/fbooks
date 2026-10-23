@@ -31,6 +31,24 @@ void main() {
     expect(textLocator.offset, 640);
   });
 
+  test('round-trips a text anchor alongside its legacy pixel offset', () {
+    const original = TextOffsetLocator(
+      chapterIndex: 2,
+      offset: 640,
+      paragraphIndex: 3,
+      characterOffset: 125,
+    );
+    final stored = ReadingLocatorCodec.encode(original);
+    final restored = ReadingLocatorCodec.decode(
+      type: stored.type,
+      value: stored.value,
+    ) as TextOffsetLocator;
+    expect(restored.chapterIndex, 2);
+    expect(restored.offset, 640);
+    expect(restored.paragraphIndex, 3);
+    expect(restored.characterOffset, 125);
+  });
+
   test('round-trips a PDF page locator', () {
     const original = PdfPageLocator(12);
 

@@ -1,23 +1,21 @@
-import 'dart:math' as math;
-
 import 'package:flutter/rendering.dart';
 
 /// Sizes a publication card from its cover's ratio plus a fixed metadata area.
 class PublicationCardGridDelegate extends SliverGridDelegate {
   const PublicationCardGridDelegate({
-    required this.maxCrossAxisExtent,
+    required this.crossAxisCount,
     required this.coverAspectRatio,
     required this.footerExtent,
     this.mainAxisSpacing = 0,
     this.crossAxisSpacing = 0,
-  }) : assert(maxCrossAxisExtent > 0),
+  }) : assert(crossAxisCount > 0),
        assert(coverAspectRatio > 0),
        assert(footerExtent >= 0),
        assert(mainAxisSpacing >= 0),
        assert(crossAxisSpacing >= 0);
 
-  /// The maximum width of a card before another grid column is added.
-  final double maxCrossAxisExtent;
+  /// The number of columns at the current responsive breakpoint.
+  final int crossAxisCount;
 
   /// The cover width divided by its height.
   final double coverAspectRatio;
@@ -37,11 +35,6 @@ class PublicationCardGridDelegate extends SliverGridDelegate {
 
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
-    final crossAxisCount = math.max(
-      1,
-      (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing))
-          .ceil(),
-    );
     final usableCrossAxisExtent =
         constraints.crossAxisExtent - crossAxisSpacing * (crossAxisCount - 1);
     final childCrossAxisExtent = usableCrossAxisExtent / crossAxisCount;
@@ -59,7 +52,7 @@ class PublicationCardGridDelegate extends SliverGridDelegate {
 
   @override
   bool shouldRelayout(covariant PublicationCardGridDelegate oldDelegate) =>
-      maxCrossAxisExtent != oldDelegate.maxCrossAxisExtent ||
+      crossAxisCount != oldDelegate.crossAxisCount ||
       coverAspectRatio != oldDelegate.coverAspectRatio ||
       footerExtent != oldDelegate.footerExtent ||
       mainAxisSpacing != oldDelegate.mainAxisSpacing ||

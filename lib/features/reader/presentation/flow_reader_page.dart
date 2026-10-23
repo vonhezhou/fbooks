@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/gestures.dart';
 import 'package:fbooks/app/providers.dart';
-import 'package:fbooks/app/window/window_caption.dart';
+import 'package:fbooks/features/reader/presentation/reader_chrome.dart';
 import 'package:fbooks/application/reader/flow_reading_session.dart';
 import 'package:fbooks/domain/publication/publication_id.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
@@ -12,6 +12,7 @@ import 'package:fbooks/domain/reading/reading_progress_repository.dart';
 import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/features/reader/presentation/reader_settings_surface.dart';
+import 'package:fbooks/features/reader/presentation/flow_content_viewport.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -36,59 +37,108 @@ class FlowReaderPage extends ConsumerWidget {
       final preferences =
           ref.watch(textReadingPreferencesProvider).asData?.value ??
           TextReadingPreferences.defaults;
-      return Scaffold(
-        backgroundColor: _backgroundColor(preferences.appearance),
-        appBar: fbooksAppBar(
-          toolbarHeight: desktop ? 64 : null,
-          backgroundColor: _backgroundColor(preferences.appearance),
-          foregroundColor: _foregroundColor(preferences.appearance),
-          title: Text(title, overflow: TextOverflow.ellipsis),
-          centerTitle: !desktop && constraints.maxWidth < 720,
-          actions: [
-            IconButton(
-              tooltip: AppLocalizations.of(context).readingSettings,
-              onPressed: () =>
-                  _showTextReadingSettings(context, ref, desktop: desktop),
-              icon: const Icon(Icons.tune),
-            ),
-          ],
-        ),
-        body: session.when(
-          data: (value) => _FlowChapterPager(
-            publicationId: publicationId,
-            session: value,
-            preferences: preferences,
-            desktop: desktop,
-          ),
-          error: (error, stackTrace) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                AppLocalizations.of(context)
-                    .unableToOpenPublication(error.toString()),
-                textAlign: TextAlign.center,
+      return Theme(
+        data: _textReaderTheme(preferences.appearance),
+        child: Builder(
+          builder: (context) {
+            void showSettings() =>
+                _showTextReadingSettings(context, ref, desktop: desktop);
+            return session.when(
+              data: (value) => _FlowChapterPager(
+                publicationId: publicationId,
+                title: title,
+                session: value,
+                preferences: preferences,
+                desktop: desktop,
+                onShowSettings: showSettings,
               ),
-            ),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stackTrace) => _FlowReaderFrame(
+                title: title,
+                onShowSettings: showSettings,
+                appearance: preferences.appearance,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      AppLocalizations.of(context)
+                          .unableToOpenPublication(error.toString()),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+              loading: () => _FlowReaderFrame(
+                title: title,
+                onShowSettings: showSettings,
+                appearance: preferences.appearance,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            );
+          },
         ),
       );
     },
   );
 }
 
+class _FlowReaderFrame extends StatelessWidget {
+  const _FlowReaderFrame({
+    required this.title,
+    required this.onShowSettings,
+    required this.appearance,
+    required this.child,
+    this.leadingActions = const [],
+    this.progress,
+  });
+
+  final String title;
+  final VoidCallback onShowSettings;
+  final TextReadingAppearance appearance;
+  final Widget child;
+  final List<Widget> leadingActions;
+  final Widget? progress;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: _backgroundColor(appearance),
+    body: Column(
+      children: [
+        ReaderToolbar(
+          title: title,
+          height: MediaQuery.sizeOf(context).width < 600 ? 56 : 64,
+          leadingActions: leadingActions,
+          progress: progress,
+          actions: [
+            const ReaderFullscreenButton(),
+            IconButton(
+              tooltip: AppLocalizations.of(context).readingSettings,
+              onPressed: onShowSettings,
+              icon: const Icon(Icons.settings_outlined),
+            ),
+          ],
+        ),
+        Expanded(child: child),
+      ],
+    ),
+  );
+}
+
 class _FlowChapterPager extends ConsumerStatefulWidget {
   const _FlowChapterPager({
     required this.publicationId,
+    required this.title,
     required this.session,
     required this.preferences,
     required this.desktop,
+    required this.onShowSettings,
   });
 
   final PublicationId publicationId;
+  final String title;
   final FlowReadingSession session;
   final TextReadingPreferences preferences;
   final bool desktop;
+  final VoidCallback onShowSettings;
 
   @override
   ConsumerState<_FlowChapterPager> createState() => _FlowChapterPagerState();
@@ -99,8 +149,10 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
   late final ReadingProgressRepository _progressRepository;
   bool _hasRestoredPosition = false;
   var _currentChapter = 0;
-  final _chapterOffsets = <int, int>{};
+  final _chapterPositions = <int, TextOffsetLocator>{};
   Timer? _pendingProgressWrite;
+  var _outlineVisible = true;
+  FlowPagination? _pagination;
 
   @override
   void initState() {
@@ -112,29 +164,92 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
   @override
   void dispose() {
     _pendingProgressWrite?.cancel();
-    final offset = _chapterOffsets[_currentChapter] ?? 0;
-    unawaited(_persistPosition(_currentChapter, offset));
+    final position = _chapterPositions[_currentChapter];
+    if (position != null) unawaited(_persistPosition(position));
     _pageController.dispose();
     super.dispose();
   }
 
+  List<FlowTableOfContentsEntry> get _tableOfContents =>
+      widget.session.document.tableOfContents.isNotEmpty
+      ? widget.session.document.tableOfContents
+      : [
+          for (final chapter in widget.session.document.chapters)
+            FlowTableOfContentsEntry(
+              title: chapter.title,
+              chapterIndex: chapter.index,
+            ),
+        ];
+
   @override
   Widget build(BuildContext context) {
-    ref
-        .watch(readingProgressProvider(widget.publicationId))
-        .whenData(_restorePosition);
+    final progress = ref.watch(readingProgressProvider(widget.publicationId));
+    final l10n = AppLocalizations.of(context);
     final chapterCount = widget.session.document.chapters.length;
+    final chapterLabel = l10n.chapterProgress(
+      _currentChapter + 1,
+      chapterCount,
+    );
+    final pagination = _pagination;
+    return _FlowReaderFrame(
+      title: widget.title,
+      appearance: widget.preferences.appearance,
+      onShowSettings: widget.onShowSettings,
+      leadingActions: [
+        if (chapterCount > 0)
+          IconButton(
+            tooltip: l10n.tableOfContents,
+            onPressed: () {
+              if (widget.desktop) {
+                setState(() => _outlineVisible = !_outlineVisible);
+              } else {
+                _showTableOfContents(
+                  context,
+                  _tableOfContents,
+                  _goToChapter,
+                  appearance: widget.preferences.appearance,
+                  currentChapter: _currentChapter,
+                  chapterCount: chapterCount,
+                );
+              }
+            },
+            icon: const Icon(Icons.menu),
+          ),
+      ],
+      progress: chapterCount > 0
+          ? Text(
+              !widget.desktop ||
+                      pagination == null ||
+                      widget.preferences.mode == TextReadingMode.scroll
+                  ? chapterLabel
+                  : '$chapterLabel · ${l10n.pageProgress(pagination.pageIndex + 1, pagination.pageCount)}',
+              key: const Key('text-reader-position'),
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          : null,
+      child: !_hasRestoredPosition && progress.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildReader(context, progress, chapterCount),
+    );
+  }
+
+  Widget _buildReader(
+    BuildContext context,
+    AsyncValue<ReadingProgress?> progress,
+    int chapterCount,
+  ) {
+    progress.whenData(_restorePosition);
     if (chapterCount == 0) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.article_outlined, size: 52),
-              SizedBox(height: 16),
+              const Icon(Icons.article_outlined, size: 52),
+              const SizedBox(height: 16),
               Text(AppLocalizations.of(context).readerEmptyTitle),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 AppLocalizations.of(context).readerEmptyDescription,
                 textAlign: TextAlign.center,
@@ -147,29 +262,77 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
     return Column(
       children: [
         Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: chapterCount,
-            onPageChanged: _savePosition,
-            itemBuilder: (context, index) {
-              return _DeferredFlowChapterView(
-                key: ValueKey(widget.session.document.chapters[index].index),
-                loadChapter: () => widget.session.loadChapter(index),
-                initialOffset: _chapterOffsets[index] ?? 0,
-                onPositionChanged: _savePosition,
-                onChapterSelected: _goToChapter,
-                preferences: widget.preferences,
-              );
-            },
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.desktop && _outlineVisible)
+                SizedBox(
+                  key: const Key('text-reader-desktop-table-of-contents'),
+                  width: 320,
+                  child: _TableOfContentsPanel(
+                    entries: _tableOfContents,
+                    currentChapter: _currentChapter,
+                    chapterCount: chapterCount,
+                    onSelected: _goToChapter,
+                    appearance: widget.preferences.appearance,
+                    onClose: () => setState(() => _outlineVisible = false),
+                  ),
+                ),
+              Expanded(
+                key: const Key('text-reader-content'),
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: chapterCount,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (index) {
+                    setState(() => _currentChapter = index);
+                  },
+                  itemBuilder: (context, index) => _DeferredFlowChapterView(
+                    key: ValueKey(
+                      widget.session.document.chapters[index].index,
+                    ),
+                    loadChapter: () => widget.session.loadChapter(index),
+                    initialPosition:
+                        _chapterPositions[index] ??
+                        TextOffsetLocator(chapterIndex: index, offset: 0),
+                    onPreviousChapter: index > 0
+                        ? () => _goToChapter(index - 1, fromEnd: true)
+                        : null,
+                    onNextChapter: index < chapterCount - 1
+                        ? () => _goToChapter(index + 1, fromStart: true)
+                        : null,
+                    onPositionChanged: _savePosition,
+                    onChapterSelected: _goToChapter,
+                    onPaginationChanged: (value) {
+                      if (index == _currentChapter && mounted) {
+                        final previous = _pagination;
+                        _pagination = value;
+                        if (previous?.pageIndex != value.pageIndex ||
+                            previous?.pageCount != value.pageCount ||
+                            previous?.canGoBack != value.canGoBack ||
+                            previous?.canGoForward != value.canGoForward) {
+                          setState(() {});
+                        }
+                      }
+                    },
+                    preferences: widget.preferences,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        _FlowChapterControls(
+        _FlowReaderControls(
+          key: widget.desktop
+              ? const Key('text-reader-desktop-controls')
+              : const Key('text-reader-compact-controls'),
+          pagination: widget.preferences.mode == TextReadingMode.paged
+              ? _pagination
+              : null,
+          paged: widget.preferences.mode == TextReadingMode.paged,
           currentChapter: _currentChapter,
           chapterCount: chapterCount,
           onChapterSelected: _goToChapter,
-          tableOfContents: widget.session.document.tableOfContents,
-          appearance: widget.preferences.appearance,
-          desktop: widget.desktop,
         ),
       ],
     );
@@ -185,8 +348,14 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
       return;
     }
     final lastChapter = widget.session.document.chapters.length - 1;
+    if (lastChapter < 0) return;
     final chapterIndex = locator.chapterIndex.clamp(0, lastChapter).toInt();
-    _chapterOffsets[chapterIndex] = locator.offset;
+    _chapterPositions[chapterIndex] = TextOffsetLocator(
+      chapterIndex: chapterIndex,
+      offset: locator.offset,
+      paragraphIndex: locator.paragraphIndex,
+      characterOffset: locator.characterOffset,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _pageController.hasClients) {
         _pageController.jumpToPage(chapterIndex);
@@ -195,41 +364,47 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
     });
   }
 
-  void _savePosition(int chapterIndex, [int offset = 0]) {
-    if (_currentChapter != chapterIndex) {
-      setState(() => _currentChapter = chapterIndex);
+  void _savePosition(TextOffsetLocator position) {
+    _chapterPositions[position.chapterIndex] = position;
+    if (position.chapterIndex == _currentChapter) {
+      _queuePositionPersist(position);
     }
-    _chapterOffsets[chapterIndex] = offset;
-    _queuePositionPersist(chapterIndex, offset);
   }
 
-  Future<void> _goToChapter(int chapterIndex) async {
+  Future<void> _goToChapter(
+    int chapterIndex, {
+    bool fromEnd = false,
+    bool fromStart = false,
+  }) async {
     if (!_pageController.hasClients || chapterIndex == _currentChapter) {
       return;
     }
-    await _pageController.animateToPage(
-      chapterIndex,
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-    );
+    if (fromEnd || fromStart) {
+      _chapterPositions[chapterIndex] = TextOffsetLocator(
+        chapterIndex: chapterIndex,
+        offset: fromEnd ? 1 << 31 : 0,
+      );
+    }
+    setState(() {
+      _currentChapter = chapterIndex;
+      _pagination = null;
+    });
+    _pageController.jumpToPage(chapterIndex);
   }
 
-  void _queuePositionPersist(int chapterIndex, int offset) {
+  void _queuePositionPersist(TextOffsetLocator position) {
     _pendingProgressWrite?.cancel();
     _pendingProgressWrite = Timer(const Duration(milliseconds: 400), () {
-      unawaited(_persistPosition(chapterIndex, offset));
+      unawaited(_persistPosition(position));
     });
   }
 
-  Future<void> _persistPosition(int chapterIndex, [int offset = 0]) async {
+  Future<void> _persistPosition(TextOffsetLocator position) async {
     try {
       await _progressRepository.save(
         ReadingProgress(
           publicationId: widget.publicationId,
-          locator: TextOffsetLocator(
-            chapterIndex: chapterIndex,
-            offset: offset,
-          ),
+          locator: position,
           updatedAt: DateTime.now(),
         ),
       );
@@ -239,92 +414,73 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
   }
 }
 
-class _FlowChapterControls extends StatelessWidget {
-  const _FlowChapterControls({
+class _FlowReaderControls extends StatelessWidget {
+  const _FlowReaderControls({
+    super.key,
+    required this.pagination,
+    required this.paged,
     required this.currentChapter,
     required this.chapterCount,
     required this.onChapterSelected,
-    required this.tableOfContents,
-    required this.appearance,
-    required this.desktop,
   });
 
+  final FlowPagination? pagination;
+  final bool paged;
   final int currentChapter;
   final int chapterCount;
   final ValueChanged<int> onChapterSelected;
-  final List<FlowTableOfContentsEntry> tableOfContents;
-  final TextReadingAppearance appearance;
-  final bool desktop;
 
   @override
   Widget build(BuildContext context) {
-    final canGoBack = currentChapter > 0;
-    final canGoForward = currentChapter < chapterCount - 1;
-    final controls = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          if (tableOfContents.isNotEmpty)
-            IconButton(
-              tooltip: AppLocalizations.of(context).tableOfContents,
-              onPressed: () => _showTableOfContents(
-                context,
-                tableOfContents,
-                onChapterSelected,
-                appearance: appearance,
-                desktop: desktop,
-              ),
-              icon: const Icon(Icons.format_list_bulleted),
-            ),
-          IconButton(
-            tooltip: AppLocalizations.of(context).previousChapter,
-            onPressed: canGoBack
-                ? () => onChapterSelected(currentChapter - 1)
-                : null,
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Expanded(
-            child: Slider(
-              value: currentChapter.toDouble(),
-              min: 0,
-              max: (chapterCount - 1).toDouble(),
-              divisions: chapterCount > 1 ? chapterCount - 1 : null,
-              label: AppLocalizations.of(context)
-                  .chapterProgress(currentChapter + 1, chapterCount),
-              onChanged: chapterCount > 1
-                  ? (value) => onChapterSelected(value.round())
-                  : null,
-            ),
-          ),
-          Text('${currentChapter + 1} / $chapterCount'),
-          IconButton(
-            tooltip: AppLocalizations.of(context).nextChapter,
-            onPressed: canGoForward
-                ? () => onChapterSelected(currentChapter + 1)
-                : null,
-            icon: const Icon(Icons.chevron_right),
-          ),
-        ],
-      ),
-    );
-    if (!desktop) {
-      return SafeArea(
-        top: false,
-        child: Material(color: _controlsColor(appearance), child: controls),
+    final l10n = AppLocalizations.of(context);
+    final pagination = this.pagination;
+    if (paged) {
+      if (pagination == null) {
+        return const SizedBox(height: 72);
+      }
+      return ReaderPageNavigation(
+        currentPage: pagination.pageIndex + 1,
+        pageCount: pagination.pageCount,
+        onPrevious: pagination.canGoBack ? pagination.onPreviousPage : null,
+        onNext: pagination.canGoForward ? pagination.onNextPage : null,
+        onPageSelected: (page) => pagination.onPageSelected(page - 1),
       );
     }
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 0, 32, 20),
-        child: Center(
-          child: ConstrainedBox(
-            key: const Key('text-reader-desktop-controls'),
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Material(
-              color: _controlsColor(appearance),
-              borderRadius: BorderRadius.circular(14),
-              child: controls,
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 3,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: l10n.previousChapter,
+                    onPressed: currentChapter > 0
+                        ? () => onChapterSelected(currentChapter - 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_left),
+                  ),
+                  Expanded(
+                    child: Text(
+                      l10n.chapterProgress(currentChapter + 1, chapterCount),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: l10n.nextChapter,
+                    onPressed: currentChapter < chapterCount - 1
+                        ? () => onChapterSelected(currentChapter + 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -338,88 +494,112 @@ Future<void> _showTableOfContents(
   List<FlowTableOfContentsEntry> entries,
   ValueChanged<int> onSelected, {
   required TextReadingAppearance appearance,
-  required bool desktop,
-}) {
-  final panel = _TableOfContentsPanel(
-    entries: entries,
-    onSelected: onSelected,
-    appearance: appearance,
-  );
-  if (desktop) {
-    return showReaderSettingsSurface(
-      context,
-      desktop: true,
-      desktopKey: const Key('text-reader-desktop-table-of-contents'),
-      desktopAlignment: Alignment.centerLeft,
-      desktopEntryOffset: const Offset(-1, 0),
-      barrierLabel: 'Dismiss table of contents',
-      child: panel,
-    );
-  }
-
-  return showDialog<void>(
-    context: context,
-    builder: (context) => Dialog.fullscreen(child: panel),
-  );
-}
+  required int currentChapter,
+  required int chapterCount,
+}) => showDialog<void>(
+  context: context,
+  builder: (context) => Dialog.fullscreen(
+    child: _TableOfContentsPanel(
+      entries: entries,
+      currentChapter: currentChapter,
+      chapterCount: chapterCount,
+      onSelected: (index) {
+        Navigator.of(context).pop();
+        onSelected(index);
+      },
+      onClose: () => Navigator.of(context).pop(),
+      appearance: appearance,
+    ),
+  ),
+);
 
 class _TableOfContentsPanel extends StatelessWidget {
   const _TableOfContentsPanel({
     required this.entries,
+    required this.currentChapter,
+    required this.chapterCount,
     required this.onSelected,
+    required this.onClose,
     required this.appearance,
   });
 
   final List<FlowTableOfContentsEntry> entries;
+  final int currentChapter;
+  final int chapterCount;
   final ValueChanged<int> onSelected;
+  final VoidCallback onClose;
   final TextReadingAppearance appearance;
 
   @override
   Widget build(BuildContext context) => Theme(
     data: _textReaderTheme(appearance),
-    child: SizedBox.expand(
-      child: Material(
+    child: Builder(
+      builder: (context) => Material(
         key: const Key('text-reader-table-of-contents-surface'),
-        color: _backgroundColor(appearance),
+        color: Theme.of(context).colorScheme.surface,
         child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 12, 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context).tableOfContents,
-                        style: Theme.of(context).textTheme.titleLarge,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(color: Theme.of(context).dividerColor),
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 8, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context).tableOfContents,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: AppLocalizations.of(context)
-                          .closeTableOfContents,
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
+                      IconButton(
+                        tooltip: AppLocalizations.of(context)
+                            .closeTableOfContents,
+                        onPressed: onClose,
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: entries.length,
-                  itemBuilder: (context, index) {
-                    final entry = entries[index];
-                    return ListTile(
-                      title: Text(entry.title),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        onSelected(entry.chapterIndex);
-                      },
-                    );
-                  },
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: entries.length,
+                    itemBuilder: (context, index) {
+                      final entry = entries[index];
+                      return ListTile(
+                        key: Key('text-reader-toc-$index'),
+                        selected: entry.chapterIndex == currentChapter,
+                        selectedTileColor: Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withValues(alpha: .4),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 4,
+                        ),
+                        title: Text(entry.title),
+                        subtitle: Text(
+                          AppLocalizations.of(context).chapterProgress(
+                            entry.chapterIndex + 1,
+                            chapterCount,
+                          ),
+                        ),
+                        onTap: () => onSelected(entry.chapterIndex),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -431,17 +611,23 @@ class _DeferredFlowChapterView extends StatelessWidget {
   const _DeferredFlowChapterView({
     super.key,
     required this.loadChapter,
-    required this.initialOffset,
+    required this.initialPosition,
+    this.onPreviousChapter,
+    this.onNextChapter,
     required this.onPositionChanged,
     required this.onChapterSelected,
     required this.preferences,
+    required this.onPaginationChanged,
   });
 
   final Future<FlowChapter> Function() loadChapter;
-  final int initialOffset;
-  final void Function(int chapterIndex, int offset) onPositionChanged;
+  final TextOffsetLocator initialPosition;
+  final VoidCallback? onPreviousChapter;
+  final VoidCallback? onNextChapter;
+  final ValueChanged<TextOffsetLocator> onPositionChanged;
   final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
+  final ValueChanged<FlowPagination> onPaginationChanged;
 
   @override
   Widget build(BuildContext context) => FutureBuilder<FlowChapter>(
@@ -449,10 +635,13 @@ class _DeferredFlowChapterView extends StatelessWidget {
     builder: (context, snapshot) => switch (snapshot) {
       AsyncSnapshot(:final data?) => FlowChapterRenderer(
         chapter: data,
-        initialOffset: initialOffset,
+        initialPosition: initialPosition,
+        onPreviousChapter: onPreviousChapter,
+        onNextChapter: onNextChapter,
         onPositionChanged: onPositionChanged,
         onChapterSelected: onChapterSelected,
         preferences: preferences,
+        onPaginationChanged: onPaginationChanged,
       ),
       AsyncSnapshot(:final error?) => Center(
         child: Padding(
@@ -472,85 +661,64 @@ class FlowChapterRenderer extends StatefulWidget {
   const FlowChapterRenderer({
     super.key,
     required this.chapter,
-    required this.initialOffset,
+    required this.initialPosition,
+    this.onPreviousChapter,
+    this.onNextChapter,
     required this.onPositionChanged,
     required this.onChapterSelected,
     required this.preferences,
+    this.onPaginationChanged,
   });
 
   final FlowChapter chapter;
-  final int initialOffset;
-  final void Function(int chapterIndex, int offset) onPositionChanged;
+  final TextOffsetLocator initialPosition;
+  final VoidCallback? onPreviousChapter;
+  final VoidCallback? onNextChapter;
+  final ValueChanged<TextOffsetLocator> onPositionChanged;
   final ValueChanged<int> onChapterSelected;
   final TextReadingPreferences preferences;
+  final ValueChanged<FlowPagination>? onPaginationChanged;
 
   @override
   State<FlowChapterRenderer> createState() => _FlowChapterRendererState();
 }
 
 class _FlowChapterRendererState extends State<FlowChapterRenderer> {
-  late final ScrollController _scrollController;
   final _linkRecognizers = <int, TapGestureRecognizer>{};
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController(
-      initialScrollOffset: widget.initialOffset.toDouble(),
-    )..addListener(_reportPosition);
-  }
 
   @override
   void dispose() {
     for (final recognizer in _linkRecognizers.values) {
       recognizer.dispose();
     }
-    _scrollController
-      ..removeListener(_reportPosition)
-      ..dispose();
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant FlowChapterRenderer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialOffset == widget.initialOffset ||
-        !_scrollController.hasClients) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _scrollController.hasClients) {
-        _scrollController.jumpTo(widget.initialOffset.toDouble());
-      }
-    });
-  }
-
-  void _reportPosition() {
-    widget.onPositionChanged(
-      widget.chapter.index,
-      _scrollController.offset.round().clamp(0, 1 << 31).toInt(),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final horizontalPadding = constraints.maxWidth >= 840
-            ? ((constraints.maxWidth - 720) / 2).clamp(
-                widget.preferences.horizontalPadding,
-                double.infinity,
-              )
-            : widget.preferences.horizontalPadding;
-        return SelectionArea(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              32,
-              horizontalPadding,
-              48,
-            ),
+        final horizontalPadding = widget.preferences.horizontalPadding.clamp(
+          0.0,
+          constraints.maxWidth / 4,
+        );
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            16,
+            horizontalPadding,
+            8,
+          ),
+          child: FlowContentViewport(
+            position: widget.initialPosition,
+            mode: widget.preferences.mode,
+            onPositionChanged: widget.onPositionChanged,
+            onPreviousChapter: widget.onPreviousChapter,
+            onNextChapter: widget.onNextChapter,
+            onPaginationChanged: widget.onPaginationChanged,
+            controlsBuilder: widget.onPaginationChanged == null
+                ? null
+                : (context, pagination) => const SizedBox.shrink(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -567,6 +735,20 @@ class _FlowChapterRendererState extends State<FlowChapterRenderer> {
                   Html(
                     data: widget.chapter.transitionalHtml!,
                     extensions: [
+                      TagWrapExtension(
+                        tagsToWrap: const {'img'},
+                        builder: (child) => ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth:
+                                constraints.maxWidth - horizontalPadding * 2,
+                            maxHeight: (constraints.maxHeight - 96).clamp(
+                              48,
+                              double.infinity,
+                            ),
+                          ),
+                          child: child,
+                        ),
+                      ),
                       TagWrapExtension(
                         tagsToWrap: const {'table'},
                         builder: (child) => SingleChildScrollView(
@@ -589,6 +771,8 @@ class _FlowChapterRendererState extends State<FlowChapterRenderer> {
                     },
                     style: {
                       'body': Style(
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero,
                         color: _foregroundColor(widget.preferences.appearance),
                         fontSize: FontSize(widget.preferences.fontSize),
                         lineHeight: LineHeight(widget.preferences.lineHeight),
@@ -777,19 +961,15 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
   @override
   Widget build(BuildContext context) {
     final appearance = preferences.appearance;
+    final theme = _textReaderTheme(appearance);
     return Theme(
-      data: _textReaderTheme(appearance),
+      data: theme,
       child: Material(
         key: const Key('text-reading-settings-surface'),
-        color: _backgroundColor(appearance),
+        color: theme.colorScheme.surface,
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              widget.desktop ? 32 : 24,
-              20,
-              widget.desktop ? 32 : 24,
-              28,
-            ),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -799,7 +979,11 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                     Expanded(
                       child: Text(
                         AppLocalizations.of(context).readingSettings,
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -808,6 +992,27 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                       icon: const Icon(Icons.close),
                     ),
                   ],
+                ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<TextReadingMode>(
+                  isExpanded: true,
+                  initialValue: preferences.mode,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).readingMode,
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: TextReadingMode.paged,
+                      child: Text(AppLocalizations.of(context).textPagedMode),
+                    ),
+                    DropdownMenuItem(
+                      value: TextReadingMode.scroll,
+                      child: Text(AppLocalizations.of(context).textScrollMode),
+                    ),
+                  ],
+                  onChanged: (mode) {
+                    if (mode != null) _update(preferences.copyWith(mode: mode));
+                  },
                 ),
                 const SizedBox(height: 20),
                 _TextPreferenceSlider(
@@ -848,27 +1053,48 @@ class _TextReadingSettingsPanelState extends State<_TextReadingSettingsPanel> {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
-                SegmentedButton<TextReadingAppearance>(
-                  segments: [
-                    ButtonSegment(
-                      value: TextReadingAppearance.light,
-                      icon: Icon(Icons.light_mode_outlined),
-                      label: Text(AppLocalizations.of(context).light),
-                    ),
-                    ButtonSegment(
-                      value: TextReadingAppearance.sepia,
-                      icon: Icon(Icons.auto_stories_outlined),
-                      label: Text(AppLocalizations.of(context).sepia),
-                    ),
-                    ButtonSegment(
-                      value: TextReadingAppearance.dark,
-                      icon: Icon(Icons.dark_mode_outlined),
-                      label: Text(AppLocalizations.of(context).dark),
-                    ),
-                  ],
-                  selected: {preferences.appearance},
-                  onSelectionChanged: (selection) => _update(
-                    preferences.copyWith(appearance: selection.single),
+                LayoutBuilder(
+                  builder: (context, constraints) => Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final (appearance, label) in [
+                        (
+                          TextReadingAppearance.light,
+                          AppLocalizations.of(context).light,
+                        ),
+                        (
+                          TextReadingAppearance.sepia,
+                          AppLocalizations.of(context).sepia,
+                        ),
+                        (
+                          TextReadingAppearance.dark,
+                          AppLocalizations.of(context).dark,
+                        ),
+                      ])
+                        SizedBox(
+                          width: (constraints.maxWidth - 8) / 2,
+                          child: OutlinedButton(
+                            key: Key('text-appearance-${appearance.name}'),
+                            onPressed: () => _update(
+                              preferences.copyWith(appearance: appearance),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: _backgroundColor(appearance),
+                              foregroundColor: _foregroundColor(appearance),
+                              side: BorderSide(
+                                color: preferences.appearance == appearance
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.outline,
+                                width: preferences.appearance == appearance
+                                    ? 2
+                                    : 1,
+                              ),
+                            ),
+                            child: Text(label),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
@@ -903,13 +1129,7 @@ class _TextPreferenceSlider extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Row(
-        children: [
-          Text(label, style: Theme.of(context).textTheme.titleSmall),
-          const Spacer(),
-          Text(valueLabel),
-        ],
-      ),
+      Text('$label: $valueLabel', style: Theme.of(context).textTheme.bodySmall),
       Slider(
         value: value,
         min: min,
@@ -924,31 +1144,35 @@ class _TextPreferenceSlider extends StatelessWidget {
 
 Color _backgroundColor(TextReadingAppearance appearance) =>
     switch (appearance) {
-      TextReadingAppearance.light => const Color(0xFFF8F7F3),
-      TextReadingAppearance.dark => const Color(0xFF1C1D20),
-      TextReadingAppearance.sepia => const Color(0xFFF3E7CD),
+      TextReadingAppearance.light => Colors.white,
+      TextReadingAppearance.dark => const Color(0xFF1A1A1A),
+      TextReadingAppearance.sepia => const Color(0xFFF5F1E8),
     };
 
-ThemeData _textReaderTheme(TextReadingAppearance appearance) => ThemeData(
-  useMaterial3: true,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFF5268A6),
-    brightness: appearance == TextReadingAppearance.dark
-        ? Brightness.dark
-        : Brightness.light,
-    surface: _backgroundColor(appearance),
-  ),
-);
+ThemeData _textReaderTheme(TextReadingAppearance appearance) {
+  final dark = appearance == TextReadingAppearance.dark;
+  final colors =
+      ColorScheme.fromSeed(
+        seedColor: const Color(0xFF6750A4),
+        brightness: dark ? Brightness.dark : Brightness.light,
+      ).copyWith(
+        primary: dark ? const Color(0xFFD0BCFF) : const Color(0xFF6750A4),
+        surface: dark ? const Color(0xFF1C1B1F) : const Color(0xFFFFFBFE),
+        onSurface: dark ? const Color(0xFFE6E1E5) : const Color(0xFF1C1B1F),
+      );
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: colors,
+    inputDecorationTheme: InputDecorationTheme(
+      isDense: true,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
+}
 
 Color _foregroundColor(TextReadingAppearance appearance) =>
     switch (appearance) {
-      TextReadingAppearance.light ||
-      TextReadingAppearance.sepia => const Color(0xFF1C1D20),
-      TextReadingAppearance.dark => const Color(0xFFF6F3EC),
+      TextReadingAppearance.light => Colors.black,
+      TextReadingAppearance.sepia => const Color(0xFF333333),
+      TextReadingAppearance.dark => const Color(0xFFE0E0E0),
     };
-
-Color _controlsColor(TextReadingAppearance appearance) => switch (appearance) {
-  TextReadingAppearance.light => const Color(0xFFEAE8E2),
-  TextReadingAppearance.dark => const Color(0xFF292A2D),
-  TextReadingAppearance.sepia => const Color(0xFFE4D3B2),
-};
