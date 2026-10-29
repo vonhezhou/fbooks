@@ -1,0 +1,579 @@
+{
+  "renderer": "metal",
+  "initial_preparation": {
+    "source_is_real": true,
+    "source_session_reused": false,
+    "input_format": "epub",
+    "source_open_ms": 448.337,
+    "source_page_count": 92,
+    "chapter_index": 19,
+    "pagination_scope": "selected-chapter",
+    "native_preparation_ms": 523.929,
+    "rss_before_native_preparation": 208453632,
+    "rss_after_native_preparation": 232505344,
+    "visible_face_count": 2,
+    "elapsed_ms": 684.633,
+    "decode_elapsed_ms": 160.676,
+    "rgba_bytes": 8006528,
+    "decode_misses_before_prefetch": 2,
+    "resident_bytes_before_prefetch": 8006528
+  },
+  "visible_face_count": 2,
+  "mesh_warmup_enabled": true,
+  "mesh_warmup_ms": 0.0,
+  "shader_warmup_enabled": true,
+  "shader_warmup_ms": 0.0,
+  "logical_width": 390.0,
+  "logical_height": 503.0,
+  "texture_dpr": 2.2577908255050376,
+  "window_dpr": 3.0,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 476,
+    "coalesced_moves": 475,
+    "clock_mismatches": 0,
+    "dispatch_clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 0
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 0
+    },
+    "dispatch_to_raster_finish_ms": {
+      "samples": 0
+    },
+    "dispatch_metric_excludes": "platform input queue before Dart dispatch, compositor presentation, display scanout",
+    "dispatch_first_frames": [],
+    "dispatch_slowest_frames_over_20ms": [],
+    "first_frames": [],
+    "slowest_frames_over_20ms": [],
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "metal": {
+    "copy_calls": 564,
+    "width": 1170,
+    "last_sequence": 573,
+    "depth_test": true,
+    "gpu": "Apple A14 GPU",
+    "initialization_ms": 316.1374166957103,
+    "height": 1509,
+    "estimated_owned_texture_bytes": 47631368,
+    "rows": 24,
+    "memoryless_attachments": true,
+    "metal_device_allocated_bytes": 308363264,
+    "thermal_state": 0,
+    "output_pool_allocation_limit": 5,
+    "columns": 96,
+    "memory_estimate": "conservative pool maximum; observed CVPixelBuffer wrapper count is not live buffer count",
+    "rejected": 0,
+    "msaa": 4,
+    "output_buffer_objects_observed": 234,
+    "channel_to_texture_ready_ms": {
+      "samples": 569,
+      "p50": 10.553,
+      "p95": 13.139,
+      "p99": 17.853,
+      "max": 61.08
+    },
+    "dispatch_to_texture_ready_ms": {
+      "samples": 464,
+      "p50": 26.179,
+      "p95": 29.209,
+      "p99": 44.277,
+      "max": 75.933
+    },
+    "request_to_flutter_copy_upper_ms": {
+      "samples": 563,
+      "p50": 17.924458342980593,
+      "p95": 19.280958358593285,
+      "p99": 45.47483333005384,
+      "max": 68.28841664588079
+    },
+    "dispatch_to_flutter_copy_upper_ms": {
+      "samples": 458,
+      "p50": 33.436791685100644,
+      "p95": 35.03866670058295,
+      "p99": 41.00204166911915,
+      "max": 83.1414166458808
+    },
+    "input_updates_without_observed_copy": 6,
+    "coalesced_updates": 7,
+    "page_upload_and_preparation_ms": 68.154,
+    "generation": 8,
+    "clock_alignment": {
+      "valid": true,
+      "observations": 14,
+      "lower_offset_us": 42904849183,
+      "upper_offset_us": 42904849209,
+      "uncertainty_us": 26,
+      "method": "Round-trip interval intersection before/after capture; only copies whose entire uncertainty interval lies inside one raster interval are matched."
+    },
+    "request_to_flutter_raster_finish_ms": {
+      "samples": 546,
+      "p50": 18.173,
+      "p95": 19.617,
+      "p99": 55.709,
+      "max": 68.36
+    },
+    "dispatch_to_flutter_raster_finish_ms": {
+      "samples": 450,
+      "p50": 33.7,
+      "p95": 35.248,
+      "p99": 41.507,
+      "max": 83.213
+    },
+    "copies_without_unambiguous_frame": 18,
+    "limitations": "Texture ready is not display presentation. Copy bounds join request IDs and add two same-clock durations; they overestimate by reply delivery time and end at Flutter texture acquisition, not screen presentation. Unsampled/coalesced updates remain counted. FrameTiming covers Flutter work only.",
+    "command_sample_count": 569,
+    "gpu_ms": {
+      "samples": 569,
+      "p50": 7.462624984327704,
+      "p95": 10.08712500333786,
+      "p99": 10.274124972056597,
+      "max": 10.470958310179412
+    },
+    "native_encode_ms": {
+      "samples": 569,
+      "p50": 0.4811250255443156,
+      "p95": 1.0766666382551193,
+      "p99": 1.93070835666731,
+      "max": 50.68420834140852
+    },
+    "native_ready_ms": {
+      "samples": 569,
+      "p50": 8.663250016979873,
+      "p95": 11.179749970324337,
+      "p99": 15.237166662700474,
+      "max": 59.423916682135314
+    },
+    "ready_to_first_copy_ms": {
+      "samples": 564,
+      "p50": 7.389041711576283,
+      "p95": 10.624249989632517,
+      "p99": 17.579374951310456,
+      "max": 43.331374996341765
+    },
+    "observed_copy_sequences": 564
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 229965824,
+      "resident_rgba_bytes": 16013056,
+      "peak_rgba_bytes": 16013056,
+      "budget_bytes": 33554432,
+      "cached_pages": 4,
+      "hits": 0,
+      "misses": 4,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 228032512,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 228048896,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 232079360,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 226607104,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 228507648,
+      "resident_rgba_bytes": 24019584,
+      "peak_rgba_bytes": 24019584,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 228524032,
+      "resident_rgba_bytes": 24019584,
+      "peak_rgba_bytes": 24019584,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 222167040,
+      "resident_rgba_bytes": 24019584,
+      "peak_rgba_bytes": 24019584,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 227213312,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 10,
+      "rss_bytes": 227229696,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 11,
+      "rss_bytes": 228868096,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 12,
+      "rss_bytes": 223412224,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 13,
+      "rss_bytes": 226131968,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 14,
+      "rss_bytes": 226131968,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 15,
+      "rss_bytes": 230604800,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 16,
+      "rss_bytes": 259866624,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 21,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 17,
+      "rss_bytes": 224755712,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 24,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 18,
+      "rss_bytes": 224804864,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 24,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 19,
+      "rss_bytes": 236994560,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 20,
+      "rss_bytes": 227000320,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 21,
+      "rss_bytes": 227000320,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 22,
+      "rss_bytes": 230309888,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 23,
+      "rss_bytes": 237174784,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 24,
+      "rss_bytes": 238469120,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 25,
+      "rss_bytes": 238469120,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 26,
+      "rss_bytes": 227688448,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 27,
+      "rss_bytes": 227672064,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 28,
+      "rss_bytes": 227688448,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 29,
+      "rss_bytes": 227688448,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 30,
+      "rss_bytes": 227704832,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 31,
+      "rss_bytes": 228048896,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 680,
+    "build_ms": {
+      "mean": 1.4559058823529403,
+      "p95": 1.532,
+      "p99": 27.309,
+      "max": 146.31
+    },
+    "raster_ms": {
+      "mean": 0.9351926470588239,
+      "p95": 1.291,
+      "p99": 11.157,
+      "max": 24.265
+    },
+    "total_span_ms": {
+      "mean": 3.251694117647059,
+      "p95": 3.7,
+      "p99": 38.115,
+      "max": 170.793
+    },
+    "over_60hz_pipeline_budget": 0.013235294117647059,
+    "over_120hz_pipeline_budget": 0.01764705882352941
+  },
+  "page_start": 3,
+  "conditions": {
+    "render_cache_reset_requested": false,
+    "low_power_mode": false,
+    "render_cache_directories_removed": 0,
+    "thermal_state": 0,
+    "maximum_frames_per_second": 60
+  },
+  "native_driver": {
+    "framework": "XCTest UIKit events",
+    "sequence": "five forward, two reverse, short rebound, Finish capture",
+    "expected_page_start": 3,
+    "passed": true,
+    "runs": 1,
+    "render_cache_reset": false
+  },
+  "measurement_limitations": [
+    "Dart input dispatch to matched Flutter raster finish; excludes platform input queue before Dart, compositor presentation and display scanout.",
+    "One sequential run per backend after profile build/install; graphics caches were not cleared. This does not establish a cold-launch distribution.",
+    "Pointer updates can be coalesced or lack an observed texture copy/frame match; sample counts differ and remain reported.",
+    "Native input viewport is 390x503; automatic paired benchmark viewport is 390x551. Only compare backends within the same scenario."
+  ]
+}

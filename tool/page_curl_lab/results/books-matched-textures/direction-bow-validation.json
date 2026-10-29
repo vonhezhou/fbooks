@@ -1,0 +1,195 @@
+{
+  "device": "iPhone 12",
+  "logical_size": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "reference": "Apple Books, same source texture and pointer coordinates",
+  "baseline": "grab-height profile before direction weight and crease bow",
+  "candidate": "direction-weighted corner profile and C1 late crease bow",
+  "method": {
+    "ink_rgb_average_below": 140,
+    "distance": "symmetric Manhattan distance clipped at 12 logical pixels",
+    "roi": "15 to 80 pixels left of the reference gray-band peak; rows 160 through 780",
+    "model_capture_pairing": "within each case baseline and candidate use the same capture method",
+    "hold": "1300ms move followed by 2200ms move to identical coordinates",
+    "frame_extraction_tolerance_seconds": 0,
+    "source_body_mae_initial_vs_previous_reference": 0.0
+  },
+  "results": [
+    {
+      "case": "25",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        292.0,
+        710.0
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 0.47723785279263053,
+        "reference_ink_pixels": 5172,
+        "model_ink_pixels": 5119
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.47723785279263053,
+        "reference_ink_pixels": 5172,
+        "model_ink_pixels": 5119
+      },
+      "model_capture_method": "repaint_boundary",
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "50",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        211.0,
+        689.0
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.4132481047724454,
+        "reference_ink_pixels": 5777,
+        "model_ink_pixels": 5510
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.4089832228546602,
+        "reference_ink_pixels": 5777,
+        "model_ink_pixels": 5559
+      },
+      "model_capture_method": "repaint_boundary",
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "75",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        129.0,
+        667.0
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 3.7784934754513513,
+        "reference_ink_pixels": 5032,
+        "model_ink_pixels": 2309
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.8397303848774438,
+        "reference_ink_pixels": 5032,
+        "model_ink_pixels": 4550
+      },
+      "model_capture_method": "repaint_boundary",
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "late-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        129,
+        732
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 3.9252661355591236,
+        "reference_ink_pixels": 2619,
+        "model_ink_pixels": 886
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.6162339003005515,
+        "reference_ink_pixels": 2619,
+        "model_ink_pixels": 3057
+      },
+      "model_capture_method": "exact_screen_recording_frame",
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "late-shallow",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        129,
+        689
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 4.106017039048375,
+        "reference_ink_pixels": 4807,
+        "model_ink_pixels": 1715
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.5401265886055349,
+        "reference_ink_pixels": 4807,
+        "model_ink_pixels": 4857
+      },
+      "model_capture_method": "exact_screen_recording_frame",
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "late-steeper",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        129,
+        620
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 3.1861787651232167,
+        "reference_ink_pixels": 4196,
+        "model_ink_pixels": 2722
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 2.205546947899069,
+        "reference_ink_pixels": 4196,
+        "model_ink_pixels": 3779
+      },
+      "model_capture_method": "exact_screen_recording_frame",
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "mid-late-horizontal",
+      "origin": [
+        373,
+        564
+      ],
+      "target": [
+        129,
+        564
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.7815505359252002,
+        "reference_ink_pixels": 2621,
+        "model_ink_pixels": 1588
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.44532244976919894,
+        "reference_ink_pixels": 2621,
+        "model_ink_pixels": 2556
+      },
+      "model_capture_method": "exact_screen_recording_frame",
+      "source_body_mae_after_cancel": 0.0
+    }
+  ],
+  "limits": [
+    "Auxiliary deformation metric, not a subjective quality score or full-frame pixel error.",
+    "Paper back, fold shape, shadow and strong diagonal dragging remain unmatched.",
+    "Developable cone experiments were not adopted because anchor reachability or free-corner shape regressed."
+  ]
+}

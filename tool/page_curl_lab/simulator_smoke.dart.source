@@ -1,0 +1,356 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '__LAB_MAIN_URI__' as lab;
+import '__LAB_PAINTER_URI__';
+import '__LAB_MESH_URI__';
+import '__LAB_SOURCES_URI__';
+import '__LAB_REAL_URI__';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets(
+    'real books: renderer, page order, drag, rebound and cancellation',
+    (tester) async {
+      final directory = Directory(
+        const String.fromEnvironment('CURL_SMOKE_OUTPUT').isEmpty
+            ? '${Directory.systemTemp.path}/curl-simulator-smoke'
+            : const String.fromEnvironment('CURL_SMOKE_OUTPUT'),
+      )..createSync(recursive: true);
+      final cases = <Map<String, Object?>>[];
+      var selectionVerified = false;
+      Future<void> save(String status, {Object? error}) =>
+          File('${directory.path}/results.json').writeAsString(
+            jsonEncode({
+              'status': status,
+              'run_id': const String.fromEnvironment('CURL_SMOKE_RUN_ID'),
+              'platform': Platform.operatingSystem,
+              'simulator': lab.simulated,
+              'performance_statistics_usable': false,
+              'renderer': lab.renderer,
+              if (lab.renderer == 'auto')
+                'selection_override_verified': selectionVerified,
+              'cases': cases,
+              'gesture_delivery': 'Flutter integration-test pointer events',
+              'os_touch_interruption_verified': false,
+              if (error != null) 'error_type': error.runtimeType.toString(),
+            }),
+          );
+      final surface = find.byKey(const Key('curl-surface'));
+      final paints = find.byWidgetPredicate(
+        (widget) =>
+            widget is CustomPaint &&
+            (widget.painter is CurlPainter ||
+                widget.painter is CurlShaderPainter),
+      );
+      ({List<ui.Image> images, double progress, bool spread, bool rtl})
+      painter() {
+        final value = tester.widget<CustomPaint>(paints).painter!;
+        if (value is CurlPainter) {
+          return (
+            images: value.images,
+            progress: value.progress,
+            spread: value.spread,
+            rtl: value.rtl,
+          );
+        }
+        final shader = value as CurlShaderPainter;
+        return (
+          images: shader.images,
+          progress: shader.progress,
+          spread: shader.spread,
+          rtl: shader.rtl,
+        );
+      }
+
+      Future<void> waitFor(int page) async {
+        final watch = Stopwatch()..start();
+        while (watch.elapsed < const Duration(seconds: 30)) {
+          await tester.pump(const Duration(milliseconds: 50));
+          expect(tester.takeException(), isNull);
+          if (find.textContaining('· page $page ·').evaluate().isNotEmpty &&
+              surface.evaluate().isNotEmpty) {
+            await tester.pumpAndSettle(
+              const Duration(milliseconds: 50),
+              EnginePhase.sendSemanticsUpdate,
+              const Duration(seconds: 5),
+            );
+            // 回翻先换窗口再播放动画；以绘制端点确认已经结束。
+            if (painter().progress == 0) {
+              expect(tester.takeException(), isNull);
+              return;
+            }
+          }
+        }
+        fail('Page $page did not become ready');
+      }
+
+      Future<ui.Image> snapshot(String name) async {
+        await tester.pump();
+        final boundary = tester.renderObject<RenderRepaintBoundary>(
+          find
+              .ancestor(of: surface, matching: find.byType(RepaintBoundary))
+              .first,
+        );
+        final image = await boundary.toImage(
+          pixelRatio: tester.view.devicePixelRatio,
+        );
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        await File('${directory.path}/$name.png')
+            .writeAsBytes(bytes!.buffer.asUint8List());
+        return image;
+      }
+
+      Future<void> drag(
+        double fraction, {
+        bool cancel = false,
+        double grabY = .5,
+        String? shot,
+      }) async {
+        final rect = tester.getRect(surface);
+        final rightward = fraction > 0;
+        final start = Offset(
+          rightward ? rect.left + 16 : rect.right - 16,
+          rect.top + rect.height * grabY,
+        );
+        final gesture = await tester.startGesture(start);
+        final distance = rect.width / (painter().spread ? 2 : 1) * fraction;
+        for (var i = 0; i < 10; i++) {
+          await gesture.moveBy(Offset(distance / 10, 0));
+          await tester.pump(const Duration(milliseconds: 35));
+        }
+        if (shot != null) (await snapshot(shot)).dispose();
+        // 停留后松手，避免把距离回弹测试变成速度触发的甩页。
+        await tester.pump(const Duration(milliseconds: 120));
+        if (cancel) {
+          await gesture.cancel();
+        } else {
+          await gesture.up();
+        }
+      }
+
+      Future<void> awaitCollection() async {
+        final marker = File('${directory.path}/collected');
+        final deadline = Stopwatch()..start();
+        while (!await marker.exists()) {
+          if (deadline.elapsed > const Duration(seconds: 30)) {
+            fail('Host did not collect the simulator report');
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        }
+      }
+
+      try {
+        final marker = File('${directory.path}/collected');
+        if (await marker.exists()) await marker.delete();
+        await save('awaiting-inputs');
+        if (const bool.fromEnvironment('CURL_INPUT_DOCUMENTS')) {
+          final documents = await getApplicationDocumentsDirectory();
+          final inputDeadline = Stopwatch()..start();
+          while (!['epub', 'cbz', 'pdf'].every(
+            (extension) =>
+                File('${documents.path}/input.$extension').existsSync(),
+          )) {
+            if (inputDeadline.elapsed > const Duration(seconds: 30)) {
+              fail('Simulator input files were not prepared');
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+          }
+        }
+        await lab.main();
+        await waitFor(1);
+        final expectedRenderer = lab.renderer == 'auto'
+            ? (defaultTargetPlatform == TargetPlatform.android
+                  ? 'shader'
+                  : 'mesh')
+            : lab.renderer;
+        String activeRenderer() =>
+            tester.widget<CustomPaint>(paints).painter is CurlPainter
+            ? 'mesh'
+            : 'shader';
+        expect(activeRenderer(), expectedRenderer);
+        if (lab.renderer == 'auto') {
+          final selector = find.byKey(const Key('curl-renderer-choice'));
+          final page = 1 + (painter().spread ? 2 : 1);
+          await tester.tap(find.text('Next'));
+          await waitFor(page);
+          final originalImages = List.of(painter().images);
+          await tester.tap(selector);
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.text(expectedRenderer == 'mesh' ? 'Shader' : 'Mesh').last,
+          );
+          await waitFor(page);
+          expect(
+            activeRenderer(),
+            expectedRenderer == 'mesh' ? 'shader' : 'mesh',
+          );
+          for (var i = 0; i < originalImages.length; i++) {
+            expect(painter().images[i], same(originalImages[i]));
+          }
+          await tester.tap(selector);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Auto ($expectedRenderer)').last);
+          await waitFor(page);
+          expect(activeRenderer(), expectedRenderer);
+          await tester.tap(find.text('Previous'));
+          await waitFor(1);
+          selectionVerified = true;
+        }
+        for (final kind in PageKind.values) {
+          if (kind != PageKind.text) {
+            await tester.tap(find.byType(DropdownButton<PageKind>));
+            await tester.pumpAndSettle(
+              const Duration(milliseconds: 50),
+              EnginePhase.sendSemanticsUpdate,
+              const Duration(seconds: 5),
+            );
+            await tester.tap(find.text(kind.name).last);
+            await waitFor(1);
+          }
+          final host = tester.widget<RealPageHost>(find.byType(RealPageHost));
+          expect(host.source.metadata['source_is_real'], true);
+          for (final spread in [false, true]) {
+            final expectedLabel = spread ? 'Double page' : 'Single page';
+            if (find.text(expectedLabel).evaluate().isEmpty) {
+              await tester.tap(
+                find.text(spread ? 'Single page' : 'Double page'),
+              );
+              await waitFor(1);
+            }
+            expect(activeRenderer(), expectedRenderer);
+            expect(painter().spread, spread);
+            expect(painter().images.length, spread ? 4 : 2);
+            final paintSize = tester.getSize(paints);
+            final faceWidth = paintSize.width / (spread ? 2 : 1);
+            final expectedDpr = math.min(
+              tester.view.devicePixelRatio,
+              math.sqrt(
+                (Platform.isAndroid || Platform.isIOS ? 1000000 : 2000000) /
+                    (faceWidth * paintSize.height),
+              ),
+            );
+            expect(
+              painter().images.first.width,
+              (faceWidth * expectedDpr).ceil(),
+            );
+            expect(
+              painter().images.first.height,
+              (paintSize.height * expectedDpr).ceil(),
+            );
+            final step = spread ? 2 : 1;
+            final name =
+                '${kind == PageKind.text ? 'epub' : kind.name}-${spread ? 'double' : 'single'}';
+            final front = await snapshot('$name-front');
+            final frontPixels = (await front.toByteData())!.buffer
+                .asUint8List();
+            final size = [front.width, front.height];
+            front.dispose();
+            await tester.tap(find.text('Next'));
+            await waitFor(1 + step);
+            await tester.tap(find.text('Previous'));
+            await waitFor(1);
+            await drag(-.8, shot: '$name-curl');
+            await waitFor(1 + step);
+            await drag(.8);
+            await waitFor(1);
+            await drag(-.08);
+            await waitFor(1);
+            for (final grab in [.15, .85]) {
+              await drag(
+                -.55,
+                cancel: true,
+                grabY: grab,
+                shot: '$name-corner-${grab < .5 ? 'top' : 'bottom'}',
+              );
+              await waitFor(1);
+            }
+            await drag(-.65, cancel: true);
+            await waitFor(1);
+            await tester.tap(find.text('Next'));
+            await waitFor(1 + step);
+            await drag(.65, cancel: true);
+            await waitFor(1 + step);
+            await tester.tap(find.text('Previous'));
+            await waitFor(1);
+            await tester.tap(find.text('LTR'));
+            await tester.pumpAndSettle(
+              const Duration(milliseconds: 50),
+              EnginePhase.sendSemanticsUpdate,
+              const Duration(seconds: 5),
+            );
+            expect(painter().rtl, true);
+            await drag(.8);
+            await waitFor(1 + step);
+            await drag(-.8);
+            await waitFor(1);
+            await tester.tap(find.text('RTL'));
+            await tester.pumpAndSettle(
+              const Duration(milliseconds: 50),
+              EnginePhase.sendSemanticsUpdate,
+              const Duration(seconds: 5),
+            );
+            final returned = await snapshot('$name-returned');
+            final pixels = (await returned.toByteData())!.buffer.asUint8List();
+            expect(
+              listEquals(frontPixels, pixels),
+              true,
+              reason:
+                  'Page order or cancellation changed the restored front page',
+            );
+            returned.dispose();
+            cases.add({
+              'format': kind == PageKind.text ? 'epub' : kind.name,
+              'spread': spread,
+              'active_renderer': activeRenderer(),
+              'source_is_real': host.source.metadata['source_is_real'],
+              'visible_face_count': painter().images.length,
+              'window_dpr': tester.view.devicePixelRatio,
+              'snapshot_pixels': size,
+              'texture_pixels': [
+                painter().images.first.width,
+                painter().images.first.height,
+              ],
+              'checks': [
+                '${lab.renderer} paint',
+                'texture resolution matches native DPR and pixel budget',
+                'button forward/back',
+                'drag forward/back',
+                'short rebound',
+                'upper/lower corner drag cancellation',
+                'forward cancellation',
+                'backward cancellation',
+                'RTL drag forward/back',
+                'returned front pixels identical',
+              ],
+              'passed': true,
+            });
+            await save('running');
+          }
+          // 下一种格式从单页开始，避免把模式状态误当作首屏准备结果。
+          if (find.text('Double page').evaluate().isNotEmpty) {
+            await tester.tap(find.text('Double page'));
+            await waitFor(1);
+          }
+        }
+        await save('passed');
+        await awaitCollection();
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(milliseconds: 100));
+      } catch (error) {
+        await save('failed', error: error);
+        await awaitCollection();
+        rethrow;
+      }
+    },
+  );
+}

@@ -1,0 +1,200 @@
+{
+  "cpu_scheduling_observed": true,
+  "stage_statistics": {
+    "AcquireNextImageKHR": {
+      "samples": 2172,
+      "mean_ms": 0.173,
+      "p95_ms": 0.363,
+      "max_ms": 3.527
+    },
+    "CompositorContext::ScopedFrame::Raster": {
+      "samples": 2172,
+      "mean_ms": 0.072,
+      "p95_ms": 0.092,
+      "max_ms": 1.014
+    },
+    "GPURasterizer::Draw": {
+      "samples": 2172,
+      "mean_ms": 2.273,
+      "p95_ms": 3.651,
+      "max_ms": 12.902
+    },
+    "QueuePresentKHR": {
+      "samples": 2172,
+      "mean_ms": 0.946,
+      "p95_ms": 2.109,
+      "max_ms": 11.353
+    },
+    "SurfaceFrame::Submit": {
+      "samples": 2172,
+      "mean_ms": 1.784,
+      "p95_ms": 3.004,
+      "max_ms": 12.259
+    },
+    "queueBuffer": {
+      "samples": 4344,
+      "mean_ms": 0.83,
+      "p95_ms": 2.034,
+      "max_ms": 11.296
+    },
+    "waitForever": {
+      "samples": 2172,
+      "mean_ms": 0.394,
+      "p95_ms": 1.664,
+      "max_ms": 11.082
+    }
+  },
+  "slowest_raster_frames": [
+    {
+      "raster_wall_ms": 12.902,
+      "raster_cpu_running_ms": 0.715,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 1.211,
+        "CompositorContext::ScopedFrame::Raster": 0.025,
+        "QueuePresentKHR": 11.22,
+        "SurfaceFrame::Submit": 11.564,
+        "queueBuffer": 11.197,
+        "waitForever": 11.082
+      }
+    },
+    {
+      "raster_wall_ms": 12.69,
+      "raster_cpu_running_ms": 1.784,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.105,
+        "CompositorContext::ScopedFrame::Raster": 0.07,
+        "QueuePresentKHR": 11.353,
+        "SurfaceFrame::Submit": 12.259,
+        "queueBuffer": 11.296,
+        "waitForever": 9.656
+      }
+    },
+    {
+      "raster_wall_ms": 11.397,
+      "raster_cpu_running_ms": 2.368,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.363,
+        "CompositorContext::ScopedFrame::Raster": 0.087,
+        "QueuePresentKHR": 9.174,
+        "SurfaceFrame::Submit": 10.706,
+        "queueBuffer": 9.13,
+        "waitForever": 8.099
+      }
+    },
+    {
+      "raster_wall_ms": 11.032,
+      "raster_cpu_running_ms": 2.069,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.109,
+        "CompositorContext::ScopedFrame::Raster": 0.078,
+        "QueuePresentKHR": 8.996,
+        "SurfaceFrame::Submit": 10.616,
+        "queueBuffer": 8.958,
+        "waitForever": 8.553
+      }
+    },
+    {
+      "raster_wall_ms": 9.748,
+      "raster_cpu_running_ms": 1.549,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.096,
+        "CompositorContext::ScopedFrame::Raster": 0.053,
+        "QueuePresentKHR": 8.59,
+        "SurfaceFrame::Submit": 9.388,
+        "queueBuffer": 8.54,
+        "waitForever": 8.304
+      }
+    },
+    {
+      "raster_wall_ms": 9.251,
+      "raster_cpu_running_ms": 2.393,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 3.527,
+        "CompositorContext::ScopedFrame::Raster": 0.086,
+        "QueuePresentKHR": 4.355,
+        "SurfaceFrame::Submit": 5.327,
+        "queueBuffer": 3.862,
+        "waitForever": 3.257
+      }
+    },
+    {
+      "raster_wall_ms": 9.009,
+      "raster_cpu_running_ms": 6.977,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.022,
+        "CompositorContext::ScopedFrame::Raster": 0.026,
+        "QueuePresentKHR": 2.005,
+        "SurfaceFrame::Submit": 8.593,
+        "queueBuffer": 1.985,
+        "waitForever": 0.001
+      }
+    },
+    {
+      "raster_wall_ms": 8.674,
+      "raster_cpu_running_ms": 0.826,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.048,
+        "CompositorContext::ScopedFrame::Raster": 0.026,
+        "QueuePresentKHR": 8.066,
+        "SurfaceFrame::Submit": 8.422,
+        "queueBuffer": 8.028,
+        "waitForever": 7.911
+      }
+    },
+    {
+      "raster_wall_ms": 8.616,
+      "raster_cpu_running_ms": 1.816,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.834,
+        "CompositorContext::ScopedFrame::Raster": 0.075,
+        "QueuePresentKHR": 6.69,
+        "SurfaceFrame::Submit": 7.452,
+        "queueBuffer": 6.632,
+        "waitForever": 6.26
+      }
+    },
+    {
+      "raster_wall_ms": 8.611,
+      "raster_cpu_running_ms": 1.773,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.578,
+        "CompositorContext::ScopedFrame::Raster": 0.076,
+        "QueuePresentKHR": 6.936,
+        "SurfaceFrame::Submit": 7.713,
+        "queueBuffer": 6.895,
+        "waitForever": 6.691
+      }
+    },
+    {
+      "raster_wall_ms": 8.6,
+      "raster_cpu_running_ms": 1.889,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 2.924,
+        "CompositorContext::ScopedFrame::Raster": 0.07,
+        "QueuePresentKHR": 4.596,
+        "SurfaceFrame::Submit": 5.349,
+        "queueBuffer": 4.545,
+        "waitForever": 4.228
+      }
+    },
+    {
+      "raster_wall_ms": 8.571,
+      "raster_cpu_running_ms": 1.84,
+      "longest_stage_ms": {
+        "AcquireNextImageKHR": 0.26,
+        "CompositorContext::ScopedFrame::Raster": 0.084,
+        "QueuePresentKHR": 7.057,
+        "SurfaceFrame::Submit": 7.999,
+        "queueBuffer": 7.011,
+        "waitForever": 6.826
+      }
+    }
+  ],
+  "limitations": [
+    "CPU time comes from observed sched_switch intervals; boundary intervals may be incomplete.",
+    "Raster wall time includes blocking and scheduling; CPU running time is not GPU execution time.",
+    "Nested stage durations overlap and must not be added.",
+    "Tracing perturbs timings; this report diagnoses waits and does not establish a speedup.",
+    "No frame presentation or dropped-frame rate is inferred."
+  ]
+}

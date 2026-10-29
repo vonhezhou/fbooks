@@ -3,8 +3,9 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:charset/charset.dart';
-import 'package:dart_big5/big5.dart' as big5;
 import 'package:fbooks/domain/reading/comic_archive_file_name_encoding.dart';
+import 'package:fbooks/data/reader/legacy_codecs.dart';
+import 'package:fbooks/data/reader/strict_codec.dart';
 import 'package:uchardet/uchardet.dart' as uchardet;
 
 class ArchiveTextDecoder {
@@ -47,22 +48,32 @@ class ArchiveTextDecoder {
       return name;
     }
     try {
-      return _codecFor(encoding).decode(_rawBytes(name));
+      return decodeLosslessly(_codecFor(encoding), _rawBytes(name));
     } on FormatException {
       return name;
     }
   }
 
   static String? decodeText(Uint8List bytes) {
+    // BOM 是确定证据，损坏的 Unicode 不能再被猜成旧编码而掩盖错误。
+    final bom = _bomEncoding(bytes);
+    if (bom != null) {
+      try {
+        return _decodeUnicode(bytes, bom);
+      } on FormatException {
+        return null;
+      }
+    }
     try {
-      return utf8.decode(bytes);
+      final text = utf8.decode(bytes);
+      if (!text.contains('\x00')) return text;
     } on FormatException {
       // ComicInfo defaults to UTF-8, so only use guessing for invalid UTF-8.
     }
     final unicodeEncoding = _unicodeTextEncoding(bytes);
     if (unicodeEncoding != null) {
       try {
-        return unicodeEncoding.decode(bytes);
+        return _decodeUnicode(bytes, unicodeEncoding);
       } on FormatException {
         // The detector can report UTF-8 for short legacy text; continue with
         // the legacy-code-page fallback below.
@@ -71,7 +82,8 @@ class ArchiveTextDecoder {
     final encoding = _detect(bytes);
     if (encoding != null) {
       try {
-        return _codecFor(encoding).decode(bytes);
+        final text = decodeLosslessly(_codecFor(encoding), bytes);
+        return text.contains('\x00') ? null : text;
       } on FormatException {
         return null;
       }
@@ -86,14 +98,77 @@ class ArchiveTextDecoder {
   static Uint8List _rawBytes(String value) =>
       Uint8List.fromList(value.codeUnits.map((unit) => unit & 0xff).toList());
 
-  static Encoding? _unicodeTextEncoding(Uint8List bytes) {
+  static uchardet.Encoding? _unicodeTextEncoding(Uint8List bytes) {
     final candidate = uchardet.UCharDet().detect(bytes).firstOrNull;
     return switch (candidate?.encoding) {
-      uchardet.Encoding.ascii || uchardet.Encoding.utf8 => utf8,
-      uchardet.Encoding.utf16le || uchardet.Encoding.utf16be => utf16,
-      uchardet.Encoding.utf32le || uchardet.Encoding.utf32be => utf32,
+      uchardet.Encoding.ascii ||
+      uchardet.Encoding.utf8 ||
+      uchardet.Encoding.utf16le ||
+      uchardet.Encoding.utf16be ||
+      uchardet.Encoding.utf32le ||
+      uchardet.Encoding.utf32be => candidate!.encoding,
       _ => null,
     };
+  }
+
+  static uchardet.Encoding? _bomEncoding(List<int> bytes) {
+    bool starts(List<int> prefix) =>
+        bytes.length >= prefix.length &&
+        List.generate(
+          prefix.length,
+          (i) => bytes[i] == prefix[i],
+        ).every((v) => v);
+    if (starts([0xff, 0xfe, 0, 0])) return uchardet.Encoding.utf32le;
+    if (starts([0, 0, 0xfe, 0xff])) return uchardet.Encoding.utf32be;
+    if (starts([0xef, 0xbb, 0xbf])) return uchardet.Encoding.utf8;
+    if (starts([0xff, 0xfe])) return uchardet.Encoding.utf16le;
+    if (starts([0xfe, 0xff])) return uchardet.Encoding.utf16be;
+    return null;
+  }
+
+  static String _decodeUnicode(List<int> bytes, uchardet.Encoding encoding) {
+    final hasBom = _bomEncoding(bytes) == encoding;
+    if (encoding == uchardet.Encoding.utf8 ||
+        encoding == uchardet.Encoding.ascii) {
+      final text = utf8.decode(bytes.sublist(hasBom ? 3 : 0));
+      if (text.contains('\x00')) throw const FormatException('文本包含空字符');
+      return text;
+    }
+    final utf32 =
+        encoding == uchardet.Encoding.utf32le ||
+        encoding == uchardet.Encoding.utf32be;
+    final little =
+        encoding == uchardet.Encoding.utf16le ||
+        encoding == uchardet.Encoding.utf32le;
+    final size = utf32 ? 4 : 2, skip = hasBom ? (utf32 ? 4 : 2) : 0;
+    if ((bytes.length - skip) % size != 0) {
+      throw const FormatException('Unicode 字节不完整');
+    }
+    final units = <int>[];
+    for (var i = skip; i < bytes.length; i += size) {
+      var unit = 0;
+      for (var j = 0; j < size; j++) {
+        unit |= bytes[i + j] << (8 * (little ? j : size - 1 - j));
+      }
+      if (utf32 && (unit > 0x10ffff || unit >= 0xd800 && unit <= 0xdfff)) {
+        throw const FormatException('Unicode 码点无效');
+      }
+      units.add(unit);
+    }
+    if (!utf32) {
+      for (var i = 0; i < units.length; i++) {
+        if (units[i] >= 0xd800 && units[i] <= 0xdbff) {
+          if (++i >= units.length || units[i] < 0xdc00 || units[i] > 0xdfff) {
+            throw const FormatException('UTF-16 代理对无效');
+          }
+        } else if (units[i] >= 0xdc00 && units[i] <= 0xdfff) {
+          throw const FormatException('UTF-16 代理对无效');
+        }
+      }
+    }
+    final text = String.fromCharCodes(units);
+    if (text.contains('\x00')) throw const FormatException('文本包含空字符');
+    return text;
   }
 
   static ComicArchiveFileNameEncoding? _detect(Uint8List bytes) {
@@ -135,10 +210,13 @@ class ArchiveTextDecoder {
     return switch (encoding) {
       ComicArchiveFileNameEncoding.auto => utf8,
       ComicArchiveFileNameEncoding.gbk => gbk,
-      ComicArchiveFileNameEncoding.big5 => const _Big5Codec(),
+      ComicArchiveFileNameEncoding.big5 => const Big5Encoding(),
       ComicArchiveFileNameEncoding.shiftJis => shiftJis,
-      ComicArchiveFileNameEncoding.eucJp => eucJp,
-      ComicArchiveFileNameEncoding.eucKr => eucKr,
+      ComicArchiveFileNameEncoding.eucJp => const EucJpEncoding(),
+      // charset 2.0.1 的 EUC-KR 表方向错误，往返一致也可能解出错误文字。
+      ComicArchiveFileNameEncoding.eucKr => throw const FormatException(
+        'EUC-KR 暂不可用',
+      ),
       ComicArchiveFileNameEncoding.cp437 => cp437,
       ComicArchiveFileNameEncoding.cp737 => cp737,
       ComicArchiveFileNameEncoding.windows1250 => windows1250,
@@ -152,31 +230,4 @@ class ArchiveTextDecoder {
       ComicArchiveFileNameEncoding.windows1258 => windows1258,
     };
   }
-}
-
-class _Big5Codec extends Encoding {
-  const _Big5Codec();
-
-  @override
-  Converter<List<int>, String> get decoder => const _Big5Decoder();
-
-  @override
-  Converter<String, List<int>> get encoder => const _Big5Encoder();
-
-  @override
-  String get name => 'big5';
-}
-
-class _Big5Decoder extends Converter<List<int>, String> {
-  const _Big5Decoder();
-
-  @override
-  String convert(List<int> input) => big5.Big5TransformDecode(input);
-}
-
-class _Big5Encoder extends Converter<String, List<int>> {
-  const _Big5Encoder();
-
-  @override
-  List<int> convert(String input) => big5.Big5TransformEncode(input);
 }

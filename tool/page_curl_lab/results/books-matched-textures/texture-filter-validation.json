@@ -1,0 +1,296 @@
+{
+  "status": "retained-medium-low-and-high-not-adopted",
+  "date": "2026-11-01",
+  "scope": {
+    "device": "iPhone 12",
+    "logical_viewport": [
+      390,
+      844
+    ],
+    "pixel_ratio": 3,
+    "backend": "profile Mesh",
+    "changed_variable": "ui.ImageShader.filterQuality only; same adopted geometry, controller, lighting and textures"
+  },
+  "methods": {
+    "capture": "same-device held WDA live PNG; two hold frames and cancellation per pose",
+    "rgba_difference": "390x844 same CoreGraphics scaling pipeline, all channels",
+    "quality_metric": "same RGB ROI and symmetric truncated4 ink method as horizontal-profile-validation.json"
+  },
+  "results": [
+    {
+      "case": "middle-control",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_ink_count": 19895,
+      "models": {
+        "medium": {
+          "rgb_mae": 6.075585811311241,
+          "ink_l1_truncated4": 0.10727439009318536,
+          "ink_count": 20562
+        },
+        "low": {
+          "rgb_mae": 6.04568303944279,
+          "ink_l1_truncated4": 0.10787085255170362,
+          "ink_count": 20431
+        },
+        "high": {
+          "rgb_mae": 6.075585811311241,
+          "ink_l1_truncated4": 0.10727439009318536,
+          "ink_count": 20562
+        }
+      },
+      "improvement_fraction": 0.004921792366553213
+    },
+    {
+      "case": "early-horizontal",
+      "roi": [
+        215,
+        362,
+        100,
+        740
+      ],
+      "reference_ink_count": 16290,
+      "models": {
+        "medium": {
+          "rgb_mae": 7.6897759694171555,
+          "ink_l1_truncated4": 0.11324151588801873,
+          "ink_count": 17037
+        },
+        "low": {
+          "rgb_mae": 7.713338533541342,
+          "ink_l1_truncated4": 0.11771972641537859,
+          "ink_count": 16899
+        },
+        "high": {
+          "rgb_mae": 7.6897759694171555,
+          "ink_l1_truncated4": 0.11324151588801873,
+          "ink_count": 17037
+        }
+      },
+      "improvement_fraction": -0.0030641418186818647
+    },
+    {
+      "case": "late-horizontal",
+      "roi": [
+        53,
+        244,
+        100,
+        740
+      ],
+      "reference_ink_count": 22290,
+      "models": {
+        "medium": {
+          "rgb_mae": 3.0904186167446697,
+          "ink_l1_truncated4": 0.09309641970932293,
+          "ink_count": 22846
+        },
+        "low": {
+          "rgb_mae": 3.0674672820246145,
+          "ink_l1_truncated4": 0.09035211890648501,
+          "ink_count": 22922
+        },
+        "high": {
+          "rgb_mae": 3.0904186167446697,
+          "ink_l1_truncated4": 0.09309641970932293,
+          "ink_count": 22846
+        }
+      },
+      "improvement_fraction": 0.007426610296643599
+    },
+    {
+      "case": "center-up",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 29922,
+      "models": {
+        "medium": {
+          "rgb_mae": 5.126363686126393,
+          "ink_l1_truncated4": 0.7130878661087866,
+          "ink_count": 29828
+        },
+        "low": {
+          "rgb_mae": 5.150593918493582,
+          "ink_l1_truncated4": 0.7134249702096236,
+          "ink_count": 29661
+        },
+        "high": {
+          "rgb_mae": 5.126363686126393,
+          "ink_l1_truncated4": 0.7130878661087866,
+          "ink_count": 29828
+        }
+      },
+      "improvement_fraction": -0.004726592542149133
+    },
+    {
+      "case": "center-late-up",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 23039,
+      "models": {
+        "medium": {
+          "rgb_mae": 8.340601308262857,
+          "ink_l1_truncated4": 1.6391404558470888,
+          "ink_count": 19914
+        },
+        "low": {
+          "rgb_mae": 8.367044365985166,
+          "ink_l1_truncated4": 1.6377432726761751,
+          "ink_count": 19660
+        },
+        "high": {
+          "rgb_mae": 8.340601308262857,
+          "ink_l1_truncated4": 1.6391404558470888,
+          "ink_count": 19914
+        }
+      },
+      "improvement_fraction": -0.003170401838547665
+    },
+    {
+      "case": "partial-corner",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 43620,
+      "models": {
+        "medium": {
+          "rgb_mae": 8.87457645674248,
+          "ink_l1_truncated4": 0.340627840313221,
+          "ink_count": 42198
+        },
+        "low": {
+          "rgb_mae": 8.91817609546487,
+          "ink_l1_truncated4": 0.3419805263035001,
+          "ink_count": 42034
+        },
+        "high": {
+          "rgb_mae": 8.87457645674248,
+          "ink_l1_truncated4": 0.340627840313221,
+          "ink_count": 42198
+        }
+      },
+      "improvement_fraction": -0.004912869806791287
+    }
+  ],
+  "image_differences": [
+    {
+      "case": "middle-control",
+      "high_vs_medium_rgba_mae": 0.0,
+      "low_vs_medium_rgba_mae": 0.11274000486085795
+    },
+    {
+      "case": "early-horizontal",
+      "high_vs_medium_rgba_mae": 0.0,
+      "low_vs_medium_rgba_mae": 0.05123572122979706
+    },
+    {
+      "case": "late-horizontal",
+      "high_vs_medium_rgba_mae": 0.0,
+      "low_vs_medium_rgba_mae": 0.1112414934986025
+    },
+    {
+      "case": "center-up",
+      "high_vs_medium_rgba_mae": 0.0,
+      "low_vs_medium_rgba_mae": 0.051123313889901566
+    },
+    {
+      "case": "center-late-up",
+      "high_vs_medium_rgba_mae": 0.0,
+      "low_vs_medium_rgba_mae": 0.07684864503584883
+    },
+    {
+      "case": "partial-corner",
+      "high_vs_medium_rgba_mae": 0.0,
+      "low_vs_medium_rgba_mae": 0.07450480009721716
+    }
+  ],
+  "sampling_validation": {
+    "low": [
+      {
+        "name": "early-horizontal",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "middle-control",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "late-horizontal",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "center-up",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "center-late-up",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "partial-corner",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      }
+    ],
+    "high": [
+      {
+        "name": "early-horizontal",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "middle-control",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "late-horizontal",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "center-up",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "center-late-up",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      },
+      {
+        "name": "partial-corner",
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      }
+    ]
+  },
+  "conclusion": {
+    "high": "six normalized RGBA frames identical to medium; no observed gain in these poses",
+    "low": "two ROI RGB gains, four regressions; no general replacement justified",
+    "limitations": [
+      "six held poses, not motion or temporal aliasing",
+      "normalized-frame comparison does not claim original PNG byte identity",
+      "does not establish backend filter implementation or performance equivalence"
+    ]
+  }
+}

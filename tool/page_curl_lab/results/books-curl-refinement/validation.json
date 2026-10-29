@@ -1,0 +1,1132 @@
+{
+  "status": "validated refinement; residual transition differences retained",
+  "date": "2026-11-03",
+  "baseline_commit": "3d43c37",
+  "scope": "experimental Mesh page-curl; iPhone 12 / iOS 27.2; no production-reader integration",
+  "methods": {
+    "gpu": "eight fixed paths paired to the previous run on same device, same three adjacent Books textures; six primary and two prior holdout paths, including repeated saturation images; this sample mean is not a distribution-wide quality score",
+    "rgb": "identical CoreGraphics normalization to 390x844; RGB MAE 0..255",
+    "body_roi_xywh": [
+      0,
+      40,
+      390,
+      760
+    ],
+    "full_roi_xywh": [
+      0,
+      0,
+      390,
+      844
+    ],
+    "ink": "symmetric L1 text-mask distance, truncated at 4 logical pixels, same mask as previous report",
+    "offline": "render at actual 3x DPR before normalizing; previous commit reproduced within .04365-.05710 body MAE of stored GPU captures in three probe states; used for fitting, not a substitute for paired GPU evidence",
+    "calibration": "curve parameters fitted to two main saturation states; outward transition interval selected using main intermediate states; seven previous holdouts reused as regression cases, not claimed as unseen data this round",
+    "native_intent": "twelve straight starts: upper/lower origins, horizontal travel80, |dy/dx|=.5,.9,1,1.1,1.5,2.5; held frame changes manually checked as curl or flat; every source frame restored; classification is not geometry/dynamics equivalence"
+  },
+  "changes": {
+    "limit_surface": {
+      "normal_ratio": [
+        0.96,
+        0.92
+      ],
+      "crease_margin_width": [
+        0.12,
+        0.14
+      ],
+      "radius_width": [
+        0.03,
+        0.07
+      ]
+    },
+    "limit_transition": {
+      "inward": [
+        0.4,
+        2.0
+      ],
+      "outward": [
+        0.7,
+        1.8
+      ]
+    },
+    "shadow": "continuous face component interpolates back-boundary crossing between columns; projection unwarps using blended vertical perspective; retains 96x48 material grid",
+    "new_gesture": "decide after device-specific standard hit slop using raw 2D update; |dx|>=|dy| with 1e-6 coordinate-rounding allowance; pending microdrag release ignored; established drags and animation takeover bypass initial classification",
+    "rejected_density_only": "96/144 rows alone smooth facets but regress saturation RGB/ink and add work; not adopted",
+    "rejected_coating_change": "higher paper-back alpha helps RGB slightly but worsens upper text-distance; retain alpha200"
+  },
+  "gpu_cases": [
+    {
+      "case": "lower-inward-2",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        500
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.7490766981556456,
+          "full_rgb_mae": 1.619561915178029,
+          "ink_l1_truncated4": 0.2820504718570947
+        },
+        "candidate": {
+          "body_rgb_mae": 1.3864642375168692,
+          "full_rgb_mae": 1.3258921699679993,
+          "ink_l1_truncated4": 0.21062963196237744
+        }
+      }
+    },
+    {
+      "case": "lower-inward-4",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        100
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.5455746738641476,
+          "full_rgb_mae": 1.4487128853242597,
+          "ink_l1_truncated4": 0.2445178073318777
+        },
+        "candidate": {
+          "body_rgb_mae": 1.11306342780027,
+          "full_rgb_mae": 1.0804461862518735,
+          "ink_l1_truncated4": 0.10165930005072096
+        }
+      }
+    },
+    {
+      "case": "upper-inward-4",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        213,
+        744
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.7720501574448944,
+          "full_rgb_mae": 1.638299509863491,
+          "ink_l1_truncated4": 0.34758649726329344
+        },
+        "candidate": {
+          "body_rgb_mae": 1.1768466036887089,
+          "full_rgb_mae": 1.1142463644833314,
+          "ink_l1_truncated4": 0.15021975593586565
+        }
+      }
+    },
+    {
+      "case": "lower-outward-1",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        333,
+        772
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 8.579292622582097,
+          "full_rgb_mae": 7.865830194029246,
+          "ink_l1_truncated4": 1.045865766810202
+        },
+        "candidate": {
+          "body_rgb_mae": 6.561908457040036,
+          "full_rgb_mae": 6.109647790334994,
+          "ink_l1_truncated4": 0.9858264236710299
+        }
+      }
+    },
+    {
+      "case": "lower-outward-3",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        333,
+        820
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.775768106162843,
+          "full_rgb_mae": 1.6425355450236967,
+          "ink_l1_truncated4": 0.34837942902419095
+        },
+        "candidate": {
+          "body_rgb_mae": 1.1768466036887089,
+          "full_rgb_mae": 1.1142463644833314,
+          "ink_l1_truncated4": 0.15021975593586565
+        }
+      }
+    },
+    {
+      "case": "upper-outward-3",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        333,
+        24
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.5507860998650473,
+          "full_rgb_mae": 1.4547980718596831,
+          "ink_l1_truncated4": 0.24572872718158653
+        },
+        "candidate": {
+          "body_rgb_mae": 1.11306342780027,
+          "full_rgb_mae": 1.0804461862518735,
+          "ink_l1_truncated4": 0.10165930005072096
+        }
+      }
+    },
+    {
+      "case": "lower-holdout120",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        253,
+        432
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.5455746738641476,
+          "full_rgb_mae": 1.4487128853242597,
+          "ink_l1_truncated4": 0.2445178073318777
+        },
+        "candidate": {
+          "body_rgb_mae": 1.11306342780027,
+          "full_rgb_mae": 1.0804461862518735,
+          "ink_l1_truncated4": 0.10165930005072096
+        }
+      }
+    },
+    {
+      "case": "lower-transition-holdout",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        253,
+        612
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 3.7620344129554657,
+          "full_rgb_mae": 3.5238475715963866,
+          "ink_l1_truncated4": 0.37081622203412856
+        },
+        "candidate": {
+          "body_rgb_mae": 3.7559671614934773,
+          "full_rgb_mae": 3.527651192935553,
+          "ink_l1_truncated4": 0.35835637673872967
+        }
+      }
+    }
+  ],
+  "gpu_summary": {
+    "body_rgb_mae": {
+      "baseline": 2.785019680611786,
+      "candidate": 2.1746529183535763,
+      "reduction_fraction": 0.21916066392899974,
+      "improved_cases": 8
+    },
+    "full_rgb_mae": {
+      "baseline": 2.5802873222748812,
+      "candidate": 2.0541278051201037,
+      "reduction_fraction": 0.2039150882975679,
+      "improved_cases": 7
+    },
+    "ink_l1_truncated4": {
+      "baseline": 0.3911828411042815,
+      "candidate": 0.2700287305495038,
+      "reduction_fraction": 0.30971223127468517,
+      "improved_cases": 8
+    }
+  },
+  "software_cases": [
+    {
+      "case": "lower-inward-0",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        668
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 5.986607062528115,
+          "full_rgb_mae": 5.622122979705918,
+          "ink": 0.38266199649737304
+        },
+        "shadow": {
+          "body_rgb_mae": 5.986607062528115,
+          "full_rgb_mae": 5.622122979705918,
+          "ink": 0.38266199649737304
+        }
+      }
+    },
+    {
+      "case": "lower-inward-1",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        600
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 6.4950832208726945,
+          "full_rgb_mae": 5.997426783327257,
+          "ink": 0.4622361313213866
+        },
+        "shadow": {
+          "body_rgb_mae": 6.520148448043185,
+          "full_rgb_mae": 6.022105764167375,
+          "ink": 0.4621078533927095
+        }
+      }
+    },
+    {
+      "case": "lower-inward-2",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        500
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.773039811066127,
+          "full_rgb_mae": 1.6413243812532912,
+          "ink": 0.2784914256786686
+        },
+        "shadow": {
+          "body_rgb_mae": 1.4126293297345929,
+          "full_rgb_mae": 1.351054198566047,
+          "ink": 0.2011255611997555
+        }
+      }
+    },
+    {
+      "case": "lower-inward-3",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        300
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.559365721997301,
+          "full_rgb_mae": 1.4614777008141937,
+          "ink": 0.2441890860423049
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1292397660818714,
+          "full_rgb_mae": 1.0954885162231134,
+          "ink": 0.09695020746887967
+        }
+      }
+    },
+    {
+      "case": "lower-inward-4",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        213,
+        100
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.559365721997301,
+          "full_rgb_mae": 1.4614777008141937,
+          "ink": 0.2441890860423049
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1292397660818714,
+          "full_rgb_mae": 1.0954885162231134,
+          "ink": 0.09695020746887967
+        }
+      }
+    },
+    {
+      "case": "lower-outward-0",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        333,
+        748
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 8.603872019793073,
+          "full_rgb_mae": 7.971102199538218,
+          "ink": 0.756091415853953
+        },
+        "shadow": {
+          "body_rgb_mae": 8.603872019793073,
+          "full_rgb_mae": 7.971102199538218,
+          "ink": 0.756091415853953
+        }
+      }
+    },
+    {
+      "case": "lower-outward-1",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        333,
+        772
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 8.614021592442645,
+          "full_rgb_mae": 7.896008020415604,
+          "ink": 1.0431144430273431
+        },
+        "shadow": {
+          "body_rgb_mae": 6.585356500224921,
+          "full_rgb_mae": 6.128638554704906,
+          "ink": 0.9821375817683056
+        }
+      }
+    },
+    {
+      "case": "lower-outward-2",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        333,
+        800
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 6.757543859649123,
+          "full_rgb_mae": 6.171988293433791,
+          "ink": 1.0322588646764812
+        },
+        "shadow": {
+          "body_rgb_mae": 6.714786324786325,
+          "full_rgb_mae": 6.124448090087901,
+          "ink": 1.0152889826144529
+        }
+      }
+    },
+    {
+      "case": "lower-outward-3",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        333,
+        820
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.7884761583445794,
+          "full_rgb_mae": 1.6540314740551707,
+          "ink": 0.3483118234288687
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1969725596041385,
+          "full_rgb_mae": 1.1329161096933609,
+          "ink": 0.1485679823751677
+        }
+      }
+    },
+    {
+      "case": "upper-inward-0",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        213,
+        176
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 5.380988529014845,
+          "full_rgb_mae": 5.031813302547899,
+          "ink": 0.39725015564161276
+        },
+        "shadow": {
+          "body_rgb_mae": 5.380988529014845,
+          "full_rgb_mae": 5.031813302547899,
+          "ink": 0.39725015564161276
+        }
+      }
+    },
+    {
+      "case": "upper-inward-1",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        213,
+        244
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 6.074570400359874,
+          "full_rgb_mae": 5.587461011868595,
+          "ink": 0.4911091315061837
+        },
+        "shadow": {
+          "body_rgb_mae": 6.093924876293297,
+          "full_rgb_mae": 5.606382914084336,
+          "ink": 0.4914627238361675
+        }
+      }
+    },
+    {
+      "case": "upper-inward-2",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        213,
+        344
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 2.400721997300945,
+          "full_rgb_mae": 2.219587232146474,
+          "ink": 0.47747221324315586
+        },
+        "shadow": {
+          "body_rgb_mae": 1.9841363022941971,
+          "full_rgb_mae": 1.8563302547899705,
+          "ink": 0.4211463508785037
+        }
+      }
+    },
+    {
+      "case": "upper-inward-3",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        213,
+        544
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.7847750787224472,
+          "full_rgb_mae": 1.649850123546806,
+          "ink": 0.3476386342236979
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1969725596041385,
+          "full_rgb_mae": 1.1329161096933609,
+          "ink": 0.1485679823751677
+        }
+      }
+    },
+    {
+      "case": "upper-inward-4",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        213,
+        744
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.7847750787224472,
+          "full_rgb_mae": 1.649850123546806,
+          "ink": 0.3476386342236979
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1969725596041385,
+          "full_rgb_mae": 1.1329161096933609,
+          "ink": 0.1485679823751677
+        }
+      }
+    },
+    {
+      "case": "upper-outward-0",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        333,
+        96
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 4.493614484930275,
+          "full_rgb_mae": 4.293374043018593,
+          "ink": 0.5431094182825484
+        },
+        "shadow": {
+          "body_rgb_mae": 4.493614484930275,
+          "full_rgb_mae": 4.293374043018593,
+          "ink": 0.5431094182825484
+        }
+      }
+    },
+    {
+      "case": "upper-outward-1",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        333,
+        72
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 7.46033175888439,
+          "full_rgb_mae": 6.8127435492364405,
+          "ink": 0.7742966402622234
+        },
+        "shadow": {
+          "body_rgb_mae": 5.235504948268106,
+          "full_rgb_mae": 4.889142058573338,
+          "ink": 0.6447539374678694
+        }
+      }
+    },
+    {
+      "case": "upper-outward-2",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        333,
+        44
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 4.417311066126856,
+          "full_rgb_mae": 4.082547494632803,
+          "ink": 0.5972049145717258
+        },
+        "shadow": {
+          "body_rgb_mae": 4.249202654071075,
+          "full_rgb_mae": 3.9263610402235996,
+          "ink": 0.5670760317427936
+        }
+      }
+    },
+    {
+      "case": "upper-outward-3",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        333,
+        24
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.5645546558704453,
+          "full_rgb_mae": 1.4675831409243731,
+          "ink": 0.24526763596074044
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1292397660818714,
+          "full_rgb_mae": 1.0954885162231134,
+          "ink": 0.09695020746887967
+        }
+      }
+    },
+    {
+      "case": "lower-holdout120",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        253,
+        432
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.559365721997301,
+          "full_rgb_mae": 1.4614777008141937,
+          "ink": 0.2441890860423049
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1292397660818714,
+          "full_rgb_mae": 1.0954885162231134,
+          "ink": 0.09695020746887967
+        }
+      }
+    },
+    {
+      "case": "lower-holdout80",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        293,
+        492
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.6764867296446244,
+          "full_rgb_mae": 1.5618847976667882,
+          "ink": 0.28357543983256317
+        },
+        "shadow": {
+          "body_rgb_mae": 1.7342959964012596,
+          "full_rgb_mae": 1.6442692510228056,
+          "ink": 0.30017990233873043
+        }
+      }
+    },
+    {
+      "case": "lower-outward-holdout",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        353,
+        806
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 4.6095861448493025,
+          "full_rgb_mae": 4.216227164094462,
+          "ink": 0.8239006161993615
+        },
+        "shadow": {
+          "body_rgb_mae": 4.69988416554206,
+          "full_rgb_mae": 4.300681532790538,
+          "ink": 0.8160065905150684
+        }
+      }
+    },
+    {
+      "case": "upper-holdout120",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        253,
+        412
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.7847750787224472,
+          "full_rgb_mae": 1.649850123546806,
+          "ink": 0.3476386342236979
+        },
+        "shadow": {
+          "body_rgb_mae": 1.1969725596041385,
+          "full_rgb_mae": 1.1329161096933609,
+          "ink": 0.1485679823751677
+        }
+      }
+    },
+    {
+      "case": "upper-outward-holdout",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        353,
+        38
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 3.5217386414754834,
+          "full_rgb_mae": 3.251732693320371,
+          "ink": 0.5353432829637609
+        },
+        "shadow": {
+          "body_rgb_mae": 3.5811313540260907,
+          "full_rgb_mae": 3.3170464211933406,
+          "ink": 0.5156555169507205
+        }
+      }
+    },
+    {
+      "case": "lower-transition-holdout",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        253,
+        612
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 3.787600089968511,
+          "full_rgb_mae": 3.5484252845627253,
+          "ink": 0.3644297763109644
+        },
+        "shadow": {
+          "body_rgb_mae": 3.777713675213675,
+          "full_rgb_mae": 3.5483331307975856,
+          "ink": 0.3572102383497893
+        }
+      }
+    },
+    {
+      "case": "lower-other-origin",
+      "origin": [
+        373,
+        650
+      ],
+      "target": [
+        213,
+        100
+      ],
+      "models": {
+        "baseline": {
+          "body_rgb_mae": 1.9620287899235267,
+          "full_rgb_mae": 1.8487878235508568,
+          "ink": 0.3308202875148109
+        },
+        "shadow": {
+          "body_rgb_mae": 1.890972784525416,
+          "full_rgb_mae": 1.8030036051363065,
+          "ink": 0.2729920278240464
+        }
+      }
+    }
+  ],
+  "software_summary": {
+    "body_rgb_mae": {
+      "baseline": 3.896023976608187,
+      "candidate": 3.5299847503373813,
+      "reduction_fraction": 0.09395199528250159,
+      "improved_cases": 16,
+      "regressed_cases": [
+        "lower-inward-1",
+        "upper-inward-1",
+        "lower-holdout80",
+        "lower-outward-holdout",
+        "upper-outward-holdout"
+      ]
+    },
+    "full_rgb_mae": {
+      "baseline": 3.6084062056953066,
+      "candidate": 3.293993113784583,
+      "reduction_fraction": 0.08713350825482771,
+      "improved_cases": 16,
+      "regressed_cases": [
+        "lower-inward-1",
+        "upper-inward-1",
+        "lower-holdout80",
+        "lower-outward-holdout",
+        "upper-outward-holdout"
+      ]
+    },
+    "ink": {
+      "baseline": 0.47769715094286935,
+      "candidate": 0.4043331617812236,
+      "reduction_fraction": 0.15357845240827028,
+      "improved_cases": 19,
+      "regressed_cases": [
+        "upper-inward-1",
+        "lower-holdout80"
+      ]
+    }
+  },
+  "intent_cases": [
+    {
+      "case": "lower-0.5",
+      "ratio": 0.5,
+      "native_curled": true,
+      "prototype_curled": true,
+      "native_stability": 0.00049370220422852,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "lower-0.9",
+      "ratio": 0.9,
+      "native_curled": true,
+      "prototype_curled": true,
+      "native_stability": 0.000405982905982906,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "lower-1.0",
+      "ratio": 1.0,
+      "native_curled": true,
+      "prototype_curled": true,
+      "native_stability": 0.00045096716149347726,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "lower-1.1",
+      "ratio": 1.1,
+      "native_curled": false,
+      "prototype_curled": false,
+      "native_stability": 0,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "lower-1.5",
+      "ratio": 1.5,
+      "native_curled": false,
+      "prototype_curled": false,
+      "native_stability": 0,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "lower-2.5",
+      "ratio": 2.5,
+      "native_curled": false,
+      "prototype_curled": false,
+      "native_stability": 0,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "upper-0.5",
+      "ratio": 0.5,
+      "native_curled": true,
+      "prototype_curled": true,
+      "native_stability": 0.0006016644174538911,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "upper-0.9",
+      "ratio": 0.9,
+      "native_curled": true,
+      "prototype_curled": true,
+      "native_stability": 0.000553306342780027,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "upper-1.0",
+      "ratio": 1.0,
+      "native_curled": true,
+      "prototype_curled": true,
+      "native_stability": 0.0004487179487179487,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "upper-1.1",
+      "ratio": 1.1,
+      "native_curled": false,
+      "prototype_curled": false,
+      "native_stability": 0,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "upper-1.5",
+      "ratio": 1.5,
+      "native_curled": false,
+      "prototype_curled": false,
+      "native_stability": 0,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    },
+    {
+      "case": "upper-2.5",
+      "ratio": 2.5,
+      "native_curled": false,
+      "prototype_curled": false,
+      "native_stability": 0,
+      "prototype_stability": 0,
+      "native_restored": true,
+      "prototype_restored": true
+    }
+  ],
+  "initial_intent_failure": {
+    "matching_cases": 10,
+    "total": 12,
+    "cause": "first subpixel step can be quantized to equal x/y; wait standard hit slop rather than locking on first nonzero point",
+    "final_matching_cases": 12
+  },
+  "final_repository_gpu_parity": [
+    {
+      "case": "lower-inward-4",
+      "body_rgb_mae": 0,
+      "full_rgb_mae": 0
+    },
+    {
+      "case": "lower-transition-holdout",
+      "body_rgb_mae": 0,
+      "full_rgb_mae": 0
+    }
+  ],
+  "performance": {
+    "mode": "CURL_POINTER_CAPTURE=true CURL_LIMIT_CAPTURE=true CURL_SAMPLE_ON_START=true",
+    "neutral_mesh_rounds": [
+      {
+        "case": "mesh-neutral",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.658082644628097,
+          "p95": 4.931,
+          "p99": 8.182,
+          "max": 8.413
+        },
+        "raster_ms": {
+          "mean": 0.8629008264462807,
+          "p95": 1.344,
+          "p99": 1.768,
+          "max": 3.287
+        },
+        "total_span_ms": {
+          "mean": 5.794528925619835,
+          "p95": 6.497,
+          "p99": 9.98,
+          "max": 12.19
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.732743801652891,
+          "p95": 5.301,
+          "p99": 8.583,
+          "max": 13.126
+        },
+        "raster_ms": {
+          "mean": 0.8343057851239668,
+          "p95": 1.255,
+          "p99": 2.105,
+          "max": 2.527
+        },
+        "total_span_ms": {
+          "mean": 5.844173553719007,
+          "p95": 6.752,
+          "p99": 10.216,
+          "max": 16.231
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.01652892561983471
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 2,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.710371900826447,
+          "p95": 5.24,
+          "p99": 8.152,
+          "max": 9.014
+        },
+        "raster_ms": {
+          "mean": 0.8254380165289256,
+          "p95": 1.285,
+          "p99": 1.551,
+          "max": 2.104
+        },
+        "total_span_ms": {
+          "mean": 5.806363636363637,
+          "p95": 6.93,
+          "p99": 9.656,
+          "max": 11.617
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      }
+    ],
+    "neutral_frames": 363,
+    "over_60hz_pipeline_budget_frames": 0,
+    "note": "warm pipeline budget only; no assertion of first-drag, sustained zero drops, temperature, or other devices; analytic Shader still falls back to Mesh in limit region"
+  },
+  "checks": {
+    "flutter_analyze_no_pub": "passed; no issues",
+    "flutter_test_no_pub": "279 passed",
+    "backward_17_pose_parameters": "unchanged",
+    "direct_start_native_classifications": "12/12 matched; all 24 native/prototype final source differences0",
+    "rejected_then_normal_drag": "passed",
+    "subpixel_steep_start_and_micro_release": "passed",
+    "settling_takeover": "passed"
+  },
+  "source_sha256": {
+    "tool/page_curl_lab/curl_drag.dart": "44b9897a8f2fa52dd773160c1f6d9fe2330e7a0b2b86d645a841291fc28535ed",
+    "tool/page_curl_lab/curl_geometry.dart": "93c9b917656aa3f237826e4618d99a39e010df2fac3d40a2f296d531cf3835ce",
+    "tool/page_curl_lab/curl_painter.dart": "86b86b4917c7b9aa2f4dbd3223e36497d89f5df73fc33ec0d9760f9bec14380c",
+    "tool/page_curl_lab/main.dart": "7b25701fe8585f0e6365a6a2d77f1e45bbe57517017c1dc5f93d7fd7e94165ab",
+    "tool/page_curl_lab/reference_capture.dart": "997db73e355364a50a67fa1233ddaead545e64d28fe8b9bf0f54ffcfcc393db9"
+  },
+  "remaining": [
+    "one transition full-frame MAE increases3.52385->3.52765 despite body/ink improving",
+    "previous transition text distance now .35836, still above original pre-limit .35326",
+    "offline 25-case regressions retained in summary; no all-state equivalence claim",
+    "intermediate blended surface is not strictly isometric",
+    "gesture decision timing, multi-touch, and release dynamics not claimed equivalent",
+    "tablet/desktop manual validation and production integration remain"
+  ],
+  "reading_position_restore": {
+    "original_position_difference": {
+      "body_rgb_mae": 0,
+      "full_rgb_mae": 0
+    },
+    "wda_locked": true
+  },
+  "post_cleanup_passcode_required": true
+}

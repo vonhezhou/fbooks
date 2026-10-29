@@ -1,0 +1,86 @@
+{
+  "scope": "iOS simulator compatibility and functional smoke verification; isolated app; no physical device execution",
+  "runtime": "iOS 26.5",
+  "flutter": "3.47.8 / Dart 3.13.7",
+  "devices": [
+    {
+      "device": "iPhone 17",
+      "case_count": 6,
+      "all_passed": true,
+      "renderer_backend": "Impeller / Metal",
+      "window_dpr": 3.0,
+      "native_capture_pixels": [
+        1206,
+        1554
+      ]
+    },
+    {
+      "device": "iPad mini (A17 Pro)",
+      "case_count": 6,
+      "all_passed": true,
+      "renderer_backend": "Impeller / Metal",
+      "window_dpr": 2.0,
+      "native_capture_pixels": [
+        1488,
+        1738
+      ]
+    }
+  ],
+  "formats": [
+    "epub",
+    "comic",
+    "pdf"
+  ],
+  "layouts": [
+    "single",
+    "double"
+  ],
+  "total_passing_cases": 12,
+  "checks": [
+    "real source rendering through production readers",
+    "same analytic curl shader on Metal",
+    "button forward/back",
+    "drag forward/back",
+    "short drag rebound",
+    "upper/lower corner curl with cancellation",
+    "forward/backward pointer cancellation",
+    "RTL drag forward/back",
+    "restored front pixels byte-identical",
+    "texture resolution matches native DPR with per-page pixel target"
+  ],
+  "fixes": {
+    "slider_semantics": "Key slider state by enabled/disabled status to prevent detached semantic-parent references. Failed synthetic enabled-semantics source-switch regression now passes.",
+    "capture_typography": "Provide Material context for the captured EPUB renderer; remove inherited debug fallback text decoration.",
+    "capture_accessibility": "Exclude the background capture subtree from accessibility; keep its wrapper stable and release unused content on format switch.",
+    "texture_resolution": "Keep requested DPR separate from the effective per-page DPR so single-page pixel capping does not permanently lower double-page resolution."
+  },
+  "privacy": {
+    "source_books_saved_to_repository": false,
+    "source_book_paths_saved_to_repository": false,
+    "screenshots_saved_to_repository": false,
+    "reports": "anonymous format, dimensions and boolean check results only"
+  },
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_test_count": 158,
+    "generated_integration_entry_analyze": "passed",
+    "python_trace_test_count": 3,
+    "simulator_cases_passed": 12
+  },
+  "limitations": [
+    "Debug simulators running on the Mac GPU; no performance, thermal, real input-to-display latency or memory conclusions for iPhones/iPads.",
+    "Gesture sequences are injected into Flutter by integration_test; native UIKit touch delivery, system touch interruption and full VoiceOver interaction are not verified.",
+    "Portrait phone and tablet viewports; no landscape rotation or resume-from-background coverage in this run.",
+    "EPUB uses one selected chapter; fixed-layout sources use the opening page windows. No full-book or chapter-transition coverage.",
+    "Per-page target is 1,000,000 pixels, with dimensions rounded upward; content is not always full panel resolution.",
+    "Earlier prototype EPUB snapshots inherited debug fallback typography; their line breaks and layout timings are not directly comparable to the corrected capture.",
+    "No Apple Books side-by-side quality comparison; production reader integration remains pending."
+  ],
+  "manual_previews": {
+    "iphone_simulator": "Fbooks Curl Lab",
+    "ipad_simulator": "Fbooks Curl Lab iPad",
+    "installed_and_launched": true,
+    "source_inputs": "isolated app Documents; no production library writes"
+  },
+  "visual_review": "Native-resolution phone/tablet previews and selected corner captures reviewed; normal typography, curl shading and aspect-ratio containment visible."
+}

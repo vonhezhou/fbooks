@@ -1,0 +1,640 @@
+{
+  "status": "research-in-progress-not-adopted",
+  "reference_method": "same-device live PNG during held WDA pointer action; paired stable and candidate Mesh live PNG",
+  "viewport": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "comparison": {
+    "metric": "RGB mean absolute error, values 0..255",
+    "region": "per-case x from free-edge minus 70 to fold plus 60; y100..740; see each roi",
+    "baseline": "retained repository Mesh geometry and material",
+    "candidate": "continuous cylinder geometry and control; retained material",
+    "not_an_acceptance_threshold": true
+  },
+  "candidate": {
+    "camera_scale_cylinder": 5,
+    "camera_scale_full_corner": 36,
+    "radius_profile": "0.30 + C1_positive(0.17 - 0.16 * exp(-(t-0.158)/0.075), epsilon=0.005)",
+    "opening_profile": "(1.233 - 1.789 * min(t,0.598) + 1.496 * min(t,0.598)^2) * endpoint_flatten",
+    "control_note": "geometric control migrates toward free edge only for cylinder component; bounded by remaining page margin; fades to original point at both endpoints",
+    "original_material_grip_max_sample_error_pixels": 14.463750814546088,
+    "original_material_grip_is_not_exact": true
+  },
+  "device_results": [
+    {
+      "case": "between-horizontal",
+      "roi": [
+        173,
+        329,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 243.66666666666666,
+        "edge_jump": 30,
+        "fold": 269.6666666666667,
+        "fold_jump": -34,
+        "name": "between-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 6.509686629503396,
+        "candidate": 6.183385169801697
+      },
+      "improvement_fraction": 0.050125524971175506
+    },
+    {
+      "case": "late-between-horizontal",
+      "roi": [
+        93,
+        269,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 163,
+        "edge_jump": 43,
+        "fold": 209.33333333333334,
+        "fold_jump": -34,
+        "name": "late-between-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 6.8212479911625845,
+        "candidate": 4.990810027881341
+      },
+      "improvement_fraction": 0.2683435590749239
+    },
+    {
+      "case": "middle-control",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 203,
+        "edge_jump": 37,
+        "fold": 237.66666666666666,
+        "fold_jump": -34,
+        "name": "middle-control"
+      },
+      "rgb_mae": {
+        "baseline": 8.146179422934493,
+        "candidate": 7.038762035329898
+      },
+      "improvement_fraction": 0.1359431618320126
+    },
+    {
+      "case": "far-horizontal",
+      "roi": [
+        10,
+        199,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 45.333333333333336,
+        "edge_jump": 53,
+        "fold": 139.66666666666666,
+        "fold_jump": -34,
+        "name": "far-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 14.261023072501848,
+        "candidate": 7.849760516736459
+      },
+      "improvement_fraction": 0.44956540096534914
+    },
+    {
+      "case": "early-horizontal",
+      "roi": [
+        215,
+        362,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 285.3333333333333,
+        "edge_jump": 22,
+        "fold": 302.6666666666667,
+        "fold_jump": -34,
+        "name": "early-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 9.629151382271507,
+        "candidate": 9.271630054391364
+      },
+      "improvement_fraction": 0.03712905880142092
+    },
+    {
+      "case": "late-horizontal",
+      "roi": [
+        53,
+        244,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 123.66666666666667,
+        "edge_jump": 46,
+        "fold": 184,
+        "fold_jump": -34,
+        "name": "late-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 10.490439200901369,
+        "candidate": 4.428128791818339
+      },
+      "improvement_fraction": 0.5778890943443187
+    },
+    {
+      "case": "holdout-333",
+      "roi": [
+        257,
+        389,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 327,
+        "edge_jump": 18,
+        "fold": 335.3333333333333,
+        "fold_jump": -34,
+        "name": "holdout-333"
+      },
+      "rgb_mae": {
+        "baseline": 7.158047224144605,
+        "candidate": 6.730152213607341
+      },
+      "improvement_fraction": 0.059778176524729165
+    },
+    {
+      "case": "holdout-270",
+      "roi": [
+        193,
+        345,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 263,
+        "edge_jump": 27,
+        "fold": 285,
+        "fold_jump": -34,
+        "name": "holdout-270"
+      },
+      "rgb_mae": {
+        "baseline": 8.30748184175733,
+        "candidate": 7.179437765745924
+      },
+      "improvement_fraction": 0.13578652322070972
+    },
+    {
+      "case": "holdout-230",
+      "roi": [
+        152,
+        313,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 222.33333333333334,
+        "edge_jump": 34,
+        "fold": 253,
+        "fold_jump": -34,
+        "name": "holdout-230"
+      },
+      "rgb_mae": {
+        "baseline": 5.275630284470638,
+        "candidate": 5.668236359083993
+      },
+      "improvement_fraction": -0.07441879992406442
+    },
+    {
+      "case": "holdout-190",
+      "roi": [
+        112,
+        281,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 182,
+        "edge_jump": 40,
+        "fold": 221.66666666666666,
+        "fold_jump": -34,
+        "name": "holdout-190"
+      },
+      "rgb_mae": {
+        "baseline": 10.317472698907956,
+        "candidate": 9.17747392248631
+      },
+      "improvement_fraction": 0.11049205650355709
+    },
+    {
+      "case": "holdout-150",
+      "roi": [
+        74,
+        257,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 144,
+        "edge_jump": 45,
+        "fold": 197,
+        "fold_jump": -34,
+        "name": "holdout-150"
+      },
+      "rgb_mae": {
+        "baseline": 8.409869655655791,
+        "candidate": 4.364260439982817
+      },
+      "improvement_fraction": 0.4810549249062651
+    },
+    {
+      "case": "holdout-90",
+      "roi": [
+        15,
+        220,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 85.66666666666667,
+        "edge_jump": 50,
+        "fold": 160,
+        "fold_jump": -34,
+        "name": "holdout-90"
+      },
+      "rgb_mae": {
+        "baseline": 12.029835562354533,
+        "candidate": 6.611029489723278
+      },
+      "improvement_fraction": 0.4504472271914133
+    },
+    {
+      "case": "center-origin",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 203,
+        "edge_jump": 37,
+        "fold": 237.66666666666666,
+        "fold_jump": -34,
+        "name": "center-origin"
+      },
+      "rgb_mae": {
+        "baseline": 8.146179422934493,
+        "candidate": 7.038762035329898
+      },
+      "improvement_fraction": 0.1359431618320126
+    }
+  ],
+  "summary": {
+    "valid_cases": 13,
+    "improved_cases": 12,
+    "regressed_cases": 1,
+    "decision": "do not adopt geometry-only candidate; continue joint geometry/material/shadow experiment"
+  },
+  "excluded_reference": {
+    "case": "top-origin",
+    "origin": [
+      373,
+      100
+    ],
+    "target": [
+      211,
+      100
+    ],
+    "held_vs_initial_body_mae": 0.0,
+    "reason": "Books did not start curl; stable held images and successful cancellation do not establish a valid curl sample"
+  },
+  "sampling_validation": {
+    "reference_max_hold_pair_body_mae": 0.010455465587044535,
+    "reference_cancel_body_mae_max": 0.0,
+    "stable_and_candidate_cancel_body_mae_max": 0.0,
+    "stable_and_candidate_hold_pair_body_mae_max": 0.0
+  },
+  "candidate_center_performance": {
+    "status": "passed",
+    "capture_started_utc": "2026-10-31T17:50:11.715450Z",
+    "measurements": [
+      {
+        "case": "mesh-legacy",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 5.0583057851239674,
+          "p95": 5.422,
+          "p99": 8.388,
+          "max": 9.28
+        },
+        "raster_ms": {
+          "mean": 0.7244132231404955,
+          "p95": 0.987,
+          "p99": 1.476,
+          "max": 2.559
+        },
+        "total_span_ms": {
+          "mean": 6.090157024793389,
+          "p95": 6.725,
+          "p99": 10.135,
+          "max": 12.386
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.01652892561983471
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 5.061090909090909,
+          "p95": 5.389,
+          "p99": 9.319,
+          "max": 10.034
+        },
+        "raster_ms": {
+          "mean": 0.7621074380165294,
+          "p95": 0.985,
+          "p99": 1.688,
+          "max": 2.342
+        },
+        "total_span_ms": {
+          "mean": 6.070694214876037,
+          "p95": 6.552,
+          "p99": 11.329,
+          "max": 12.871
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.01652892561983471
+      },
+      {
+        "case": "shader-legacy",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 0.3754132231404959,
+          "p95": 0.703,
+          "p99": 0.763,
+          "max": 0.778
+        },
+        "raster_ms": {
+          "mean": 3.5919008264462806,
+          "p95": 19.415,
+          "p99": 24.093,
+          "max": 27.012
+        },
+        "total_span_ms": {
+          "mean": 4.871206611570249,
+          "p95": 22.578,
+          "p99": 25.037,
+          "max": 27.314
+        },
+        "over_60hz_pipeline_budget": 0.0743801652892562,
+        "over_120hz_pipeline_budget": 0.1652892561983471
+      },
+      {
+        "case": "shader-neutral",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 0.4394628099173554,
+          "p95": 0.728,
+          "p99": 0.781,
+          "max": 0.802
+        },
+        "raster_ms": {
+          "mean": 3.3512561983471074,
+          "p95": 14.758,
+          "p99": 24.713,
+          "max": 29.821
+        },
+        "total_span_ms": {
+          "mean": 4.509876033057851,
+          "p95": 15.286,
+          "p99": 24.974,
+          "max": 30.526
+        },
+        "over_60hz_pipeline_budget": 0.03305785123966942,
+        "over_120hz_pipeline_budget": 0.1652892561983471
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 5.139545454545456,
+          "p95": 5.617,
+          "p99": 7.819,
+          "max": 11.507
+        },
+        "raster_ms": {
+          "mean": 0.72403305785124,
+          "p95": 0.983,
+          "p99": 1.44,
+          "max": 1.923
+        },
+        "total_span_ms": {
+          "mean": 6.132049586776862,
+          "p95": 6.809,
+          "p99": 9.624,
+          "max": 13.892
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "mesh-legacy",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 5.185818181818185,
+          "p95": 5.951,
+          "p99": 8.301,
+          "max": 15.976
+        },
+        "raster_ms": {
+          "mean": 0.7246115702479335,
+          "p95": 0.957,
+          "p99": 1.555,
+          "max": 1.887
+        },
+        "total_span_ms": {
+          "mean": 6.185024793388429,
+          "p95": 7.148,
+          "p99": 10.072,
+          "max": 18.463
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "shader-neutral",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 0.36705785123966955,
+          "p95": 0.717,
+          "p99": 0.734,
+          "max": 0.832
+        },
+        "raster_ms": {
+          "mean": 3.9009669421487603,
+          "p95": 21.27,
+          "p99": 28.942,
+          "max": 30.632
+        },
+        "total_span_ms": {
+          "mean": 5.4286115702479325,
+          "p95": 23.227,
+          "p99": 29.598,
+          "max": 30.924
+        },
+        "over_60hz_pipeline_budget": 0.12396694214876033,
+        "over_120hz_pipeline_budget": 0.1652892561983471
+      },
+      {
+        "case": "shader-legacy",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 0.3783553719008265,
+          "p95": 0.702,
+          "p99": 0.745,
+          "max": 0.754
+        },
+        "raster_ms": {
+          "mean": 3.6198181818181823,
+          "p95": 18.393,
+          "p99": 26.371,
+          "max": 27.661
+        },
+        "total_span_ms": {
+          "mean": 4.820446280991734,
+          "p95": 19.998,
+          "p99": 26.649,
+          "max": 28.29
+        },
+        "over_60hz_pipeline_budget": 0.06611570247933884,
+        "over_120hz_pipeline_budget": 0.18181818181818182
+      },
+      {
+        "case": "mesh-legacy",
+        "round": 2,
+        "frames": 121,
+        "build_ms": {
+          "mean": 5.178818181818183,
+          "p95": 5.861,
+          "p99": 7.957,
+          "max": 12.19
+        },
+        "raster_ms": {
+          "mean": 0.7325785123966946,
+          "p95": 0.945,
+          "p99": 1.386,
+          "max": 1.904
+        },
+        "total_span_ms": {
+          "mean": 6.180421487603307,
+          "p95": 7.437,
+          "p99": 9.266,
+          "max": 14.604
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 2,
+        "frames": 121,
+        "build_ms": {
+          "mean": 5.145793388429751,
+          "p95": 5.612,
+          "p99": 7.741,
+          "max": 11.756
+        },
+        "raster_ms": {
+          "mean": 0.7242809917355368,
+          "p95": 0.969,
+          "p99": 1.64,
+          "max": 1.659
+        },
+        "total_span_ms": {
+          "mean": 6.140322314049582,
+          "p95": 6.655,
+          "p99": 9.129,
+          "max": 13.928
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "shader-legacy",
+        "round": 2,
+        "frames": 120,
+        "build_ms": {
+          "mean": 0.490175,
+          "p95": 0.7,
+          "p99": 0.71,
+          "max": 0.76
+        },
+        "raster_ms": {
+          "mean": 2.9481166666666665,
+          "p95": 12.406,
+          "p99": 23.284,
+          "max": 32.772
+        },
+        "total_span_ms": {
+          "mean": 4.212183333333334,
+          "p95": 12.629,
+          "p99": 30.618,
+          "max": 33.559
+        },
+        "over_60hz_pipeline_budget": 0.041666666666666664,
+        "over_120hz_pipeline_budget": 0.10833333333333334
+      },
+      {
+        "case": "shader-neutral",
+        "round": 2,
+        "frames": 121,
+        "build_ms": {
+          "mean": 0.5200495867768596,
+          "p95": 0.793,
+          "p99": 0.896,
+          "max": 0.934
+        },
+        "raster_ms": {
+          "mean": 3.3361570247933887,
+          "p95": 9.017,
+          "p99": 21.009,
+          "max": 29.835
+        },
+        "total_span_ms": {
+          "mean": 4.505371900826446,
+          "p95": 10.759,
+          "p99": 21.917,
+          "max": 30.556
+        },
+        "over_60hz_pipeline_budget": 0.024793388429752067,
+        "over_120hz_pipeline_budget": 0.05785123966942149
+      }
+    ],
+    "scope": "same cylinder pointer trace, 3 interleaved rounds; not first drag, thermal endurance or other platforms"
+  },
+  "verification_notes": [
+    "full-corner geometry/light compared at 6480 vertices with maximum allowed numeric difference 1e-8; passed",
+    "shader interior coverage, curve endpoint geometry and cancellation checks passed in private candidate tests",
+    "control and UI tests explicitly distinguish geometric control point from original material point",
+    "repository renderer was not changed for this experiment",
+    "coupled material experiment and matching Shader/row-following production shadow remain pending"
+  ],
+  "latest_adoption_report": "early-outward-profile-validation.json"
+}

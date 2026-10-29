@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-03",
+  "baseline_commit": "d5d36a8",
+  "scope": "offline control-target reach limit; no new Books or device sampling",
+  "constraint": "Keep x in [-m,m], then clamp y to [h-sqrt(m*m-x*x+(h-a)*(h-a)), sqrt(m*m-x*x+a*a)]. Endpoints use original material y.",
+  "geometry_measurement": {
+    "viewport": [
+      390,
+      844
+    ],
+    "origin": [
+      373,
+      732
+    ],
+    "rows": 48,
+    "columns": 48,
+    "maxVertexSpineDistanceExcess": "max over mesh vertices and both fixed spine endpoints of projected 2D distance minus original material 2D distance; not strain or a 3D inextensibility proof"
+  },
+  "cases": [
+    {
+      "version": "before",
+      "target": [
+        213.0,
+        0.0
+      ],
+      "progress": 0.26375266909599304,
+      "tilt": 2.0,
+      "control": [
+        212.99998921499775,
+        493.41817182507145
+      ],
+      "meshY": [
+        0.0,
+        844.0000010662509
+      ],
+      "maxVertexSpineDistanceExcess": 112.98438489623783
+    },
+    {
+      "version": "after",
+      "target": [
+        213.0,
+        0.0
+      ],
+      "progress": 0.26375266909599304,
+      "tilt": 1.7973092528095054,
+      "control": [
+        212.99998921499775,
+        517.9570580429627
+      ],
+      "meshY": [
+        0.0,
+        844.000865573397
+      ],
+      "maxVertexSpineDistanceExcess": 37.56906105243314
+    },
+    {
+      "version": "before",
+      "target": [
+        213.0,
+        1500.0
+      ],
+      "progress": 0.24040189385414124,
+      "tilt": -2.0,
+      "control": [
+        213.00001341845038,
+        955.0610915432186
+      ],
+      "meshY": [
+        0.0,
+        1250.0152531247654
+      ],
+      "maxVertexSpineDistanceExcess": 668.518018967349
+    },
+    {
+      "version": "after",
+      "target": [
+        213.0,
+        1500.0
+      ],
+      "progress": 0.24040189385414124,
+      "tilt": -0.5510893383689299,
+      "control": [
+        213.00001341845038,
+        793.4632946772018
+      ],
+      "meshY": [
+        0.0,
+        895.8742085944853
+      ],
+      "maxVertexSpineDistanceExcess": 2.2133461807304684
+    }
+  ],
+  "prior_backward_pose_parity": {
+    "total": 17,
+    "changed": []
+  },
+  "checks": {
+    "flutter_analyze_no_pub": "passed, no issues",
+    "flutter_test_no_pub": "272 passed",
+    "baseline_regression": "new reach-distance test fails on baseline",
+    "synthetic_rasterization": "passed; comparison.png; no private book textures"
+  },
+  "source_sha256": {
+    "tool/page_curl_lab/curl_drag.dart": "c9a27146197d832220a431caf6903d1abef4c307aa7cd4095f6b34a0f14d12fd",
+    "tool/page_curl_lab/curl_geometry.dart": "29decc6a0d2c5567b195107d90d6991cbe9efa457f6d9f65f224c9c03981f7d5",
+    "test/tool/page_curl_lab/curl_drag_test.dart": "c4d561d023ee83e8900fde8120b4455cb8a2be6ca26b8963413ba00eb8ad1452"
+  },
+  "remaining": [
+    "row-wise approximate surface still has local distortion",
+    "Books saturation boundary not measured this round",
+    "no new device performance or interactive validation",
+    "settling dynamics unchanged"
+  ]
+}

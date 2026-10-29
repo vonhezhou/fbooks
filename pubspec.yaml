@@ -87,6 +87,9 @@ dev_dependencies:
 flutter:
   generate: true
 
+  shaders:
+    - tool/page_curl_lab/shaders/curl.frag
+
   assets:
     - launcher_icon/fbooks_icon.png
     - assets/images/

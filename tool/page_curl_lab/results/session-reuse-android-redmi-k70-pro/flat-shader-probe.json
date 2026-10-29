@@ -1,0 +1,125 @@
+{
+  "mode": "profile",
+  "os": "BP2A.250605.031.A3",
+  "renderer": "compare",
+  "execution_target": "physical-mobile",
+  "setup": "Same process and real CBZ textures; six alternating measurements; flat holds progress=0 while animation still schedules and repaints each frame. Shader follows progress. Native trace collected separately.",
+  "order": [
+    "flat-a",
+    "shader-a",
+    "shader-b",
+    "flat-b",
+    "flat-c",
+    "shader-c"
+  ],
+  "results": [
+    {
+      "id": "native-android-comic-single-flat-a",
+      "renderer": "flat",
+      "raster_ms": {
+        "mean": 1.8560666666666668,
+        "p95": 2.759,
+        "p99": 3.777,
+        "max": 4.251
+      },
+      "build_ms": {
+        "mean": 0.9694888888888884,
+        "p95": 1.643,
+        "p99": 2.013,
+        "max": 2.297
+      },
+      "over_120hz_pipeline_budget": 0.0,
+      "over_60hz_pipeline_budget": 0.0
+    },
+    {
+      "id": "native-android-comic-single-shader-a",
+      "renderer": "shader",
+      "raster_ms": {
+        "mean": 2.0249872611464976,
+        "p95": 2.814,
+        "p99": 3.459,
+        "max": 5.315
+      },
+      "build_ms": {
+        "mean": 1.1240796178343944,
+        "p95": 1.794,
+        "p99": 2.075,
+        "max": 2.656
+      },
+      "over_120hz_pipeline_budget": 0.0,
+      "over_60hz_pipeline_budget": 0.0
+    },
+    {
+      "id": "native-android-comic-single-shader-b",
+      "renderer": "shader",
+      "raster_ms": {
+        "mean": 8.093009554140137,
+        "p95": 9.071,
+        "p99": 11.993,
+        "max": 19.318
+      },
+      "build_ms": {
+        "mean": 1.1425414012738861,
+        "p95": 1.926,
+        "p99": 2.396,
+        "max": 2.777
+      },
+      "over_120hz_pipeline_budget": 0.3248407643312102,
+      "over_60hz_pipeline_budget": 0.0031847133757961785
+    },
+    {
+      "id": "native-android-comic-single-flat-b",
+      "renderer": "flat",
+      "raster_ms": {
+        "mean": 2.018705128205128,
+        "p95": 2.773,
+        "p99": 3.292,
+        "max": 5.997
+      },
+      "build_ms": {
+        "mean": 1.0119647435897439,
+        "p95": 1.683,
+        "p99": 2.105,
+        "max": 3.386
+      },
+      "over_120hz_pipeline_budget": 0.0,
+      "over_60hz_pipeline_budget": 0.0
+    },
+    {
+      "id": "native-android-comic-single-flat-c",
+      "renderer": "flat",
+      "raster_ms": {
+        "mean": 7.559355555555548,
+        "p95": 8.662,
+        "p99": 8.939,
+        "max": 9.374
+      },
+      "build_ms": {
+        "mean": 1.1614888888888886,
+        "p95": 2.203,
+        "p99": 2.615,
+        "max": 3.37
+      },
+      "over_120hz_pipeline_budget": 0.14285714285714285,
+      "over_60hz_pipeline_budget": 0.0
+    },
+    {
+      "id": "native-android-comic-single-shader-c",
+      "renderer": "shader",
+      "raster_ms": {
+        "mean": 8.07637777777778,
+        "p95": 9.173,
+        "p99": 11.36,
+        "max": 12.496
+      },
+      "build_ms": {
+        "mean": 1.1891746031746022,
+        "p95": 1.999,
+        "p99": 2.425,
+        "max": 2.917
+      },
+      "over_120hz_pipeline_budget": 0.34285714285714286,
+      "over_60hz_pipeline_budget": 0.0
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "measurement": "Mean absolute RGB difference, 0..255; not a visual quality score. Curl and shadow algorithms intentionally differ.",
+  "cases": [
+    {
+      "format": "epub",
+      "spread": false,
+      "phase": "front",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.009960365853658537,
+      "fraction_pixels_channel_difference_gt32": 0.0
+    },
+    {
+      "format": "epub",
+      "spread": false,
+      "phase": "curl",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.9342980545876888,
+      "fraction_pixels_channel_difference_gt32": 0.006270034843205575
+    },
+    {
+      "format": "epub",
+      "spread": false,
+      "phase": "corner-top",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 2.4334438153310103,
+      "fraction_pixels_channel_difference_gt32": 0.0267948606271777
+    },
+    {
+      "format": "epub",
+      "spread": false,
+      "phase": "corner-bottom",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 2.1695757839721255,
+      "fraction_pixels_channel_difference_gt32": 0.022715592334494772
+    },
+    {
+      "format": "epub",
+      "spread": true,
+      "phase": "front",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.0,
+      "fraction_pixels_channel_difference_gt32": 0.0
+    },
+    {
+      "format": "epub",
+      "spread": true,
+      "phase": "curl",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 2.4654876596980255,
+      "fraction_pixels_channel_difference_gt32": 0.025837108013937283
+    },
+    {
+      "format": "epub",
+      "spread": true,
+      "phase": "corner-top",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 2.190484901277584,
+      "fraction_pixels_channel_difference_gt32": 0.023806620209059232
+    },
+    {
+      "format": "epub",
+      "spread": true,
+      "phase": "corner-bottom",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 2.19121718931475,
+      "fraction_pixels_channel_difference_gt32": 0.02408493031358885
+    },
+    {
+      "format": "comic",
+      "spread": false,
+      "phase": "front",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.00569541231126597,
+      "fraction_pixels_channel_difference_gt32": 0.0
+    },
+    {
+      "format": "comic",
+      "spread": false,
+      "phase": "curl",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.945521631823461,
+      "fraction_pixels_channel_difference_gt32": 0.0071189024390243905
+    },
+    {
+      "format": "comic",
+      "spread": false,
+      "phase": "corner-top",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.996383855981417,
+      "fraction_pixels_channel_difference_gt32": 0.0032090592334494774
+    },
+    {
+      "format": "comic",
+      "spread": false,
+      "phase": "corner-bottom",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 1.0920911730545877,
+      "fraction_pixels_channel_difference_gt32": 0.004873257839721254
+    },
+    {
+      "format": "comic",
+      "spread": true,
+      "phase": "front",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.0,
+      "fraction_pixels_channel_difference_gt32": 0.0
+    },
+    {
+      "format": "comic",
+      "spread": true,
+      "phase": "curl",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.821100900116144,
+      "fraction_pixels_channel_difference_gt32": 0.004778745644599303
+    },
+    {
+      "format": "comic",
+      "spread": true,
+      "phase": "corner-top",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.965344512195122,
+      "fraction_pixels_channel_difference_gt32": 0.008127177700348431
+    },
+    {
+      "format": "comic",
+      "spread": true,
+      "phase": "corner-bottom",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.9533050232288037,
+      "fraction_pixels_channel_difference_gt32": 0.008218205574912893
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "phase": "front",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.0023362369337979094,
+      "fraction_pixels_channel_difference_gt32": 0.0
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "phase": "curl",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.9412585656213704,
+      "fraction_pixels_channel_difference_gt32": 0.007104094076655052
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "phase": "corner-top",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 1.6298893728222996,
+      "fraction_pixels_channel_difference_gt32": 0.01796341463414634
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "phase": "corner-bottom",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 1.5763449477351916,
+      "fraction_pixels_channel_difference_gt32": 0.017492160278745644
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "phase": "front",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 0.0,
+      "fraction_pixels_channel_difference_gt32": 0.0
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "phase": "curl",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 1.4590400696864112,
+      "fraction_pixels_channel_difference_gt32": 0.013518292682926829
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "phase": "corner-top",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 1.5198841463414634,
+      "fraction_pixels_channel_difference_gt32": 0.016881533101045298
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "phase": "corner-bottom",
+      "width": 1640,
+      "height": 1400,
+      "rgb_mae": 1.5198421893147502,
+      "fraction_pixels_channel_difference_gt32": 0.01693423344947735
+    }
+  ],
+  "normalization": "Both PNG sources are 16-bit RGBA; normalize to 8-bit RGB before comparison.",
+  "observations": [
+    "Inspected EPUB double-page lower-corner and comic double-page upper-corner snapshots side by side.",
+    "Shader curved text appears more aliased than mesh text in inspected EPUB corners. Lighting and shadow profiles differ.",
+    "Low full-frame MAE is not proof of equal local text sampling or Apple Books visual parity."
+  ]
+}

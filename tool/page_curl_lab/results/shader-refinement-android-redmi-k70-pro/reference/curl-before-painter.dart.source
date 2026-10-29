@@ -1,0 +1,112 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+
+const curlShaderAsset = 'tool/page_curl_lab/shaders/curl.frag';
+
+/// 解析逆映射对照：只更新 uniform，由 GPU 逐像素求页面材料坐标。
+class CurlShaderPainter extends CustomPainter {
+  CurlShaderPainter({
+    required this.shader,
+    required this.images,
+    required this.progress,
+    required this.spread,
+    this.grabY = 0.8,
+    this.rtl = false,
+    this.onPaint,
+  });
+
+  final ui.FragmentShader shader;
+  final List<ui.Image> images;
+  final double progress;
+  final bool spread;
+  final double grabY;
+  final bool rtl;
+  final VoidCallback? onPaint;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    onPaint?.call();
+    final w = spread ? size.width / 2 : size.width;
+    final t = progress.clamp(0.0, 1.0);
+    canvas.save();
+    if (rtl) {
+      canvas.translate(size.width, 0);
+      canvas.scale(-1, 1);
+    }
+    void flat(ui.Image image, double x) {
+      canvas.save();
+      canvas.translate(x, 0);
+      if (rtl) {
+        canvas.translate(w, 0);
+        canvas.scale(-1, 1);
+      }
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(0, 0, w, size.height),
+        Paint()..filterQuality = FilterQuality.medium,
+      );
+      canvas.restore();
+    }
+
+    if (spread) flat(images[0], 0);
+    final origin = spread ? w : 0.0;
+    flat(images[spread ? 3 : 1], origin);
+    if (t == 0) {
+      flat(images[spread ? 1 : 0], origin);
+    } else if (t == 1) {
+      if (spread) flat(images[2], 0);
+    } else {
+      canvas.save();
+      canvas.translate(origin, 0);
+      final wave = math.sin(math.pi * t);
+      final corner = (grabY.clamp(0.0, 1.0) - 0.5) * 0.9;
+      shader
+        ..setFloat(0, w)
+        ..setFloat(1, size.height)
+        ..setFloat(2, t)
+        ..setFloat(3, grabY.clamp(0.0, 1.0))
+        ..setFloat(4, wave)
+        ..setFloat(5, w * 0.105 * math.pow(wave, 0.6))
+        ..setFloat(6, corner)
+        ..setFloat(7, corner * size.height * 0.07 * wave)
+        ..setFloat(8, spread ? 1 : 0)
+        ..setFloat(9, rtl ? 1 : 0)
+        ..setImageSampler(0, images[spread ? 1 : 0])
+        ..setImageSampler(1, images[spread ? 2 : 0]);
+      canvas.drawRect(
+        Rect.fromLTWH(spread ? -w : 0, 0, spread ? w * 2 : w, size.height),
+        Paint()..shader = shader,
+      );
+      canvas.restore();
+    }
+    if (spread) {
+      canvas.drawRect(
+        Rect.fromLTWH(origin - w * 0.025, 0, w * 0.05, size.height),
+        Paint()
+          ..shader = ui.Gradient.linear(
+            Offset(origin - w * 0.025, 0),
+            Offset(origin + w * 0.025, 0),
+            [
+              Colors.transparent,
+              Colors.black.withValues(alpha: 0.16),
+              Colors.transparent,
+            ],
+            [0.0, 0.5, 1.0],
+          ),
+      );
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(CurlShaderPainter old) =>
+      old.shader != shader ||
+      old.images != images ||
+      old.progress != progress ||
+      old.spread != spread ||
+      old.grabY != grabY ||
+      old.rtl != rtl;
+}

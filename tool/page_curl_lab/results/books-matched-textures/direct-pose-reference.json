@@ -1,0 +1,163 @@
+{
+  "device": "iPhone 12",
+  "logical_size": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "capture_method": "direct WDA PNG during concurrent actions; no recording attachment export",
+  "move_ms": 1300,
+  "hold_method": "pointerMove to identical coordinates",
+  "hold_ms": 2200,
+  "requested_capture_times_s": [
+    2.5,
+    3.2
+  ],
+  "initial_body_mae_vs_source_texture": 0.0,
+  "middle_control_body_mae_vs_previous_video_capture": 0.9259278002699055,
+  "poses": [
+    {
+      "name": "between-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        251,
+        732
+      ],
+      "captures": [
+        {
+          "at_s": 2.50780575,
+          "elapsed_s": 0.24876466599999958
+        },
+        {
+          "at_s": 3.210069583,
+          "elapsed_s": 0.24808295799999946
+        }
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.00353463787674314
+    },
+    {
+      "name": "late-between-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        170,
+        732
+      ],
+      "captures": [
+        {
+          "at_s": 2.5082245000000007,
+          "elapsed_s": 0.24387508399999902
+        },
+        {
+          "at_s": 3.2081102500000007,
+          "elapsed_s": 0.2401859169999998
+        }
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.00011021142600089968
+    },
+    {
+      "name": "middle-control",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        211,
+        732
+      ],
+      "captures": [
+        {
+          "at_s": 2.5024035829999995,
+          "elapsed_s": 0.24605229200000167
+        },
+        {
+          "at_s": 3.204575082999998,
+          "elapsed_s": 0.23178675000000126
+        }
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.0001349527665317139
+    },
+    {
+      "name": "far-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        48,
+        732
+      ],
+      "captures": [
+        {
+          "at_s": 2.505412458000002,
+          "elapsed_s": 0.2302016249999994
+        },
+        {
+          "at_s": 3.2100342499999996,
+          "elapsed_s": 0.22678550000000186
+        }
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.00018443544759334232
+    },
+    {
+      "name": "early-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        292,
+        732
+      ],
+      "captures": [
+        {
+          "at_s": 2.5065100840000003,
+          "elapsed_s": 0.2425995409999997
+        },
+        {
+          "at_s": 3.2100666249999996,
+          "elapsed_s": 0.2503083340000005
+        }
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.010455465587044535
+    },
+    {
+      "name": "late-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        129,
+        732
+      ],
+      "captures": [
+        {
+          "at_s": 2.502684541999999,
+          "elapsed_s": 0.23995354100000021
+        },
+        {
+          "at_s": 3.208003583,
+          "elapsed_s": 0.23501283399999906
+        }
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 4.8358074673864145e-05
+    }
+  ],
+  "limits": [
+    "Two matching hold frames verify a stable pose, not physical touch or hardware latency precision.",
+    "Use the same capture method for brightness comparisons.",
+    "Private frames and WDA session identifiers stay outside the repository."
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-29",
+  "scope": "prototype geometry, lighting, bounded texture prefetch, simulator validation",
+  "flutter": "3.47.8",
+  "validation": {
+    "analyze": "passed",
+    "flutter_tests": 146
+  },
+  "limitations": [
+    "Simulator debug data is not physical device performance or end-to-end display latency.",
+    "The curl is an anchored row approximation, not a physical paper solver or Apple Books parity claim.",
+    "Sources are typography/PNG fixtures and a simple generated PDF; production EPUB/CBZ preparation is not covered.",
+    "RGBA accounting excludes decoder and GPU driver overhead; short RSS samples do not establish absence of leaks."
+  ],
+  "simulators": {
+    "v2-android-simulator": {
+      "scenes": 6,
+      "sampled_frames": 160,
+      "rgba_peak_bytes": 33397920,
+      "rgba_budget_bytes": 33554432,
+      "prefetch_failures": 0,
+      "process_rss_min_bytes": 381263872,
+      "process_rss_max_bytes": 414412800
+    },
+    "v2-ios-simulator": {
+      "scenes": 6,
+      "sampled_frames": 957,
+      "rgba_peak_bytes": 32021888,
+      "rgba_budget_bytes": 33554432,
+      "prefetch_failures": 0,
+      "process_rss_min_bytes": 434733056,
+      "process_rss_max_bytes": 606060544
+    }
+  },
+  "android_input": {
+    "gestures": "5 forward, 2 backward, 1 short cancel",
+    "expected_final_page": 4,
+    "observed_final_page": 4,
+    "pointer_moves": 679,
+    "coalesced_moves": 554,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 125,
+      "p50": 5.573,
+      "p95": 12.511,
+      "p99": 44.569,
+      "max": 64.821
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 125,
+      "p50": 86.52,
+      "p95": 153.351,
+      "p99": 176.514,
+      "max": 181.91
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  }
+}

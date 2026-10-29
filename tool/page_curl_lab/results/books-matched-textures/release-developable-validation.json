@@ -1,0 +1,573 @@
+{
+  "status": "passed",
+  "scope": "isolated Flutter page curl lab; production reader unchanged",
+  "base_commit": "d47c1b6",
+  "material_metric": {
+    "viewport_sizes": [
+      [
+        390,
+        844
+      ],
+      [
+        600,
+        800
+      ],
+      [
+        960,
+        720
+      ]
+    ],
+    "poses": 2520,
+    "samples_per_pose": 9,
+    "relative_length_error_max": 9.2156469966298e-07,
+    "orthogonality_error_max": 6.756636206696144e-07,
+    "numerical_step": "min(.01, rowRadius * .001)",
+    "contract": "continuous 3D surface is isometric; perspective and mesh chord approximation are separate"
+  },
+  "motion_model": {
+    "tracking": "least-squares of actual rendered pose over recent timestamps; stale velocity expires after 60ms",
+    "settle": "bounded critically damped analytic channels with full pose velocity",
+    "completion": "material point position, depth and speed tolerances"
+  },
+  "device": {
+    "model": "iPhone 12",
+    "os": "iOS 27.2",
+    "mode": "profile, Mesh, XCTest native screen recording requested at 60fps",
+    "recording_limit": "variable frame timestamps; not hardware touch-to-display latency"
+  },
+  "motion_performance": {
+    "cases": [
+      {
+        "target": 1.0,
+        "completed": true,
+        "release_duration_ms": 585.276,
+        "drag": {
+          "frames": 40,
+          "build_ms": {
+            "mean": 5.114775,
+            "p95": 6.655,
+            "p99": 12.951,
+            "max": 12.951
+          },
+          "raster_ms": {
+            "mean": 2.0269500000000003,
+            "p95": 2.374,
+            "p99": 14.464,
+            "max": 14.464
+          },
+          "total_span_ms": {
+            "mean": 7.465449999999999,
+            "p95": 9.827,
+            "p99": 27.794,
+            "max": 27.794
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.05
+        },
+        "release": {
+          "frames": 35,
+          "build_ms": {
+            "mean": 5.486885714285714,
+            "p95": 8.697,
+            "p99": 9.173,
+            "max": 9.173
+          },
+          "raster_ms": {
+            "mean": 0.8073714285714285,
+            "p95": 2.131,
+            "p99": 2.517,
+            "max": 2.517
+          },
+          "total_span_ms": {
+            "mean": 6.534114285714286,
+            "p95": 11.145,
+            "p99": 11.943,
+            "max": 11.943
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.05714285714285714
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": true,
+        "release_duration_ms": 516.219,
+        "drag": {
+          "frames": 34,
+          "build_ms": {
+            "mean": 4.01714705882353,
+            "p95": 6.546,
+            "p99": 12.985,
+            "max": 12.985
+          },
+          "raster_ms": {
+            "mean": 2.034794117647059,
+            "p95": 4.721,
+            "p99": 4.949,
+            "max": 4.949
+          },
+          "total_span_ms": {
+            "mean": 6.352029411764704,
+            "p95": 11.533,
+            "p99": 18.338,
+            "max": 18.338
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.029411764705882353
+        },
+        "release": {
+          "frames": 31,
+          "build_ms": {
+            "mean": 4.3137741935483875,
+            "p95": 7.833,
+            "p99": 12.934,
+            "max": 12.934
+          },
+          "raster_ms": {
+            "mean": 1.5404838709677418,
+            "p95": 2.106,
+            "p99": 2.791,
+            "max": 2.791
+          },
+          "total_span_ms": {
+            "mean": 6.3869354838709675,
+            "p95": 10.513,
+            "p99": 16.257,
+            "max": 16.257
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.03225806451612903
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": true,
+        "release_duration_ms": 495.22,
+        "drag": {
+          "frames": 41,
+          "build_ms": {
+            "mean": 4.941268292682928,
+            "p95": 6.651,
+            "p99": 17.467,
+            "max": 17.467
+          },
+          "raster_ms": {
+            "mean": 1.8421707317073173,
+            "p95": 2.764,
+            "p99": 4.39,
+            "max": 4.39
+          },
+          "total_span_ms": {
+            "mean": 7.5513414634146345,
+            "p95": 10.475,
+            "p99": 22.162,
+            "max": 22.162
+          },
+          "over_60hz_pipeline_budget": 0.024390243902439025,
+          "over_120hz_pipeline_budget": 0.024390243902439025
+        },
+        "release": {
+          "frames": 30,
+          "build_ms": {
+            "mean": 3.8443,
+            "p95": 4.852,
+            "p99": 5.845,
+            "max": 5.845
+          },
+          "raster_ms": {
+            "mean": 1.2829666666666668,
+            "p95": 1.816,
+            "p99": 2.117,
+            "max": 2.117
+          },
+          "total_span_ms": {
+            "mean": 5.660333333333333,
+            "p95": 7.38,
+            "p99": 7.831,
+            "max": 7.831
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.0
+        }
+      },
+      {
+        "target": 1.0,
+        "completed": true,
+        "release_duration_ms": 583.716,
+        "drag": {
+          "frames": 33,
+          "build_ms": {
+            "mean": 5.846060606060607,
+            "p95": 7.744,
+            "p99": 9.255,
+            "max": 9.255
+          },
+          "raster_ms": {
+            "mean": 1.7006060606060602,
+            "p95": 2.311,
+            "p99": 3.369,
+            "max": 3.369
+          },
+          "total_span_ms": {
+            "mean": 8.056212121212118,
+            "p95": 11.265,
+            "p99": 14.607,
+            "max": 14.607
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.030303030303030304
+        },
+        "release": {
+          "frames": 34,
+          "build_ms": {
+            "mean": 6.49920588235294,
+            "p95": 12.915,
+            "p99": 27.117,
+            "max": 27.117
+          },
+          "raster_ms": {
+            "mean": 1.067117647058824,
+            "p95": 3.545,
+            "p99": 4.097,
+            "max": 4.097
+          },
+          "total_span_ms": {
+            "mean": 7.9357058823529405,
+            "p95": 17.145,
+            "p99": 31.685,
+            "max": 31.685
+          },
+          "over_60hz_pipeline_budget": 0.029411764705882353,
+          "over_120hz_pipeline_budget": 0.14705882352941177
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": true,
+        "release_duration_ms": 516.77,
+        "drag": {
+          "frames": 32,
+          "build_ms": {
+            "mean": 5.973187499999999,
+            "p95": 14.667,
+            "p99": 16.136,
+            "max": 16.136
+          },
+          "raster_ms": {
+            "mean": 1.682125,
+            "p95": 2.286,
+            "p99": 4.227,
+            "max": 4.227
+          },
+          "total_span_ms": {
+            "mean": 8.1299375,
+            "p95": 17.495,
+            "p99": 20.613,
+            "max": 20.613
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.15625
+        },
+        "release": {
+          "frames": 30,
+          "build_ms": {
+            "mean": 4.438933333333334,
+            "p95": 9.841,
+            "p99": 16.918,
+            "max": 16.918
+          },
+          "raster_ms": {
+            "mean": 1.4170333333333331,
+            "p95": 2.432,
+            "p99": 3.839,
+            "max": 3.839
+          },
+          "total_span_ms": {
+            "mean": 6.3092999999999995,
+            "p95": 12.953,
+            "p99": 21.24,
+            "max": 21.24
+          },
+          "over_60hz_pipeline_budget": 0.03333333333333333,
+          "over_120hz_pipeline_budget": 0.06666666666666667
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": false,
+        "release_duration_ms": 0.189,
+        "drag": {
+          "frames": 37,
+          "build_ms": {
+            "mean": 5.910405405405404,
+            "p95": 11.118,
+            "p99": 13.614,
+            "max": 13.614
+          },
+          "raster_ms": {
+            "mean": 1.9885405405405403,
+            "p95": 3.499,
+            "p99": 4.362,
+            "max": 4.362
+          },
+          "total_span_ms": {
+            "mean": 8.451621621621621,
+            "p95": 15.249,
+            "p99": 18.243,
+            "max": 18.243
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.10810810810810811
+        },
+        "release": {
+          "frames": 0,
+          "build_ms": {},
+          "raster_ms": {},
+          "total_span_ms": {},
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.0
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": true,
+        "release_duration_ms": 483.234,
+        "drag": {
+          "frames": 15,
+          "build_ms": {
+            "mean": 4.356800000000001,
+            "p95": 5.879,
+            "p99": 5.879,
+            "max": 5.879
+          },
+          "raster_ms": {
+            "mean": 0.6186666666666666,
+            "p95": 0.886,
+            "p99": 0.886,
+            "max": 0.886
+          },
+          "total_span_ms": {
+            "mean": 5.374666666666667,
+            "p95": 7.279,
+            "p99": 7.279,
+            "max": 7.279
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.0
+        },
+        "release": {
+          "frames": 29,
+          "build_ms": {
+            "mean": 5.1561034482758625,
+            "p95": 7.923,
+            "p99": 15.121,
+            "max": 15.121
+          },
+          "raster_ms": {
+            "mean": 0.8210000000000001,
+            "p95": 1.214,
+            "p99": 1.536,
+            "max": 1.536
+          },
+          "total_span_ms": {
+            "mean": 6.515827586206897,
+            "p95": 9.577,
+            "p99": 17.205,
+            "max": 17.205
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.034482758620689655
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": true,
+        "release_duration_ms": 13.835,
+        "drag": {
+          "frames": 161,
+          "build_ms": {
+            "mean": 4.465577639751552,
+            "p95": 6.531,
+            "p99": 18.333,
+            "max": 19.387
+          },
+          "raster_ms": {
+            "mean": 1.5459130434782604,
+            "p95": 2.374,
+            "p99": 6.53,
+            "max": 7.347
+          },
+          "total_span_ms": {
+            "mean": 6.349546583850933,
+            "p95": 9.333,
+            "p99": 23.046,
+            "max": 24.058
+          },
+          "over_60hz_pipeline_budget": 0.012422360248447204,
+          "over_120hz_pipeline_budget": 0.031055900621118012
+        },
+        "release": {
+          "frames": 1,
+          "build_ms": {
+            "mean": 7.351,
+            "p95": 7.351,
+            "p99": 7.351,
+            "max": 7.351
+          },
+          "raster_ms": {
+            "mean": 2.242,
+            "p95": 2.242,
+            "p99": 2.242,
+            "max": 2.242
+          },
+          "total_span_ms": {
+            "mean": 10.177,
+            "p95": 10.177,
+            "p99": 10.177,
+            "max": 10.177
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.0
+        }
+      },
+      {
+        "target": 0.0,
+        "completed": true,
+        "release_duration_ms": 12.826,
+        "drag": {
+          "frames": 159,
+          "build_ms": {
+            "mean": 4.515849056603774,
+            "p95": 6.69,
+            "p99": 19.47,
+            "max": 20.104
+          },
+          "raster_ms": {
+            "mean": 1.5541509433962264,
+            "p95": 2.489,
+            "p99": 5.329,
+            "max": 5.784
+          },
+          "total_span_ms": {
+            "mean": 6.637364779874216,
+            "p95": 10.017,
+            "p99": 25.699,
+            "max": 26.034
+          },
+          "over_60hz_pipeline_budget": 0.012578616352201259,
+          "over_120hz_pipeline_budget": 0.031446540880503145
+        },
+        "release": {
+          "frames": 1,
+          "build_ms": {
+            "mean": 7.44,
+            "p95": 7.44,
+            "p99": 7.44,
+            "max": 7.44
+          },
+          "raster_ms": {
+            "mean": 1.688,
+            "p95": 1.688,
+            "p99": 1.688,
+            "max": 1.688
+          },
+          "total_span_ms": {
+            "mean": 9.76,
+            "p95": 9.76,
+            "p99": 9.76,
+            "max": 9.76
+          },
+          "over_60hz_pipeline_budget": 0.0,
+          "over_120hz_pipeline_budget": 0.0
+        }
+      }
+    ]
+  },
+  "functional_checks": {
+    "retouch_source_body_difference": 0,
+    "lower": {
+      "limit_vs_beyond_body_difference": 0,
+      "source_body_difference": 0
+    },
+    "upper": {
+      "limit_vs_beyond_body_difference": 0,
+      "source_body_difference": 0
+    },
+    "system_locked": true
+  },
+  "books_original_position_restored": {
+    "body_rgb_mae": 0,
+    "restored": true
+  },
+  "source_restoration": {
+    "candidate": [
+      {
+        "name": "held-cancel",
+        "action_elapsed_s": 2.0975930409999997,
+        "requested_fps": 60,
+        "after_body_difference": 0
+      },
+      {
+        "name": "reverse-cancel",
+        "action_elapsed_s": 1.9377304169999992,
+        "requested_fps": 60,
+        "after_body_difference": 0
+      },
+      {
+        "name": "forward",
+        "action_elapsed_s": 1.8462952909999988,
+        "requested_fps": 60,
+        "after_body_difference": 37.40988416554206
+      },
+      {
+        "name": "backward",
+        "action_elapsed_s": 1.7723354999999987,
+        "requested_fps": 60,
+        "after_body_difference": 0
+      }
+    ],
+    "books": [
+      {
+        "name": "held-cancel",
+        "action_elapsed_s": 1.832921333,
+        "requested_fps": 60,
+        "after_body_difference": 0
+      },
+      {
+        "name": "reverse-cancel",
+        "action_elapsed_s": 1.9100384579999998,
+        "requested_fps": 60,
+        "after_body_difference": 0
+      },
+      {
+        "name": "forward",
+        "action_elapsed_s": 1.5932472090000012,
+        "requested_fps": 60,
+        "after_body_difference": 37.4237775528565
+      },
+      {
+        "name": "backward",
+        "action_elapsed_s": 1.5866705840000002,
+        "requested_fps": 60,
+        "after_body_difference": 0
+      }
+    ]
+  },
+  "limits": [
+    "One device with screen recording overhead; two release frames exceeded the 60Hz pipeline budget.",
+    "No claim of Apple Books dynamic or pixel equivalence.",
+    "Tilted, local and limit surfaces in Shader selection use the shared Mesh fallback; Android performance must be remeasured.",
+    "Phone, tablet and desktop proportions covered by automated geometry/raster tests; no new manual tablet/desktop run.",
+    "Device performance was measured on Mesh; subsequent Shader workspace/warmup fixes were verified by automated tests only."
+  ],
+  "matched_initial_source": {
+    "body_rgb_mae": 0.024085695006747638,
+    "full_rgb_mae": 0.0226667881881152
+  },
+  "automated_checks": {
+    "flutter_analyze": "No issues found",
+    "flutter_test_passed": 287,
+    "final_shader_fallback_tests_passed": 72,
+    "git_diff_check": "passed"
+  }
+}

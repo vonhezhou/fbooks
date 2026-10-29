@@ -1,0 +1,159 @@
+{
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 672,
+    "coalesced_moves": 84,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 588,
+      "p50": 2.86,
+      "p95": 4.495,
+      "p99": 8.528,
+      "max": 9.387
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 588,
+      "p50": 11.652,
+      "p95": 15.514,
+      "p99": 21.161,
+      "max": 25.313
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 310124544,
+      "resident_rgba_bytes": 28050680,
+      "peak_rgba_bytes": 28050680,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 6,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 314048512,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 13,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 317296640,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 18,
+      "misses": 11,
+      "evictions": 3,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 318500864,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 23,
+      "misses": 14,
+      "evictions": 6,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 319516672,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 35,
+      "misses": 18,
+      "evictions": 10,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 320495616,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 320995328,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 313122816,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 313122816,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 877,
+    "build_ms": {
+      "mean": 3.2783078677309,
+      "p95": 5.88,
+      "p99": 7.618,
+      "max": 12.527
+    },
+    "raster_ms": {
+      "mean": 2.7094332953249713,
+      "p95": 4.217,
+      "p99": 5.271,
+      "max": 59.576
+    },
+    "total_span_ms": {
+      "mean": 6.869290763968078,
+      "p95": 10.683,
+      "p99": 13.805,
+      "max": 117.643
+    },
+    "over_60hz_pipeline_budget": 0.0011402508551881414,
+    "over_120hz_pipeline_budget": 0.005701254275940707
+  },
+  "page_start": 3
+}

@@ -1,0 +1,195 @@
+{
+  "baseline_commit": "7ecc2ad",
+  "device": "Redmi K70 Pro / Android 16",
+  "mode": "profile",
+  "backend": "Impeller / Vulkan",
+  "matched_viewport_texture_and_dpr": true,
+  "mesh_columns": 96,
+  "mesh_rows": 24,
+  "baseline": {
+    "frames": 1875,
+    "max_ui_p95_ms": 5.593,
+    "budget_exceedance": {
+      "60": {
+        "samples": 0,
+        "fraction": 0.0
+      },
+      "120": {
+        "samples": 7,
+        "fraction": 0.0037333333333333333
+      }
+    },
+    "peak_texture_rgba_bytes": 33009120
+  },
+  "optimized": {
+    "frames": 1873,
+    "max_ui_p95_ms": 5.842,
+    "budget_exceedance": {
+      "60": {
+        "samples": 0,
+        "fraction": 0.0
+      },
+      "120": {
+        "samples": 6,
+        "fraction": 0.003203416978109984
+      }
+    },
+    "peak_texture_rgba_bytes": 33009120
+  },
+  "scenes": [
+    {
+      "scene": "native-android-text-single",
+      "baseline_ui_p95_ms": 5.493,
+      "optimized_ui_p95_ms": 5.293,
+      "baseline_raster_p95_ms": 4.577,
+      "optimized_raster_p95_ms": 5.081,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-text-double",
+      "baseline_ui_p95_ms": 5.418,
+      "optimized_ui_p95_ms": 5.773,
+      "baseline_raster_p95_ms": 7.107,
+      "optimized_raster_p95_ms": 4.771,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-comic-single",
+      "baseline_ui_p95_ms": 5.359,
+      "optimized_ui_p95_ms": 5.463,
+      "baseline_raster_p95_ms": 4.825,
+      "optimized_raster_p95_ms": 5.112,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-comic-double",
+      "baseline_ui_p95_ms": 5.583,
+      "optimized_ui_p95_ms": 5.842,
+      "baseline_raster_p95_ms": 5.914,
+      "optimized_raster_p95_ms": 6.494,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-pdf-single",
+      "baseline_ui_p95_ms": 5.237,
+      "optimized_ui_p95_ms": 5.58,
+      "baseline_raster_p95_ms": 4.962,
+      "optimized_raster_p95_ms": 7.546,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-pdf-double",
+      "baseline_ui_p95_ms": 5.593,
+      "optimized_ui_p95_ms": 5.668,
+      "baseline_raster_p95_ms": 4.603,
+      "optimized_raster_p95_ms": 4.829,
+      "native_png_byte_identical": true
+    }
+  ],
+  "source_sha256": {
+    "curl_geometry.dart": "899275efea64d21916caa9027e249e19d63a786af1ccbc442030234b477f02f7",
+    "page_texture_cache.dart": "bfe6f27782d54e189e1773a3968a6dfd0c159a29b36b9efbfa217a32acef4a59",
+    "main.dart": "7ccfcb9ddfc90dde53dedcac7a23f6d7c4d856cb9cbd8b545cd90afe50accd8d",
+    "curl_painter.dart": "bc7a709f20c8b6709b66f68509a979c8a254bf736df51eda9a02d005a6b3d775",
+    "input_latency.dart": "983168426092603ecad413d9fe19289f682d85f01072a6f7ca2aef46dd03bdc3",
+    "page_sources.dart": "b591a3ce82d3e6fd554d98ea1f8be11d37b8272916b7aeb5eb602c9e1bc6f30d"
+  },
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 148,
+    "headless_pixel_equivalent_frames": 36,
+    "native_png_byte_equivalent_frames": 6,
+    "physical_gestures": "5 forward, 2 backward, 1 short cancel in each input run; final page 4; no clock mismatches or unmatched painted frames; cache budget respected."
+  },
+  "limitations": [
+    "Synthetic typography and PNG fixtures; real PDFium rendering of a simple generated PDF.",
+    "No production chapter layout, EPUB capture, CBZ extraction, disk I/O, selection or progress integration.",
+    "RGBA bytes exclude PDF/native/transient/cached GPU allocations; RSS is whole-process memory.",
+    "Pipeline budget exceedance is not measured dropped-frame rate or input-to-display latency.",
+    "No Apple Books side-by-side comparison; row curl is not a physical paper solver.",
+    "Short-run results on one device with variable CPU/GPU scheduling. Frame P95 did not consistently improve; historical max UI P95 5.593 ms, new max UI P95 5.842 ms.",
+    "Same-process CPU benchmark records pictures only; excludes raster, texture preparation and display.",
+    "One adjacent input run per version; lower latency in this sample is not a statistically established latency guarantee.",
+    "6/1873 frames exceed the 120 Hz pipeline budget; not measured display dropped-frame rate."
+  ],
+  "date": "2026-10-29",
+  "cpu_recording_same_process": [
+    {
+      "spread": false,
+      "baseline_median_ms": 0.9275666666666667,
+      "optimized_median_ms": 0.7680583333333333,
+      "reduction_fraction": 0.17196427929708558,
+      "median_paired_reduction_fraction": 0.1589676615871169
+    },
+    {
+      "spread": true,
+      "baseline_median_ms": 0.9349416666666667,
+      "optimized_median_ms": 0.7409916666666667,
+      "reduction_fraction": 0.207446097350102,
+      "median_paired_reduction_fraction": 0.18183665186660758
+    }
+  ],
+  "numerical_equivalence": {
+    "baseline_commit": "7ecc2ad",
+    "sampled_vertices": 50000,
+    "different_quantized_shades": 0,
+    "max_position_error": 0.0,
+    "max_light_error": 1.1102230246251565e-16
+  },
+  "input_comparison": {
+    "test_order": [
+      "baseline-current",
+      "optimized"
+    ],
+    "baseline_commit": "7ecc2ad",
+    "baseline": {
+      "pointer_moves": 673,
+      "coalesced_moves": 63,
+      "clock_mismatches": 0,
+      "unmatched_painted_frames": 0,
+      "dispatch_to_paint_ms": {
+        "samples": 610,
+        "p50": 3.898,
+        "p95": 6.255,
+        "p99": 7.727,
+        "max": 9.303
+      },
+      "event_to_raster_finish_ms": {
+        "samples": 610,
+        "p50": 12.88,
+        "p95": 17.987,
+        "p99": 19.442,
+        "max": 22.475
+      },
+      "excludes": "touch hardware sampling, compositor presentation, display scanout"
+    },
+    "optimized": {
+      "pointer_moves": 672,
+      "coalesced_moves": 48,
+      "clock_mismatches": 0,
+      "unmatched_painted_frames": 0,
+      "dispatch_to_paint_ms": {
+        "samples": 624,
+        "p50": 2.901,
+        "p95": 5.526,
+        "p99": 7.642,
+        "max": 8.793
+      },
+      "event_to_raster_finish_ms": {
+        "samples": 624,
+        "p50": 11.781,
+        "p95": 16.554,
+        "p99": 18.906,
+        "max": 20.232
+      },
+      "excludes": "touch hardware sampling, compositor presentation, display scanout"
+    },
+    "measurement": "ADB software injection to raster finish; excludes touch hardware sampling, compositor presentation and display scanout."
+  },
+  "eliminated_allocation_sites": {
+    "default_mesh_vertices": 2425,
+    "curl_vertex_constructions_per_frame": 2425,
+    "offset_constructions_per_frame": 2425,
+    "scope": "Reused mesh projection path only; not a total allocation profile. Rows, painters, native objects and public immutable projection API still allocate."
+  }
+}

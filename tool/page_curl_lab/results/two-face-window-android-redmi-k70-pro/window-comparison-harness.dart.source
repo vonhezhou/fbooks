@@ -1,0 +1,880 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:window_manager/window_manager.dart';
+
+import 'curl_geometry.dart';
+import 'curl_painter.dart';
+import 'curl_shader_painter.dart';
+import 'page_sources.dart';
+import 'page_texture_cache.dart';
+import 'input_latency.dart';
+
+const renderer = String.fromEnvironment('CURL_RENDERER', defaultValue: 'mesh');
+
+const shaderWarmup = bool.fromEnvironment(
+  'CURL_SHADER_WARMUP',
+  defaultValue: true,
+);
+
+const benchmark = bool.fromEnvironment('CURL_BENCH');
+const output = String.fromEnvironment('CURL_OUTPUT', defaultValue: '');
+const capture = bool.fromEnvironment('CURL_CAPTURE', defaultValue: true);
+const inputSession = bool.fromEnvironment('CURL_INPUT_SESSION');
+const simulated = bool.fromEnvironment('CURL_SIMULATOR');
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (benchmark) {
+    FlutterError.onError = (details) {
+      FlutterError.dumpErrorToConsole(details);
+      exit(1);
+    };
+  }
+  if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+    await windowManager.ensureInitialized();
+    await windowManager.setSize(const Size(1320, 900));
+    await windowManager.setTitle('Fbooks — Page curl performance lab');
+    await windowManager.show();
+    await windowManager.focus();
+  }
+  if (!const ['mesh', 'shader', 'compare'].contains(renderer)) {
+    throw ArgumentError('Unknown CURL_RENDERER: $renderer');
+  }
+  final program = renderer != 'mesh'
+      ? await ui.FragmentProgram.fromAsset(curlShaderAsset)
+      : null;
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: CurlLab(program: program),
+    ),
+  );
+}
+
+class CurlLab extends StatefulWidget {
+  const CurlLab({super.key, this.program});
+  final ui.FragmentProgram? program;
+  @override
+  State<CurlLab> createState() => _CurlLabState();
+}
+
+class _CurlLabState extends State<CurlLab> with SingleTickerProviderStateMixin {
+  late final AnimationController _animation;
+  final _boundary = GlobalKey();
+  late final _mesh = CurlMesh();
+  ui.FragmentShader? _shader;
+  Future<Duration>? _shaderWarmup;
+  Duration? _shaderWarmupDuration;
+  bool _useShader = renderer == 'shader';
+  String get _activeRenderer => _singleFaces == 4 ? 'four-faces' : 'two-faces';
+  final _viewportReady = Completer<Size>();
+  final _inputStarted = Completer<void>();
+  final _captureDone = Completer<void>();
+  final _frames = <ui.FrameTiming>[];
+  final _input = InputLatencyProbe();
+  int _singleFaces = 2;
+  int get _faceCount => _spread ? 4 : _singleFaces;
+  Map<String, Object> _initialPreparation = {};
+  PageTextureCache? _cache;
+  Size _availableSize = const Size(390, 600);
+  int _pageStart = 0;
+  bool _turning = false;
+  bool _gestureActive = false;
+  int _gestureDirection = 0;
+  int _gestureAnchor = 0;
+  double _latestDelta = 0;
+  Future<void> _gestureReady = Future.value();
+  Object? _gestureError;
+  PageTextures? _textures;
+  PageKind _kind = PageKind.text;
+  Size _size = const Size(820, 700);
+  double _dpr = 2;
+  bool _spread = true;
+  bool _rtl = false;
+  bool _busy = true;
+  double _grabY = 0.8;
+  String _status = 'Preparing textures…';
+  String? _error;
+  int? _firstVsync;
+  int? _lastVsync;
+  double _dragStart = 0;
+  double _startProgress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _shader = widget.program?.fragmentShader();
+    _animation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+      animationBehavior: benchmark
+          ? AnimationBehavior.preserve
+          : AnimationBehavior.normal,
+    );
+    WidgetsBinding.instance.addTimingsCallback(_timings);
+    if (inputSession) {
+      developer.registerExtension('ext.curl.status', (_, parameters) async {
+        final requestedRenderer = parameters['renderer'];
+        if (requestedRenderer != null) {
+          if (_shader == null ||
+              !const ['mesh', 'shader'].contains(requestedRenderer) ||
+              _busy ||
+              _turning ||
+              _gestureActive) {
+            return developer.ServiceExtensionResponse.result(
+              jsonEncode({'error': 'Renderer switch unavailable'}),
+            );
+          }
+          setState(() => _useShader = requestedRenderer == 'shader');
+        }
+
+        if (parameters['finish'] == 'true' && !_captureDone.isCompleted) {
+          _captureDone.complete();
+        }
+        return developer.ServiceExtensionResponse.result(
+          jsonEncode({
+            'renderer': _activeRenderer,
+            'page_start': _pageStart,
+            'ready': !_busy && !_turning && !_gestureActive,
+            'error': _error,
+          }),
+        );
+      });
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await _viewportReady.future;
+        if (!mounted) return;
+        if (benchmark) {
+          await _benchmark();
+        } else {
+          if (Platform.isAndroid || Platform.isIOS) {
+            _size = _availableSize;
+            _dpr = View.of(context).devicePixelRatio;
+            _spread = false;
+          }
+          await _prepare();
+          if (inputSession) await _inputSession();
+        }
+      } catch (error, stack) {
+        debugPrint('$error\n$stack');
+        if (mounted) {
+          setState(() {
+            _error = error.toString();
+            _busy = false;
+          });
+        }
+        if (benchmark) exit(1);
+      }
+    });
+  }
+
+  void _timings(List<ui.FrameTiming> timings) {
+    _frames.addAll(timings);
+    if (_frames.length > 2000) _frames.removeRange(0, _frames.length - 2000);
+    _input.frames(timings);
+  }
+
+  Future<void> _prepare() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    _animation.stop();
+    _animation.value = 0;
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    _cache?.dispose();
+    _textures = null;
+    _initialPreparation = {};
+    final pageSize = Size(
+      _spread ? _size.width / 2 : _size.width,
+      _size.height,
+    );
+    final mobile = Platform.isAndroid || Platform.isIOS;
+    final pixels = mobile ? 1000000 : 2000000;
+    _dpr = math.min(
+      _dpr,
+      math.sqrt(pixels / (pageSize.width * pageSize.height)),
+    );
+    final kind = _kind;
+    final dpr = _dpr;
+    _cache = PageTextureCache(
+      bytesPerPage:
+          (pageSize.width * dpr).ceil() * (pageSize.height * dpr).ceil() * 4,
+      maxBytes: (mobile ? 32 : 64) * 1024 * 1024,
+      load: (page) async => (await preparePages(
+        kind,
+        pageSize,
+        dpr,
+        pageNumbers: [page],
+      )).images.single,
+    );
+    _pageStart = 0;
+    await _loadWindow(0);
+  }
+
+  Future<void> _loadWindow(int anchor, {double progress = 0}) async {
+    final cache = _cache!;
+    final next = {for (var i = 0; i < _faceCount; i++) anchor + i};
+    final old = _textures == null || _busy
+        ? <int>{}
+        : {for (var i = 0; i < _textures!.images.length; i++) _pageStart + i};
+    cache.pin({...old, ...next});
+    final watch = Stopwatch()..start();
+    try {
+      final images = <ui.Image>[];
+      for (final page in next) {
+        images.add(await cache.get(page));
+      }
+      if (!mounted || cache != _cache) return;
+      final decodeElapsedMs = watch.elapsedMicroseconds / 1000;
+      if (_shader != null && shaderWarmup) {
+        try {
+          _shaderWarmupDuration = await (_shaderWarmup ??= warmCurlShader(
+            _shader!,
+            images,
+            spread: _spread,
+          ));
+        } catch (_) {
+          _shaderWarmup = null;
+          rethrow;
+        }
+        if (!mounted || cache != _cache) return;
+      }
+
+      final textures = PageTextures(images, watch.elapsedMicroseconds / 1000);
+      if (_busy) {
+        // 在后台预加载开始前快照首批解码，避免把相邻页混入可见窗口统计。
+        _initialPreparation = {
+          'visible_face_count': images.length,
+          'elapsed_ms': textures.prepareMs,
+          'decode_elapsed_ms': decodeElapsedMs,
+          'rgba_bytes': textures.rgbaBytes,
+          'decode_misses_before_prefetch': cache.misses,
+          'resident_bytes_before_prefetch': cache.residentBytes,
+        };
+      }
+      setState(() {
+        _textures = textures;
+        _pageStart = anchor;
+        _animation.value = progress;
+        _busy = false;
+        _status =
+            '${_kind.name} · page ${anchor + 1} · ${_spread ? "double" : "single"} · '
+            '${(cache.residentBytes / 1048576).toStringAsFixed(1)} MiB RGBA';
+      });
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || cache != _cache) return;
+      cache.pin(next);
+      unawaited(
+        cache.prefetch([
+          anchor + _faceCount,
+          anchor + _faceCount + 1,
+          if (anchor > 0) anchor - 1,
+          if (anchor > 1) anchor - 2,
+        ]),
+      );
+    } catch (_) {
+      cache.pin(old);
+      rethrow;
+    }
+  }
+
+  Future<void> _turnPage(int delta) async {
+    if (_turning || _busy || _gestureActive) return;
+    final next = _pageStart + delta * (_spread ? 2 : 1);
+    if (next < 0 || next > 20) return;
+    _turning = true;
+    try {
+      if (delta > 0) {
+        await _animation.forward(from: 0);
+        await _loadWindow(next);
+      } else {
+        await _loadWindow(next, progress: 1);
+        await _animation.reverse();
+      }
+    } catch (error) {
+      _animation.value = 0;
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      _turning = false;
+    }
+  }
+
+  Future<void> _finishGesture(double? velocity) async {
+    _gestureActive = false;
+    _turning = true;
+    try {
+      await _gestureReady;
+      if (_gestureError != null) throw _gestureError!;
+      if (_gestureDirection != 0) {
+        _animation.value = dragProgress(
+          _startProgress,
+          _latestDelta,
+          _spread ? _size.width / 2 : _size.width,
+        );
+      }
+      final target = velocity == null
+          ? (_gestureDirection < 0 ? 1.0 : 0.0)
+          : settleTarget(_animation.value, velocity, _size.width);
+      await _animation.animateTo(target, curve: Curves.easeOutCubic);
+      if (_gestureDirection > 0 && target == 1) {
+        await _loadWindow(_gestureAnchor + (_spread ? 2 : 1));
+      } else if (_gestureDirection < 0 && target == 1) {
+        await _loadWindow(_gestureAnchor);
+      }
+      _animation.value = 0;
+    } catch (error) {
+      _animation.value = 0;
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      _turning = false;
+    }
+  }
+
+  Future<void> _inputSession() async {
+    debugPrint('CURL_INPUT_READY');
+    // 以第一条实际输入为采样起点，避免启动/构建等待消耗交互窗口。
+    await _inputStarted.future;
+    debugPrint('CURL_INPUT_STARTED');
+    final memory = <Map<String, Object>>[];
+    for (var i = 0; i < 60 && !_captureDone.isCompleted; i++) {
+      await Future.any([
+        Future<void>.delayed(const Duration(seconds: 1)),
+        _captureDone.future,
+      ]);
+      memory.add({
+        'second': i + 1,
+        'rss_bytes': ProcessInfo.currentRss,
+        ..._cache!.metrics,
+      });
+    }
+    if (!_captureDone.isCompleted) {
+      throw StateError('Input driver did not finish capture');
+    }
+    if (!mounted) return;
+    final data = {
+      'renderer': _activeRenderer,
+      'initial_preparation': _initialPreparation,
+      'visible_face_count': _textures!.images.length,
+      'shader_warmup_enabled': shaderWarmup,
+      'shader_warmup_ms': (_shaderWarmupDuration?.inMicroseconds ?? 0) / 1000,
+      'logical_width': _size.width,
+      'logical_height': _size.height,
+      'texture_dpr': _dpr,
+      'window_dpr': View.of(context).devicePixelRatio,
+      'execution_target': simulated ? 'simulator' : 'physical-mobile',
+      'timing_statistics_usable': !simulated && kProfileMode,
+      'input': _input.metrics,
+      'memory_samples': memory,
+      'frames': summarizeFrames(_frames),
+      'page_start': _pageStart,
+    };
+    final dir = Directory('${Directory.systemTemp.path}/fbooks-page-curl-v2')
+      ..createSync(recursive: true);
+    await File('${dir.path}/input.json')
+        .writeAsString(const JsonEncoder.withIndent('  ').convert(data));
+    debugPrint('CURL_INPUT_RESULT ${jsonEncode(data)}');
+    debugPrint('CURL_INPUT_COMPLETE ${dir.path}/input.json');
+  }
+
+  Future<void> _benchmark() async {
+    final dir = Directory(
+      output.isEmpty
+          ? '${Directory.systemTemp.path}/fbooks-page-curl-v2'
+          : output,
+    )..createSync(recursive: true);
+    final results = <Map<String, Object?>>[];
+    final mobile = Platform.isAndroid || Platform.isIOS;
+    final nativeDpr = View.of(context).devicePixelRatio;
+    const widthArgument = String.fromEnvironment('CURL_BENCH_WIDTH');
+    const heightArgument = String.fromEnvironment('CURL_BENCH_HEIGHT');
+    final fixedWidth = double.tryParse(widthArgument);
+    final fixedHeight = double.tryParse(heightArgument);
+    if ((widthArgument.isNotEmpty || heightArgument.isNotEmpty) &&
+        (fixedWidth == null ||
+            fixedHeight == null ||
+            fixedWidth <= 0 ||
+            fixedHeight <= 0 ||
+            !fixedWidth.isFinite ||
+            !fixedHeight.isFinite)) {
+      throw ArgumentError(
+        'Benchmark width and height must both be positive finite numbers',
+      );
+    }
+    final nativeSize = fixedWidth == null
+        ? _availableSize
+        : Size(fixedWidth, fixedHeight!);
+    final profiles = mobile
+        ? [
+            (
+              name: 'native-${Platform.operatingSystem}',
+              size: nativeSize,
+              dpr: nativeDpr,
+            ),
+          ]
+        : [
+            (name: 'phone', size: const Size(390, 700), dpr: 3.0),
+            (name: 'tablet-landscape', size: const Size(1024, 700), dpr: 2.0),
+            (name: 'desktop', size: const Size(1200, 700), dpr: 2.0),
+          ];
+    for (final profile in profiles) {
+      for (final kind in PageKind.values) {
+        for (final spread in [false, true]) {
+          _size = profile.size;
+          _dpr = profile.dpr;
+          _kind = kind;
+          _spread = spread;
+          final modes = (kind.index + (spread ? 1 : 0)).isEven
+              ? ['four-faces', 'two-faces']
+              : ['two-faces', 'four-faces'];
+          for (final mode in modes) {
+            setState(() { _singleFaces = mode == 'four-faces' ? 4 : 2; _useShader = true; });
+            await _prepare();
+            final id =
+                '${profile.name}-${kind.name}-${spread ? "double" : "single"}${renderer == "compare" ? "-$mode" : ""}';
+            // 热身与采样均包含动态网格、光影及纹理绘制；不含页面准备。
+            await _animation.forward(from: 0);
+            await _animation.reverse();
+            await Future<void>.delayed(const Duration(milliseconds: 1100));
+            _frames.clear();
+            void firstFrame(Duration _) {
+              _firstVsync ??= SchedulerBinding
+                  .instance
+                  .currentSystemFrameTimeStamp
+                  .inMicroseconds;
+            }
+
+            _firstVsync = null;
+            SchedulerBinding.instance.addPostFrameCallback(firstFrame);
+            final elapsed = Stopwatch()..start();
+            for (var i = 0; i < 2; i++) {
+              await _animation.forward(from: 0);
+              await _animation.reverse();
+            }
+            elapsed.stop();
+            _lastVsync = SchedulerBinding
+                .instance
+                .currentSystemFrameTimeStamp
+                .inMicroseconds;
+            // FrameTiming 在 profile 模式可能批量晚到，按实际 vsync 时间过滤。
+            await Future<void>.delayed(const Duration(milliseconds: 1100));
+            final frames = _frames.where((f) {
+              final vsync = f.timestampInMicroseconds(ui.FramePhase.vsyncStart);
+              return _firstVsync != null &&
+                  vsync >= _firstVsync! &&
+                  vsync <= _lastVsync!;
+            }).toList();
+            if (frames.isEmpty || (!simulated && frames.length < 30)) {
+              throw StateError(
+                'Insufficient FrameTiming samples: ${frames.length}',
+              );
+            }
+            if (!mounted) return;
+            final render =
+                _boundary.currentContext!.findRenderObject()!
+                    as RenderRepaintBoundary;
+            final result = <String, Object?>{
+              'id': id,
+              'renderer': 'shader',
+              'window_policy': _activeRenderer,
+              'shader_warmup_enabled': shaderWarmup,
+              'shader_warmup_ms':
+                  (_shaderWarmupDuration?.inMicroseconds ?? 0) / 1000,
+              'mesh_columns': _useShader ? null : 96,
+              'mesh_rows': _useShader ? null : 24,
+              'timing_statistics_usable':
+                  frames.length >= 30 && !simulated && kProfileMode,
+              'source': kind.name,
+              'spread': spread,
+              'logical_width': _size.width,
+              'logical_height': _size.height,
+              'texture_dpr': _dpr,
+              'window_dpr': View.of(context).devicePixelRatio,
+              'effective_logical_scale': render
+                  .getTransformTo(null)
+                  .getMaxScaleOnAxis(),
+              'actual_paint_width': render.size.width,
+              'actual_paint_height': render.size.height,
+              'initial_preparation': _initialPreparation,
+              'visible_face_count': _textures!.images.length,
+              'prepare_visible_pages_ms': _textures!.prepareMs,
+              'resident_visible_page_rgba_bytes': _textures!.rgbaBytes,
+              'process_rss_bytes': ProcessInfo.currentRss,
+              'texture_width': _textures!.images.first.width,
+              'texture_height': _textures!.images.first.height,
+              'texture_cache': _cache!.metrics,
+              'measured_animation_ms': elapsed.elapsedMilliseconds,
+              ...summarizeFrames(frames),
+            };
+            results.add(result);
+            debugPrint('CURL_RESULT ${jsonEncode(result)}');
+            if (capture && (profile.name == 'desktop' || mobile)) {
+              _animation.value = 0.52;
+              await WidgetsBinding.instance.endOfFrame;
+              final image = await render.toImage(pixelRatio: 1);
+              try {
+                final data = await image.toByteData(
+                  format: ui.ImageByteFormat.png,
+                );
+                await File('${dir.path}/$id.png')
+                    .writeAsBytes(data!.buffer.asUint8List());
+              } finally {
+                image.dispose();
+              }
+            }
+            if (mobile) {
+              final memory = <Map<String, Object>>[];
+              for (final anchor in [1, 2, 4, 6, 8, 6, 4, 2, 0]) {
+                await _loadWindow(anchor);
+                memory.add({
+                  'anchor': anchor,
+                  'rss_bytes': ProcessInfo.currentRss,
+                  ..._cache!.metrics,
+                });
+              }
+              result['cache_stress'] = memory;
+            }
+            await File('${dir.path}/results.json').writeAsString(
+              const JsonEncoder.withIndent('  ').convert({
+                'mode': kProfileMode
+                    ? 'profile'
+                    : (kReleaseMode ? 'release' : 'debug'),
+                'os': Platform.operatingSystemVersion,
+                'dart': Platform.version,
+                'renderer': renderer,
+                'mesh_columns': renderer == 'mesh' ? 96 : null,
+                'mesh_rows': renderer == 'mesh' ? 24 : null,
+                'measurement': 'warm page textures; two forward/reverse cycles; vsync-filtered FrameTiming',
+                'geometry': renderer == 'compare'
+                    ? 'Same shader; paired four-face reference versus two-face single-page window'
+                    : renderer == 'mesh'
+                    ? 'spine-anchored row curl with corner control'
+                    : 'analytic inverse row curl; three vertical corrections; analytic shadow',
+                'execution_target': simulated
+                    ? 'simulator'
+                    : mobile
+                    ? 'physical-mobile'
+                    : 'desktop',
+                'physical_mobile': mobile && !simulated,
+                'limitations': [
+                  'Synthetic typography and PNG fixtures; real PDFium rendering of a simple generated PDF.',
+                  'No production chapter layout, EPUB capture, CBZ extraction, disk I/O, selection or progress integration.',
+                  if (!mobile) 'Phone/tablet dimensions run on desktop GPU.',
+                  if (simulated) 'Simulator timings and process memory do not predict physical device performance.',
+                  'RGBA bytes exclude PDF/native/transient/cached GPU allocations; RSS is whole-process memory.',
+                  'Pipeline budget exceedance is not measured dropped-frame rate or input-to-display latency.',
+                  'No Apple Books side-by-side comparison; row curl is not a physical paper solver.',
+                  if (renderer != 'mesh') 'Shader uses an approximate vertical inverse, height-dependent analytic shadows and pixel coverage edges. It is not pixel-equivalent to the mesh.',
+                ],
+                'results': results,
+              }),
+            );
+          }
+        }
+      }
+    }
+    debugPrint('CURL_COMPLETE ${dir.path}/results.json');
+    exit(0);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeTimingsCallback(_timings);
+    _animation.dispose();
+    _shader?.dispose();
+    _cache?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xff23272b),
+      appBar: AppBar(title: const Text('Paper curl lab · isolated prototype')),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Wrap(
+              spacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                DropdownButton<PageKind>(
+                  value: _kind,
+                  items: [
+                    for (final kind in PageKind.values)
+                      DropdownMenuItem(value: kind, child: Text(kind.name)),
+                  ],
+                  onChanged: _busy || benchmark
+                      ? null
+                      : (value) async {
+                          if (_turning || _gestureActive) return;
+                          _kind = value!;
+                          await _prepare();
+                        },
+                ),
+                TextButton(
+                  onPressed: _busy || benchmark
+                      ? null
+                      : () async {
+                          if (_turning || _gestureActive) return;
+                          _spread = !_spread;
+                          await _prepare();
+                        },
+                  child: Text(_spread ? 'Double page' : 'Single page'),
+                ),
+                TextButton(
+                  onPressed: _busy || benchmark
+                      ? null
+                      : () {
+                          if (!_turning && !_gestureActive) {
+                            setState(() => _rtl = !_rtl);
+                          }
+                        },
+                  child: Text(_rtl ? 'RTL' : 'LTR'),
+                ),
+                if (renderer == 'compare')
+                  TextButton(
+                    onPressed: _busy || benchmark
+                        ? null
+                        : () {
+                            if (_turning || _gestureActive) return;
+                            setState(() => _useShader = !_useShader);
+                          },
+                    child: Text('Renderer: $_activeRenderer'),
+                  ),
+                TextButton(
+                  onPressed: _busy || benchmark ? null : () => _turnPage(-1),
+                  child: const Text('Previous'),
+                ),
+                TextButton(
+                  onPressed: _busy || benchmark ? null : () => _turnPage(1),
+                  child: const Text('Next'),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: SizedBox(
+                height: 44,
+                child: Text(
+                  _error ?? _status,
+                  maxLines: 2,
+                  style: TextStyle(
+                    color: _error == null ? Colors.white70 : Colors.redAccent,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (_, constraints) {
+                  _availableSize = constraints.biggest;
+                  if (!_viewportReady.isCompleted &&
+                      constraints.maxWidth > 100 &&
+                      constraints.maxHeight > 100) {
+                    _viewportReady.complete(constraints.biggest);
+                  }
+                  return Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: RepaintBoundary(
+                        key: _boundary,
+                        child: SizedBox(
+                          width: _size.width,
+                          height: _size.height,
+                          child: _busy || _textures == null
+                              ? const Center(child: CircularProgressIndicator())
+                              : Listener(
+                                  onPointerMove: (event) {
+                                    if (!benchmark && !_busy) {
+                                      _input.record(event.timeStamp);
+                                      if (!_inputStarted.isCompleted) {
+                                        _inputStarted.complete();
+                                      }
+                                    }
+                                  },
+                                  child: GestureDetector(
+                                    key: const Key('curl-surface'),
+                                    onHorizontalDragStart: benchmark
+                                        ? null
+                                        : (d) {
+                                            if (_turning || _busy) return;
+                                            _animation.stop();
+                                            _animation.value = 0;
+                                            _gestureActive = true;
+                                            _gestureDirection = 0;
+                                            _gestureAnchor = _pageStart;
+                                            _gestureReady = Future.value();
+                                            _gestureError = null;
+                                            _dragStart = d.localPosition.dx;
+                                            _startProgress = 0;
+                                            setState(
+                                              () => _grabY =
+                                                  d.localPosition.dy /
+                                                  _size.height,
+                                            );
+                                          },
+                                    onHorizontalDragUpdate: benchmark
+                                        ? null
+                                        : (d) {
+                                            if (!_gestureActive) return;
+                                            final delta =
+                                                (d.localPosition.dx -
+                                                    _dragStart) *
+                                                (_rtl ? -1 : 1);
+                                            _latestDelta = delta;
+                                            if (_gestureDirection == 0 &&
+                                                delta.abs() > 1) {
+                                              if (delta > 0 && _pageStart > 0) {
+                                                _gestureDirection = -1;
+                                                _startProgress = 1;
+                                                _gestureReady =
+                                                    _loadWindow(
+                                                          _pageStart -
+                                                              (_spread ? 2 : 1),
+                                                          progress: 1,
+                                                        )
+                                                        .then((_) {
+                                                          if (_gestureActive) {
+                                                            _animation
+                                                                .value = dragProgress(
+                                                              1,
+                                                              _latestDelta,
+                                                              _spread
+                                                                  ? _size.width /
+                                                                        2
+                                                                  : _size.width,
+                                                            );
+                                                          }
+                                                        })
+                                                        .catchError((
+                                                          Object error,
+                                                        ) {
+                                                          _gestureError = error;
+                                                        });
+                                              } else if (delta < 0 &&
+                                                  _pageStart < 20) {
+                                                _gestureDirection = 1;
+                                              }
+                                            }
+                                            if (_gestureDirection == 0) return;
+                                            _animation.value = dragProgress(
+                                              _startProgress,
+                                              delta,
+                                              _spread
+                                                  ? _size.width / 2
+                                                  : _size.width,
+                                            );
+                                          },
+                                    onHorizontalDragEnd: benchmark
+                                        ? null
+                                        : (d) {
+                                            if (_gestureActive) {
+                                              unawaited(
+                                                _finishGesture(
+                                                  (d.primaryVelocity ?? 0) *
+                                                      (_rtl ? -1 : 1),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                    onHorizontalDragCancel: benchmark
+                                        ? null
+                                        : () {
+                                            if (_gestureActive) {
+                                              unawaited(_finishGesture(null));
+                                            }
+                                          },
+                                    child: AnimatedBuilder(
+                                      animation: _animation,
+                                      builder: (_, _) => CustomPaint(
+                                        painter: !_useShader
+                                            ? CurlPainter(
+                                                mesh: _mesh,
+                                                images: _textures!.images,
+                                                progress: _animation.value,
+                                                spread: _spread,
+                                                grabY: _grabY,
+                                                rtl: _rtl,
+                                                onPaint: () => _input.markPaint(
+                                                  ui
+                                                      .PlatformDispatcher
+                                                      .instance
+                                                      .frameData
+                                                      .frameNumber,
+                                                  progress: _animation.value,
+                                                  renderer: _activeRenderer,
+                                                ),
+                                              )
+                                            : CurlShaderPainter(
+                                                shader: _shader!,
+                                                pixelRatio:
+                                                    View.of(context)
+                                                        .devicePixelRatio *
+                                                    math.min(
+                                                      1,
+                                                      math.min(
+                                                        constraints.maxWidth /
+                                                            _size.width,
+                                                        constraints.maxHeight /
+                                                            _size.height,
+                                                      ),
+                                                    ),
+                                                images: _textures!.images,
+                                                progress: _animation.value,
+                                                spread: _spread,
+                                                grabY: _grabY,
+                                                rtl: _rtl,
+                                                onPaint: () => _input.markPaint(
+                                                  ui
+                                                      .PlatformDispatcher
+                                                      .instance
+                                                      .frameData
+                                                      .frameNumber,
+                                                  progress: _animation.value,
+                                                  renderer: _activeRenderer,
+                                                ),
+                                              ),
+                                        size: _size,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (!benchmark)
+              AnimatedBuilder(
+                animation: _animation,
+                builder: (_, _) => Slider(
+                  value: _animation.value,
+                  onChanged: _busy || _turning || _gestureActive
+                      ? null
+                      : (v) {
+                          if (!_turning && !_gestureActive) {
+                            _animation.value = v;
+                          }
+                        },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}

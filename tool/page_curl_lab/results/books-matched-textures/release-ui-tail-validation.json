@@ -1,0 +1,1397 @@
+{
+  "status": "60Hz release tail fixed in sampled Android runs; remaining 120Hz overruns",
+  "baseline_commit": "9e9a1ba",
+  "scope": "isolated Flutter page curl lab; production reader unchanged",
+  "device": {
+    "model": "Redmi K70 Pro",
+    "os": "Android 16",
+    "flutter": "3.47.8",
+    "renderer": "Impeller/Vulkan",
+    "mode": "profile",
+    "logical_size": [
+      411.42857142857144,
+      914.2857142857143
+    ],
+    "configured_pixels": [
+      1080,
+      2400
+    ],
+    "dpr": 2.625,
+    "display_hz": 120
+  },
+  "method": {
+    "recording": false,
+    "fixture": "synthetic-text-pages",
+    "gesture_origin": "content region inset from Android system-back edges",
+    "order": "retained control then final candidate; three ordinary forward releases in each stage",
+    "control": "legacy depth comparison and separate back coating",
+    "candidate": "exact float64 radix order, actual Canvas clip culling, opaque single-page material composition",
+    "release_trajectory": "unchanged",
+    "mesh": "unchanged 96 columns x 48 rows"
+  },
+  "diagnosis": {
+    "representative_release_initial_material_batches": 586,
+    "single_pass_material_batches": 1,
+    "instrumented_single_pass_forward_build_p95_ms": 17.294,
+    "instrumented_forward_paint_samples": 32,
+    "paint_phase": {
+      "geometry_us": {
+        "median": 9908,
+        "p95": 13743
+      },
+      "vertices_us": {
+        "median": 1522,
+        "p95": 2609
+      },
+      "sort_us": {
+        "median": 8265,
+        "p95": 10529
+      },
+      "shadow_us": {
+        "median": 1011,
+        "p95": 1526
+      },
+      "paper_us": {
+        "median": 1368,
+        "p95": 2066
+      },
+      "batches": {
+        "median": 1,
+        "p95": 1
+      }
+    }
+  },
+  "control": {
+    "opaque_reference": false,
+    "warm_sampling": {
+      "cases": 12,
+      "frames": 2345,
+      "build_p95_ms_range": [
+        9.058,
+        10.698
+      ],
+      "raster_p95_ms_range": [
+        7.11,
+        7.652
+      ],
+      "over_60hz_frames": 0,
+      "over_120hz_frames": 392,
+      "per_case": [
+        {
+          "case": "mesh-legacy",
+          "round": 0,
+          "frames": 200,
+          "build_p95_ms": 9.058,
+          "raster_p95_ms": 7.205,
+          "over_60hz": 0.0,
+          "over_120hz": 0.11
+        },
+        {
+          "case": "mesh-neutral",
+          "round": 0,
+          "frames": 208,
+          "build_p95_ms": 9.644,
+          "raster_p95_ms": 7.179,
+          "over_60hz": 0.0,
+          "over_120hz": 0.1201923076923077
+        },
+        {
+          "case": "shader-legacy",
+          "round": 0,
+          "frames": 191,
+          "build_p95_ms": 10.698,
+          "raster_p95_ms": 7.591,
+          "over_60hz": 0.0,
+          "over_120hz": 0.23036649214659685
+        },
+        {
+          "case": "shader-neutral",
+          "round": 0,
+          "frames": 200,
+          "build_p95_ms": 9.527,
+          "raster_p95_ms": 7.515,
+          "over_60hz": 0.0,
+          "over_120hz": 0.155
+        },
+        {
+          "case": "mesh-neutral",
+          "round": 1,
+          "frames": 206,
+          "build_p95_ms": 9.279,
+          "raster_p95_ms": 7.262,
+          "over_60hz": 0.0,
+          "over_120hz": 0.1262135922330097
+        },
+        {
+          "case": "mesh-legacy",
+          "round": 1,
+          "frames": 184,
+          "build_p95_ms": 10.257,
+          "raster_p95_ms": 7.11,
+          "over_60hz": 0.0,
+          "over_120hz": 0.16304347826086957
+        },
+        {
+          "case": "shader-neutral",
+          "round": 1,
+          "frames": 193,
+          "build_p95_ms": 10.321,
+          "raster_p95_ms": 7.38,
+          "over_60hz": 0.0,
+          "over_120hz": 0.18652849740932642
+        },
+        {
+          "case": "shader-legacy",
+          "round": 1,
+          "frames": 185,
+          "build_p95_ms": 10.356,
+          "raster_p95_ms": 7.239,
+          "over_60hz": 0.0,
+          "over_120hz": 0.24864864864864866
+        },
+        {
+          "case": "mesh-legacy",
+          "round": 2,
+          "frames": 190,
+          "build_p95_ms": 9.96,
+          "raster_p95_ms": 7.441,
+          "over_60hz": 0.0,
+          "over_120hz": 0.17894736842105263
+        },
+        {
+          "case": "mesh-neutral",
+          "round": 2,
+          "frames": 206,
+          "build_p95_ms": 9.536,
+          "raster_p95_ms": 7.188,
+          "over_60hz": 0.0,
+          "over_120hz": 0.13592233009708737
+        },
+        {
+          "case": "shader-legacy",
+          "round": 2,
+          "frames": 186,
+          "build_p95_ms": 10.286,
+          "raster_p95_ms": 7.652,
+          "over_60hz": 0.0,
+          "over_120hz": 0.22043010752688172
+        },
+        {
+          "case": "shader-neutral",
+          "round": 2,
+          "frames": 196,
+          "build_p95_ms": 10.363,
+          "raster_p95_ms": 7.495,
+          "over_60hz": 0.0,
+          "over_120hz": 0.14795918367346939
+        }
+      ]
+    },
+    "ordinary_forward_releases": [
+      {
+        "repeat": 1,
+        "duration_ms": 580.71,
+        "frames": 34,
+        "build_ms": {
+          "mean": 12.32020588235294,
+          "p95": 22.018,
+          "p99": 23.901,
+          "max": 23.901
+        },
+        "raster_ms": {
+          "mean": 3.3859999999999997,
+          "p95": 8.307,
+          "p99": 11.188,
+          "max": 11.188
+        },
+        "total_span_ms": {
+          "mean": 16.689352941176466,
+          "p95": 31.903,
+          "p99": 36.962,
+          "max": 36.962
+        },
+        "over_60hz_pipeline_budget": 0.058823529411764705,
+        "over_120hz_pipeline_budget": 0.9705882352941176
+      },
+      {
+        "repeat": 2,
+        "duration_ms": 578.954,
+        "frames": 57,
+        "build_ms": {
+          "mean": 7.231070175438595,
+          "p95": 13.251,
+          "p99": 13.487,
+          "max": 13.487
+        },
+        "raster_ms": {
+          "mean": 2.369543859649123,
+          "p95": 6.831,
+          "p99": 15.354,
+          "max": 15.354
+        },
+        "total_span_ms": {
+          "mean": 10.293315789473684,
+          "p95": 20.127,
+          "p99": 24.446,
+          "max": 24.446
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.21052631578947367
+      },
+      {
+        "repeat": 3,
+        "duration_ms": 580.146,
+        "frames": 35,
+        "build_ms": {
+          "mean": 11.36897142857143,
+          "p95": 15.468,
+          "p99": 19.953,
+          "max": 19.953
+        },
+        "raster_ms": {
+          "mean": 3.4943714285714282,
+          "p95": 10.17,
+          "p99": 13.812,
+          "max": 13.812
+        },
+        "total_span_ms": {
+          "mean": 15.766799999999998,
+          "p95": 26.69,
+          "p99": 29.253,
+          "max": 29.253
+        },
+        "over_60hz_pipeline_budget": 0.02857142857142857,
+        "over_120hz_pipeline_budget": 0.9714285714285714
+      }
+    ],
+    "all_release_frames": 486,
+    "all_release_over_60hz_frames": 6,
+    "functional_cases": [
+      {
+        "name": "held-cancel",
+        "injection": {
+          "events": 87,
+          "duration_ms": 1203,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 700
+            },
+            {
+              "event": "up",
+              "at_ms": 1201
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "reverse-cancel",
+        "injection": {
+          "events": 94,
+          "duration_ms": 1002,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 650
+            },
+            {
+              "event": "move",
+              "at_ms": 1001
+            },
+            {
+              "event": "up",
+              "at_ms": 1001
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "forward",
+        "injection": {
+          "events": 69,
+          "duration_ms": 855,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "backward",
+        "injection": {
+          "events": 69,
+          "duration_ms": 856,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "flick-forward",
+        "injection": {
+          "events": 15,
+          "duration_ms": 102,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 101
+            },
+            {
+              "event": "up",
+              "at_ms": 101
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "flick-backward",
+        "injection": {
+          "events": 15,
+          "duration_ms": 107,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 101
+            },
+            {
+              "event": "up",
+              "at_ms": 102
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "retouch",
+        "injection": {
+          "events": 108,
+          "duration_ms": 1380,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 601
+            },
+            {
+              "event": "up",
+              "at_ms": 753
+            },
+            {
+              "event": "down",
+              "at_ms": 824
+            },
+            {
+              "event": "move",
+              "at_ms": 1076
+            },
+            {
+              "event": "up",
+              "at_ms": 1378
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "forward-repeat-1",
+        "injection": {
+          "events": 69,
+          "duration_ms": 854,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 852
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "backward-repeat-1",
+        "injection": {
+          "events": 69,
+          "duration_ms": 854,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "forward-repeat-2",
+        "injection": {
+          "events": 69,
+          "duration_ms": 853,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 550
+            },
+            {
+              "event": "up",
+              "at_ms": 851
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "backward-repeat-2",
+        "injection": {
+          "events": 69,
+          "duration_ms": 858,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "lower-limit",
+        "injection": {
+          "events": 343,
+          "duration_ms": 5408,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 402
+            },
+            {
+              "event": "move",
+              "at_ms": 1202
+            },
+            {
+              "event": "move",
+              "at_ms": 3003
+            },
+            {
+              "event": "move",
+              "at_ms": 4805
+            },
+            {
+              "event": "move",
+              "at_ms": 5205
+            },
+            {
+              "event": "up",
+              "at_ms": 5406
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        },
+        "limit_vs_beyond": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "upper-limit",
+        "injection": {
+          "events": 343,
+          "duration_ms": 5413,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 401
+            },
+            {
+              "event": "move",
+              "at_ms": 1203
+            },
+            {
+              "event": "move",
+              "at_ms": 3004
+            },
+            {
+              "event": "move",
+              "at_ms": 4807
+            },
+            {
+              "event": "move",
+              "at_ms": 5209
+            },
+            {
+              "event": "up",
+              "at_ms": 5411
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        },
+        "limit_vs_beyond": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      }
+    ],
+    "functional_status": "passed"
+  },
+  "candidate": {
+    "opaque_reference": true,
+    "warm_sampling": {
+      "cases": 12,
+      "frames": 2754,
+      "build_p95_ms_range": [
+        6.673,
+        9.348
+      ],
+      "raster_p95_ms_range": [
+        3.676,
+        4.818
+      ],
+      "over_60hz_frames": 0,
+      "over_120hz_frames": 82,
+      "per_case": [
+        {
+          "case": "mesh-legacy",
+          "round": 0,
+          "frames": 240,
+          "build_p95_ms": 6.673,
+          "raster_p95_ms": 3.835,
+          "over_60hz": 0.0,
+          "over_120hz": 0.004166666666666667
+        },
+        {
+          "case": "mesh-neutral",
+          "round": 0,
+          "frames": 235,
+          "build_p95_ms": 6.984,
+          "raster_p95_ms": 4.232,
+          "over_60hz": 0.0,
+          "over_120hz": 0.00851063829787234
+        },
+        {
+          "case": "shader-legacy",
+          "round": 0,
+          "frames": 234,
+          "build_p95_ms": 6.966,
+          "raster_p95_ms": 4.053,
+          "over_60hz": 0.0,
+          "over_120hz": 0.017094017094017096
+        },
+        {
+          "case": "shader-neutral",
+          "round": 0,
+          "frames": 236,
+          "build_p95_ms": 6.808,
+          "raster_p95_ms": 3.884,
+          "over_60hz": 0.0,
+          "over_120hz": 0.0211864406779661
+        },
+        {
+          "case": "mesh-neutral",
+          "round": 1,
+          "frames": 231,
+          "build_p95_ms": 7.289,
+          "raster_p95_ms": 3.845,
+          "over_60hz": 0.0,
+          "over_120hz": 0.004329004329004329
+        },
+        {
+          "case": "mesh-legacy",
+          "round": 1,
+          "frames": 234,
+          "build_p95_ms": 7.173,
+          "raster_p95_ms": 3.747,
+          "over_60hz": 0.0,
+          "over_120hz": 0.021367521367521368
+        },
+        {
+          "case": "shader-neutral",
+          "round": 1,
+          "frames": 227,
+          "build_p95_ms": 7.653,
+          "raster_p95_ms": 4.014,
+          "over_60hz": 0.0,
+          "over_120hz": 0.039647577092511016
+        },
+        {
+          "case": "shader-legacy",
+          "round": 1,
+          "frames": 234,
+          "build_p95_ms": 7.016,
+          "raster_p95_ms": 3.766,
+          "over_60hz": 0.0,
+          "over_120hz": 0.008547008547008548
+        },
+        {
+          "case": "mesh-legacy",
+          "round": 2,
+          "frames": 203,
+          "build_p95_ms": 9.348,
+          "raster_p95_ms": 4.818,
+          "over_60hz": 0.0,
+          "over_120hz": 0.1330049261083744
+        },
+        {
+          "case": "mesh-neutral",
+          "round": 2,
+          "frames": 233,
+          "build_p95_ms": 7.379,
+          "raster_p95_ms": 3.695,
+          "over_60hz": 0.0,
+          "over_120hz": 0.017167381974248927
+        },
+        {
+          "case": "shader-legacy",
+          "round": 2,
+          "frames": 225,
+          "build_p95_ms": 7.831,
+          "raster_p95_ms": 3.676,
+          "over_60hz": 0.0,
+          "over_120hz": 0.04
+        },
+        {
+          "case": "shader-neutral",
+          "round": 2,
+          "frames": 222,
+          "build_p95_ms": 8.347,
+          "raster_p95_ms": 4.384,
+          "over_60hz": 0.0,
+          "over_120hz": 0.05855855855855856
+        }
+      ]
+    },
+    "ordinary_forward_releases": [
+      {
+        "repeat": 1,
+        "duration_ms": 576.224,
+        "frames": 57,
+        "build_ms": {
+          "mean": 6.627508771929823,
+          "p95": 11.452,
+          "p99": 13.36,
+          "max": 13.36
+        },
+        "raster_ms": {
+          "mean": 2.429666666666667,
+          "p95": 4.719,
+          "p99": 5.407,
+          "max": 5.407
+        },
+        "total_span_ms": {
+          "mean": 9.993543859649122,
+          "p95": 18.364,
+          "p99": 19.489,
+          "max": 19.489
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.17543859649122806
+      },
+      {
+        "repeat": 2,
+        "duration_ms": 576.496,
+        "frames": 69,
+        "build_ms": {
+          "mean": 5.247681159420289,
+          "p95": 6.177,
+          "p99": 7.123,
+          "max": 7.123
+        },
+        "raster_ms": {
+          "mean": 2.105550724637681,
+          "p95": 3.1,
+          "p99": 3.555,
+          "max": 3.555
+        },
+        "total_span_ms": {
+          "mean": 8.22289855072464,
+          "p95": 10.109,
+          "p99": 11.444,
+          "max": 11.444
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.0
+      },
+      {
+        "repeat": 3,
+        "duration_ms": 589.577,
+        "frames": 48,
+        "build_ms": {
+          "mean": 7.499875000000002,
+          "p95": 11.35,
+          "p99": 13.687,
+          "max": 13.687
+        },
+        "raster_ms": {
+          "mean": 2.6344583333333333,
+          "p95": 5.107,
+          "p99": 5.597,
+          "max": 5.597
+        },
+        "total_span_ms": {
+          "mean": 11.15654166666667,
+          "p95": 18.072,
+          "p99": 19.854,
+          "max": 19.854
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.3958333333333333
+      }
+    ],
+    "all_release_frames": 585,
+    "all_release_over_60hz_frames": 0,
+    "functional_cases": [
+      {
+        "name": "held-cancel",
+        "injection": {
+          "events": 87,
+          "duration_ms": 1205,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 701
+            },
+            {
+              "event": "up",
+              "at_ms": 1203
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "reverse-cancel",
+        "injection": {
+          "events": 94,
+          "duration_ms": 1006,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 650
+            },
+            {
+              "event": "move",
+              "at_ms": 1004
+            },
+            {
+              "event": "up",
+              "at_ms": 1005
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "forward",
+        "injection": {
+          "events": 69,
+          "duration_ms": 856,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "backward",
+        "injection": {
+          "events": 69,
+          "duration_ms": 855,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 552
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "flick-forward",
+        "injection": {
+          "events": 15,
+          "duration_ms": 104,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 102
+            },
+            {
+              "event": "up",
+              "at_ms": 102
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "flick-backward",
+        "injection": {
+          "events": 15,
+          "duration_ms": 103,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 101
+            },
+            {
+              "event": "up",
+              "at_ms": 102
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "retouch",
+        "injection": {
+          "events": 108,
+          "duration_ms": 1383,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 600
+            },
+            {
+              "event": "up",
+              "at_ms": 751
+            },
+            {
+              "event": "down",
+              "at_ms": 823
+            },
+            {
+              "event": "move",
+              "at_ms": 1079
+            },
+            {
+              "event": "up",
+              "at_ms": 1381
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "forward-repeat-1",
+        "injection": {
+          "events": 69,
+          "duration_ms": 855,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 854
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "backward-repeat-1",
+        "injection": {
+          "events": 69,
+          "duration_ms": 855,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 853
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "forward-repeat-2",
+        "injection": {
+          "events": 69,
+          "duration_ms": 853,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 1
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 852
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0.4925247413405308,
+          "full_rgb_mae": 0.4592558836634666
+        }
+      },
+      {
+        "name": "backward-repeat-2",
+        "injection": {
+          "events": 69,
+          "duration_ms": 853,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 551
+            },
+            {
+              "event": "up",
+              "at_ms": 852
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "lower-limit",
+        "injection": {
+          "events": 343,
+          "duration_ms": 5411,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 402
+            },
+            {
+              "event": "move",
+              "at_ms": 1202
+            },
+            {
+              "event": "move",
+              "at_ms": 3004
+            },
+            {
+              "event": "move",
+              "at_ms": 4805
+            },
+            {
+              "event": "move",
+              "at_ms": 5207
+            },
+            {
+              "event": "up",
+              "at_ms": 5409
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        },
+        "limit_vs_beyond": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      },
+      {
+        "name": "upper-limit",
+        "injection": {
+          "events": 343,
+          "duration_ms": 5412,
+          "trace": [
+            {
+              "event": "down",
+              "at_ms": 0
+            },
+            {
+              "event": "move",
+              "at_ms": 401
+            },
+            {
+              "event": "move",
+              "at_ms": 1202
+            },
+            {
+              "event": "move",
+              "at_ms": 3003
+            },
+            {
+              "event": "move",
+              "at_ms": 4808
+            },
+            {
+              "event": "move",
+              "at_ms": 5209
+            },
+            {
+              "event": "up",
+              "at_ms": 5410
+            }
+          ]
+        },
+        "after": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        },
+        "limit_vs_beyond": {
+          "body_rgb_mae": 0,
+          "full_rgb_mae": 0
+        }
+      }
+    ],
+    "functional_status": "passed"
+  },
+  "visual": {
+    "gpu_pairs": [
+      {
+        "case": "linear-mesh-legacy-0.25.png",
+        "body_rgb_mae": 0.01605038236617184,
+        "full_rgb_mae": 0.015702596508283713
+      },
+      {
+        "case": "linear-mesh-legacy-0.5.png",
+        "body_rgb_mae": 0.023602114260008997,
+        "full_rgb_mae": 0.022845019645967513
+      },
+      {
+        "case": "linear-mesh-legacy-0.75.png",
+        "body_rgb_mae": 0.02486617183985605,
+        "full_rgb_mae": 0.024896706768744684
+      },
+      {
+        "case": "linear-mesh-neutral-0.25.png",
+        "body_rgb_mae": 0.013846153846153847,
+        "full_rgb_mae": 0.013527362579495281
+      },
+      {
+        "case": "linear-mesh-neutral-0.5.png",
+        "body_rgb_mae": 0.03275978407557355,
+        "full_rgb_mae": 0.03149025803054239
+      },
+      {
+        "case": "linear-mesh-neutral-0.75.png",
+        "body_rgb_mae": 0.03620557804768331,
+        "full_rgb_mae": 0.03615870701178758
+      },
+      {
+        "case": "linear-shader-legacy-0.25.png",
+        "body_rgb_mae": 0.01605038236617184,
+        "full_rgb_mae": 0.015702596508283713
+      },
+      {
+        "case": "linear-shader-legacy-0.5.png",
+        "body_rgb_mae": 0.023602114260008997,
+        "full_rgb_mae": 0.022845019645967513
+      },
+      {
+        "case": "linear-shader-legacy-0.75.png",
+        "body_rgb_mae": 0.02486617183985605,
+        "full_rgb_mae": 0.024896706768744684
+      },
+      {
+        "case": "linear-shader-neutral-0.25.png",
+        "body_rgb_mae": 0.013846153846153847,
+        "full_rgb_mae": 0.013527362579495281
+      },
+      {
+        "case": "linear-shader-neutral-0.5.png",
+        "body_rgb_mae": 0.03275978407557355,
+        "full_rgb_mae": 0.03149025803054239
+      },
+      {
+        "case": "linear-shader-neutral-0.75.png",
+        "body_rgb_mae": 0.03620557804768331,
+        "full_rgb_mae": 0.03615870701178758
+      },
+      {
+        "case": "mesh-legacy-0.25.png",
+        "body_rgb_mae": 0.009414080071974808,
+        "full_rgb_mae": 0.00941689958277636
+      },
+      {
+        "case": "mesh-legacy-0.5.png",
+        "body_rgb_mae": 0.020319388214125055,
+        "full_rgb_mae": 0.01974419735083242
+      },
+      {
+        "case": "mesh-legacy-0.75.png",
+        "body_rgb_mae": 0.03359536662168241,
+        "full_rgb_mae": 0.0326173694657107
+      },
+      {
+        "case": "mesh-neutral-0.25.png",
+        "body_rgb_mae": 0.00844804318488529,
+        "full_rgb_mae": 0.008395106736338963
+      },
+      {
+        "case": "mesh-neutral-0.5.png",
+        "body_rgb_mae": 0.017636077372919477,
+        "full_rgb_mae": 0.017168955320614087
+      },
+      {
+        "case": "mesh-neutral-0.75.png",
+        "body_rgb_mae": 0.03327485380116959,
+        "full_rgb_mae": 0.03225685583505489
+      },
+      {
+        "case": "shader-legacy-0.25.png",
+        "body_rgb_mae": 0.009414080071974808,
+        "full_rgb_mae": 0.00941689958277636
+      },
+      {
+        "case": "shader-legacy-0.5.png",
+        "body_rgb_mae": 0.020319388214125055,
+        "full_rgb_mae": 0.01974419735083242
+      },
+      {
+        "case": "shader-legacy-0.75.png",
+        "body_rgb_mae": 0.03359536662168241,
+        "full_rgb_mae": 0.0326173694657107
+      },
+      {
+        "case": "shader-neutral-0.25.png",
+        "body_rgb_mae": 0.00844804318488529,
+        "full_rgb_mae": 0.008395106736338963
+      },
+      {
+        "case": "shader-neutral-0.5.png",
+        "body_rgb_mae": 0.017636077372919477,
+        "full_rgb_mae": 0.017168955320614087
+      },
+      {
+        "case": "shader-neutral-0.75.png",
+        "body_rgb_mae": 0.03327485380116959,
+        "full_rgb_mae": 0.03225685583505489
+      }
+    ],
+    "max_gpu_body_rgb_mae": 0.03620557804768331,
+    "software_textured_poses": 100,
+    "software_policy": "alpha unchanged; >3 channel error pixels below 0.2%; mean RGB error below .1; old batch-edge overcoating is removed",
+    "solid_material_channel_error_bound": 3,
+    "clip_culling": "pixel-exact comparison against unculled mesh in crop, RTL, empty visibility and recovery cases"
+  },
+  "validation": {
+    "flutter_test_passed": 296,
+    "flutter_analyze": "No issues found",
+    "float_sort": "neighboring doubles, sign, signed zero, infinities, NaN, random bit patterns, stable ties and capacity reuse",
+    "git_diff_check": "passed"
+  },
+  "cleanup": {
+    "system_power": "Dozing",
+    "app_stopped": true,
+    "temporary_input_files_removed": true,
+    "end_temperature_c": 29.9,
+    "unhandled_runtime_exceptions": 0
+  },
+  "limits": [
+    "One Android device, current resolution, short sampling; no long thermal or hardware latency claim.",
+    "Pipeline budget ratios do not measure actual display dropped frames.",
+    "120Hz is improved but not fully stable; Android system-back edge conflict remains a separate integration issue.",
+    "Optimized material path requires opaque single-page textures; transparent and spread sources retain the existing material path.",
+    "iOS/macOS not remeasured on hardware for this change."
+  ],
+  "apk_sha256": {
+    "control": "333472f2c6b4ca0985d486e3b8749e12595223ded81b43b421976928a34541e4",
+    "final_candidate": "b1d1e187e03185ffb13bf94c55d7fa57aae3da8c8ebfa21f6e8315f7ee5ce578"
+  }
+}

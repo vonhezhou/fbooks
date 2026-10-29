@@ -1,0 +1,5 @@
+{
+  "maximum_frames_per_second": 60,
+  "low_power_mode": false,
+  "thermal_state": 0
+}

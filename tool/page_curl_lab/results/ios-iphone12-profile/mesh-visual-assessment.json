@@ -1,0 +1,25 @@
+{
+  "method": "Image inspection of six paired real-device captures, one per format/layout; remaining captures are not individually visually certified.",
+  "matching_capture_dimensions": 30,
+  "inspected_pairs": [
+    "epub-single-corner-top",
+    "epub-double-corner-bottom",
+    "comic-single-curl",
+    "comic-double-corner-bottom",
+    "pdf-single-corner-bottom",
+    "pdf-double-corner-top"
+  ],
+  "observations": [
+    "Inspected states preserve page order, corner direction and broadly similar silhouettes.",
+    "No obvious missing page, major geometry break or mirroring regression in inspected pairs.",
+    "Mesh contact/cast shadows are narrower; shader has broader, softer analytical shading.",
+    "Mesh and shader differ in text sampling and edge coverage; not pixel-equivalent."
+  ],
+  "limitations": [
+    "Static phase spot checks, not a motion-quality or frame-by-frame study.",
+    "No Apple Books reference capture or visual parity acceptance.",
+    "Native OS cancellation and long-duration memory stability remain unverified.",
+    "Original book captures remain private and are excluded from repository results."
+  ],
+  "recommendation": "Use mesh as the leading iOS prototype candidate on this tested 60 Hz device; investigate first-drag cold outlier and refine lighting before production adoption. Android renderer choice remains independently evaluated."
+}

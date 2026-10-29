@@ -1,0 +1,28 @@
+{
+  "captured_date": "2026-10-28",
+  "cpu": "Apple M5 Pro",
+  "physical_ram_bytes": 68719476736,
+  "flutter": "3.47.8",
+  "dart": "3.13.7",
+  "backend": "Metal / Impeller",
+  "base_commit": "287661322bbc124c1a9ef2a0d9a6248b3836ce4b",
+  "command": "flutter run --profile --no-pub -d macos -t tool/page_curl_lab/main.dart --dart-define=CURL_BENCH=true",
+  "scenarios": 18,
+  "sampled_frames": 2808,
+  "all_scenes_rendered_without_scaling": true,
+  "visual_check": [
+    "desktop-text-single",
+    "desktop-comic-double",
+    "desktop-pdf-double"
+  ],
+  "excluded_from_conclusions": [
+    "physical mobile performance",
+    "120 Hz display validation",
+    "real EPUB layout and capture",
+    "CBZ extraction performance",
+    "complex PDF cold rendering",
+    "end-to-end input latency",
+    "Apple Books visual parity"
+  ],
+  "preparation_note": "Comic preparation includes synthetic fixture generation and PNG encoding; it is not a measurement of CBZ decoding latency."
+}

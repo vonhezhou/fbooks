@@ -1,0 +1,31 @@
+import XCTest
+
+@MainActor
+final class CurlNativeInputTests: XCTestCase {
+  func testNativeDragSequence() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.github.vonhezhou.pagecurl.pageCurlDeviceLab")
+    app.launch()
+    func waitPage(_ page: Int) {
+      let label = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "· page \(page) ·")).firstMatch
+      XCTAssertTrue(label.waitForExistence(timeout: 20), "Expected page \(page)")
+      Thread.sleep(forTimeInterval: 0.8)
+    }
+    func drag(_ from: CGFloat, _ to: CGFloat) {
+      let start = app.coordinate(withNormalizedOffset: CGVector(dx: from, dy: 0.60))
+      let end = app.coordinate(withNormalizedOffset: CGVector(dx: to, dy: 0.60))
+      start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.15)
+    }
+    waitPage(1)
+    for page in 2...6 { drag(0.88, 0.17); waitPage(page) }
+    for page in [5, 4] { drag(0.17, 0.88); waitPage(page) }
+    drag(0.88, 0.79)
+    waitPage(4)
+    Thread.sleep(forTimeInterval: 1.2)
+    let finish = app.buttons["Finish capture"]
+    XCTAssertTrue(finish.waitForExistence(timeout: 10))
+    finish.tap()
+    Thread.sleep(forTimeInterval: 2)
+    print("CURL_NATIVE_INPUT_DONE")
+  }
+}

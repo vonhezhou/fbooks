@@ -1,0 +1,381 @@
+{
+  "date": "2026-10-29",
+  "baseline_commit": "e81b65f",
+  "device": "Redmi K70 Pro / Android 16 / SM8650",
+  "mode": "profile",
+  "backend": "Impeller / Vulkan",
+  "scope": "Standalone prototype only.",
+  "changes": [
+    "Single page loads and pins two visible faces; spreads retain four.",
+    "Initial foreground load/decode metrics snapshot before background prefetch.",
+    "Prefetch starts after actual visible window; prior visible faces remain pinned until successful replacement.",
+    "Cache budget validation no longer assumes four visible faces; three-page single-page transition and retry covered.",
+    "Single-page shader warmup uses only two images.",
+    "System PointerCancel explicitly rolls back accepted drags instead of allowing recognizer onEnd to complete the turn."
+  ],
+  "paired_method": "One same-process pair per scene, alternating order. Four-face reference and mode-aware window use the same current shader and warmup routine. Foreground decode time excludes GPU warmup.",
+  "matched_viewport_texture_and_dpr": true,
+  "reference": {
+    "frames": 1881,
+    "max_ui_p95_ms": 1.926,
+    "max_raster_p95_ms": 3.964,
+    "budget_exceedance": {
+      "60": 0,
+      "120": 1
+    },
+    "peak_cache_rgba_bytes": 33009120
+  },
+  "optimized": {
+    "frames": 1875,
+    "max_ui_p95_ms": 1.894,
+    "max_raster_p95_ms": 3.411,
+    "budget_exceedance": {
+      "60": 0,
+      "120": 1
+    },
+    "peak_cache_rgba_bytes": 33009120
+  },
+  "scenes": [
+    {
+      "source": "text",
+      "spread": false,
+      "reference_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 311.098,
+        "decode_elapsed_ms": 201.759,
+        "rgba_bytes": 16011072,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 16011072
+      },
+      "optimized_initial_preparation": {
+        "visible_face_count": 2,
+        "elapsed_ms": 9.676,
+        "decode_elapsed_ms": 9.674,
+        "rgba_bytes": 8005536,
+        "decode_misses_before_prefetch": 2,
+        "resident_bytes_before_prefetch": 8005536
+      },
+      "reference_raster_p95_ms": 2.745,
+      "optimized_raster_p95_ms": 2.916,
+      "native_png_byte_identical": true
+    },
+    {
+      "source": "text",
+      "spread": true,
+      "reference_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 12.92,
+        "decode_elapsed_ms": 12.919,
+        "rgba_bytes": 14670720,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 14670720
+      },
+      "optimized_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 13.905,
+        "decode_elapsed_ms": 13.904,
+        "rgba_bytes": 14670720,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 14670720
+      },
+      "reference_raster_p95_ms": 3.063,
+      "optimized_raster_p95_ms": 3.411,
+      "native_png_byte_identical": true
+    },
+    {
+      "source": "comic",
+      "spread": false,
+      "reference_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 747.732,
+        "decode_elapsed_ms": 747.731,
+        "rgba_bytes": 16011072,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 16011072
+      },
+      "optimized_initial_preparation": {
+        "visible_face_count": 2,
+        "elapsed_ms": 400.836,
+        "decode_elapsed_ms": 400.835,
+        "rgba_bytes": 8005536,
+        "decode_misses_before_prefetch": 2,
+        "resident_bytes_before_prefetch": 8005536
+      },
+      "reference_raster_p95_ms": 2.828,
+      "optimized_raster_p95_ms": 2.95,
+      "native_png_byte_identical": true
+    },
+    {
+      "source": "comic",
+      "spread": true,
+      "reference_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 774.153,
+        "decode_elapsed_ms": 774.152,
+        "rgba_bytes": 14670720,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 14670720
+      },
+      "optimized_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 771.328,
+        "decode_elapsed_ms": 771.327,
+        "rgba_bytes": 14670720,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 14670720
+      },
+      "reference_raster_p95_ms": 3.108,
+      "optimized_raster_p95_ms": 3.099,
+      "native_png_byte_identical": true
+    },
+    {
+      "source": "pdf",
+      "spread": false,
+      "reference_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 70.023,
+        "decode_elapsed_ms": 70.021,
+        "rgba_bytes": 16011072,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 16011072
+      },
+      "optimized_initial_preparation": {
+        "visible_face_count": 2,
+        "elapsed_ms": 45.955,
+        "decode_elapsed_ms": 45.953,
+        "rgba_bytes": 8005536,
+        "decode_misses_before_prefetch": 2,
+        "resident_bytes_before_prefetch": 8005536
+      },
+      "reference_raster_p95_ms": 3.964,
+      "optimized_raster_p95_ms": 2.969,
+      "native_png_byte_identical": true
+    },
+    {
+      "source": "pdf",
+      "spread": true,
+      "reference_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 69.634,
+        "decode_elapsed_ms": 69.633,
+        "rgba_bytes": 14670720,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 14670720
+      },
+      "optimized_initial_preparation": {
+        "visible_face_count": 4,
+        "elapsed_ms": 75.815,
+        "decode_elapsed_ms": 75.813,
+        "rgba_bytes": 14670720,
+        "decode_misses_before_prefetch": 4,
+        "resident_bytes_before_prefetch": 14670720
+      },
+      "reference_raster_p95_ms": 3.149,
+      "optimized_raster_p95_ms": 2.87,
+      "native_png_byte_identical": true
+    }
+  ],
+  "input": {
+    "initial_preparation": {
+      "visible_face_count": 2,
+      "elapsed_ms": 337.247,
+      "decode_elapsed_ms": 212.218,
+      "rgba_bytes": 8013096,
+      "decode_misses_before_prefetch": 2,
+      "resident_bytes_before_prefetch": 8013096
+    },
+    "visible_face_count": 2,
+    "logical_width": 411.42857142857144,
+    "logical_height": 614.6666666666667,
+    "texture_dpr": 1.9885336527738289,
+    "shader_warmup_ms": 124.998,
+    "latency": {
+      "pointer_moves": 674,
+      "coalesced_moves": 64,
+      "clock_mismatches": 0,
+      "unmatched_painted_frames": 0,
+      "dispatch_to_paint_ms": {
+        "samples": 610,
+        "p50": 3.443,
+        "p95": 6.726,
+        "p99": 8.226,
+        "max": 9.49
+      },
+      "event_to_raster_finish_ms": {
+        "samples": 610,
+        "p50": 8.49,
+        "p95": 12.94,
+        "p99": 14.373,
+        "max": 15.507
+      },
+      "first_frames": [
+        {
+          "frame_number": 9,
+          "pointer_move": 2,
+          "progress_at_paint": 0.01979143708627213,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 7.742,
+          "dispatch_to_paint_ms": 4.418,
+          "build_ms": 1.229,
+          "raster_ms": 1.771,
+          "vsync_to_build_start_ms": 0.439
+        },
+        {
+          "frame_number": 10,
+          "pointer_move": 3,
+          "progress_at_paint": 0.02604136458720012,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 11.645,
+          "dispatch_to_paint_ms": 5.188,
+          "build_ms": 0.528,
+          "raster_ms": 4.141,
+          "vsync_to_build_start_ms": 0.298
+        },
+        {
+          "frame_number": 11,
+          "pointer_move": 4,
+          "progress_at_paint": 0.03541625583859204,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.163,
+          "dispatch_to_paint_ms": 5.335,
+          "build_ms": 0.469,
+          "raster_ms": 2.407,
+          "vsync_to_build_start_ms": 0.309
+        },
+        {
+          "frame_number": 12,
+          "pointer_move": 5,
+          "progress_at_paint": 0.042707837923008043,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.442,
+          "dispatch_to_paint_ms": 6.679,
+          "build_ms": 0.691,
+          "raster_ms": 1.112,
+          "vsync_to_build_start_ms": 0.377
+        },
+        {
+          "frame_number": 13,
+          "pointer_move": 6,
+          "progress_at_paint": 0.05208365756529435,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.54,
+          "dispatch_to_paint_ms": 5.463,
+          "build_ms": 0.829,
+          "raster_ms": 1.264,
+          "vsync_to_build_start_ms": 0.561
+        },
+        {
+          "frame_number": 14,
+          "pointer_move": 7,
+          "progress_at_paint": 0.06145854881668627,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.738,
+          "dispatch_to_paint_ms": 5.622,
+          "build_ms": 0.963,
+          "raster_ms": 1.752,
+          "vsync_to_build_start_ms": 0.645
+        },
+        {
+          "frame_number": 15,
+          "pointer_move": 8,
+          "progress_at_paint": 0.06875013090110228,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 10.084,
+          "dispatch_to_paint_ms": 6.204,
+          "build_ms": 0.971,
+          "raster_ms": 1.081,
+          "vsync_to_build_start_ms": 0.533
+        },
+        {
+          "frame_number": 16,
+          "pointer_move": 9,
+          "progress_at_paint": 0.07812502215249434,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 10.164,
+          "dispatch_to_paint_ms": 6.284,
+          "build_ms": 1.138,
+          "raster_ms": 1.461,
+          "vsync_to_build_start_ms": 0.774
+        },
+        {
+          "frame_number": 17,
+          "pointer_move": 10,
+          "progress_at_paint": 0.08645825882039837,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.837,
+          "dispatch_to_paint_ms": 5.709,
+          "build_ms": 0.794,
+          "raster_ms": 1.309,
+          "vsync_to_build_start_ms": 0.546
+        },
+        {
+          "frame_number": 18,
+          "pointer_move": 11,
+          "progress_at_paint": 0.09479149548830226,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.994,
+          "dispatch_to_paint_ms": 6.406,
+          "build_ms": 0.838,
+          "raster_ms": 1.164,
+          "vsync_to_build_start_ms": 0.57
+        },
+        {
+          "frame_number": 19,
+          "pointer_move": 12,
+          "progress_at_paint": 0.10416638673969418,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 9.555,
+          "dispatch_to_paint_ms": 5.561,
+          "build_ms": 0.967,
+          "raster_ms": 1.252,
+          "vsync_to_build_start_ms": 0.497
+        },
+        {
+          "frame_number": 20,
+          "pointer_move": 13,
+          "progress_at_paint": 0.11249962340759821,
+          "renderer": "shader",
+          "event_to_raster_finish_ms": 10.059,
+          "dispatch_to_paint_ms": 5.885,
+          "build_ms": 0.948,
+          "raster_ms": 1.535,
+          "vsync_to_build_start_ms": 0.489
+        }
+      ],
+      "slowest_frames_over_20ms": [],
+      "excludes": "touch hardware sampling, compositor presentation, display scanout"
+    }
+  },
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 154,
+    "cache_transition_budget": "Two visible pages with three-page budget; decode failure preserves visible pages and retries.",
+    "system_cancellation": "Widget regression covers accepted forward/backward drags cancelled mid-turn; page retained after settling.",
+    "physical_gestures": "5 forward, 2 backward, 1 short drag rollback; final page 4.",
+    "native_png_byte_equivalent_pairs": 6,
+    "python_compile": "passed"
+  },
+  "source_sha256": {
+    "tool/page_curl_lab/main.dart": "49814e1c7cc7c6ec7b53cc15ae40d3e5cb4a44d704038b2fb1a885ad6f968610",
+    "tool/page_curl_lab/page_texture_cache.dart": "e4aaa97c3b3ea4c7a2cb5b02e53584567e6991f2f8a4cddfd6af31046b7064e5",
+    "tool/page_curl_lab/curl_shader_painter.dart": "02e6fe301d8a2fc92cc4c5696261e63138832117542fdbe9389f16b5b9a7b295",
+    "tool/page_curl_lab/shaders/curl.frag": "d6d3247e959a0f439e0e74ebe6b3fc0f3abb04b7b31395a3e4e522411f4aeb65"
+  },
+  "limitations": [
+    "Synthetic typography and PNG fixtures; real PDFium rendering of a simple generated PDF.",
+    "No production chapter layout, EPUB capture, CBZ extraction, disk I/O, selection or progress integration.",
+    "RGBA bytes exclude PDF/native/transient/cached GPU allocations; RSS is whole-process memory.",
+    "Pipeline budget exceedance is not measured dropped-frame rate or input-to-display latency.",
+    "No Apple Books side-by-side comparison; row curl is not a physical paper solver.",
+    "Shader uses an approximate vertical inverse, height-dependent analytic shadows and pixel coverage edges. It is not pixel-equivalent to the mesh.",
+    "No real CBZ/PDF book exists in repository; fixtures remain synthetic comic images and generated PDF. No real-book extraction, disk I/O or production progress validation claimed.",
+    "Initial text reference decode time includes cold font/runtime initialization and cannot establish a twenty-fold text preparation improvement.",
+    "Comic/PDF decode reductions are single-pair observations on generated fixtures, not real-book performance guarantees.",
+    "Visible foreground RGBA is halved in single page; background cache may still fill the same 32 MiB limit. Whole-process memory is not claimed to halve.",
+    "Native input viewport differs from historical runs; its P95 is a validation snapshot, not a controlled historical speed comparison.",
+    "First injection attempt produced no CURL_INPUT_STARTED marker and did not advance page; driver now verifies foreground focus after wake before injecting. That attempt is not counted as an input performance trial.",
+    "Benchmark was captured before the later system-PointerCancel listener fix; shaders and loading-window math are unchanged. New handler tested by settled widget cancellation regression.",
+    "Texture resolution cap remains 1,000,000 pixels per mobile page; no full-native-resolution guarantee.",
+    "No real iOS/desktop performance test in this iteration."
+  ]
+}

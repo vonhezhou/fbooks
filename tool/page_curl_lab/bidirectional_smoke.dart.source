@@ -1,0 +1,214 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '__LAB_MAIN_URI__' as lab;
+import '__LAB_MESH_URI__';
+import '__LAB_GEOMETRY_URI__';
+import '__LAB_DRAG_URI__';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets('bidirectional curl and interrupted settling', (tester) async {
+    const output = String.fromEnvironment('CURL_BIDIRECTIONAL_OUTPUT');
+    final directory = Directory(
+      output.isEmpty
+          ? '${(await getApplicationDocumentsDirectory()).path}/bidirectional-smoke'
+          : output,
+    )..createSync(recursive: true);
+    final cases = <String>[];
+    final surface = find.byKey(const Key('curl-surface'));
+    CurlPainter painter() => tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((widget) => widget.painter)
+        .whereType<CurlPainter>()
+        .single;
+    Future<void> waitFor(int page, {bool settle = true}) async {
+      final deadline = DateTime.now().add(const Duration(seconds: 25));
+      while (DateTime.now().isBefore(deadline)) {
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(tester.takeException(), isNull);
+        if (find.textContaining('· page $page ·').evaluate().isNotEmpty &&
+            surface.evaluate().isNotEmpty) {
+          if (settle) await tester.pumpAndSettle();
+          return;
+        }
+      }
+      fail('Page $page did not become ready');
+    }
+
+    Future<List<int>> snapshot(String name) async {
+      await tester.pump();
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find
+            .ancestor(of: surface, matching: find.byType(RepaintBoundary))
+            .first,
+      );
+      final image = await boundary.toImage(
+        pixelRatio: tester.view.devicePixelRatio,
+      );
+      try {
+        final rgba = (await image.toByteData())!.buffer.asUint8List().toList();
+        final png = (await image.toByteData(format: ui.ImageByteFormat.png))!
+            .buffer
+            .asUint8List();
+        await File('${directory.path}/$name.png').writeAsBytes(png);
+        return rgba;
+      } finally {
+        image.dispose();
+      }
+    }
+
+    Future<void> save(String status) => File('${directory.path}/result.json')
+        .writeAsString(
+          jsonEncode({
+            'status': status,
+            'cases': cases,
+            'renderer': 'mesh',
+            'simulator': lab.simulated,
+            'gesture_delivery': 'Flutter integration-test pointer events',
+            'native_os_touch_and_books_comparison': false,
+            'hardware_performance_claim': false,
+          }),
+        );
+    await save('running');
+    try {
+      await tester.pumpWidget(const MaterialApp(home: lab.CurlLab()));
+      await waitFor(1);
+      if (painter().spread) {
+        await tester.tap(find.text('Double page'));
+        await waitFor(1);
+      }
+      final rect = tester.getRect(surface);
+      final right = rect.topLeft + Offset(rect.width * .94, rect.height * .7);
+      final left = rect.topLeft + Offset(rect.width * .04, rect.height * .7);
+      final page1 = await snapshot('page-1');
+      await tester.timedDragFrom(
+        left,
+        Offset(rect.width * .7, 0),
+        const Duration(seconds: 1),
+      );
+      await waitFor(1);
+      expect(await snapshot('first-page-boundary'), page1);
+      cases.add('first-page-boundary');
+
+      await tester.timedDragFrom(
+        right,
+        Offset(-rect.width * .7, -20),
+        const Duration(seconds: 1),
+      );
+      await waitFor(2);
+      final page2 = await snapshot('page-2');
+      for (var i = 0; i < 3; i++) {
+        final back = await tester.startGesture(left);
+        await back.moveBy(Offset(rect.width * .08, 0));
+        await back.moveTo(left + Offset(rect.width * .4, -20));
+        await waitFor(1, settle: false);
+        expect(painter().tilt, isNot(0));
+        expect(painter().progress, inExclusiveRange(0, 1));
+        await snapshot('backward-held-$i');
+        await back.cancel();
+        await waitFor(2);
+        expect(await snapshot('backward-cancel-$i'), page2);
+        cases.add('backward-cancel-$i');
+      }
+      await tester.timedDragFrom(
+        left,
+        Offset(rect.width * .7, -20),
+        const Duration(seconds: 1),
+      );
+      await waitFor(1);
+      expect(await snapshot('backward-completed'), page1);
+      cases.add('backward-completed');
+
+      for (final backward in [false, true]) {
+        if (backward) {
+          await tester.tap(find.text('Next'));
+          await waitFor(2);
+        }
+        final sign = backward ? 1.0 : -1.0;
+        final origin = backward ? left : right;
+        final first = await tester.startGesture(origin);
+        await first.moveBy(Offset(sign * rect.width * .08, 0));
+        await first.moveBy(Offset(sign * rect.width * .5, -20));
+        if (backward) await waitFor(1, settle: false);
+        await tester.pump(const Duration(milliseconds: 300));
+        await first.up();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 40));
+        final before = painter();
+        expect(before.progress, inExclusiveRange(0, 1));
+        final second = await tester.startGesture(rect.center);
+        await second.moveBy(Offset(-sign * rect.width * .06, 0));
+        await tester.pump();
+        final after = painter();
+        Offset control(CurlPainter p) {
+          final geometry = CurlGeometry(
+            size: rect.size,
+            progress: p.progress,
+            grabY: p.grabY,
+            tilt: p.tilt,
+            cornerWeight: p.cornerWeight,
+            horizontalWeight: p.horizontalWeight,
+            diagonalWeight: p.diagonalWeight,
+          );
+          final row = geometry.prepareRow(before.grabY * rect.height);
+          final material = backward
+              ? rect.width
+              : resolveForwardCurlDrag(
+                  rect.size,
+                  Offset(rect.width * .94, rect.height * .7),
+                  Offset(rect.width * .36, rect.height * .7 - 20),
+                ).controlX;
+          return row.project(material).position;
+        }
+
+        expect(
+          (control(after) -
+                  control(before) -
+                  Offset(-sign * rect.width * .06, 0))
+              .distance,
+          lessThan(.1),
+        );
+        expect(after.cornerWeight, before.cornerWeight);
+        await snapshot(backward ? 'backward-takeover' : 'forward-takeover');
+        await second.moveBy(Offset(-sign * rect.width * .8, 10));
+        await tester.pump(const Duration(milliseconds: 300));
+        await second.up();
+        await waitFor(backward ? 2 : 1);
+        expect(
+          await snapshot(backward ? 'backward-restored' : 'forward-restored'),
+          backward ? page2 : page1,
+        );
+        cases.add(backward ? 'backward-takeover' : 'forward-takeover');
+      }
+      await tester.tap(find.text('Previous'));
+      await waitFor(1);
+      await tester.tap(find.text('Next'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(painter().progress, inExclusiveRange(0, 1));
+      final buttonCatch = await tester.startGesture(rect.center);
+      await buttonCatch.moveBy(Offset(rect.width * .08, 0));
+      await tester.pump();
+      await snapshot('button-takeover');
+      await buttonCatch.moveBy(Offset(rect.width * .8, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      await buttonCatch.up();
+      await waitFor(1);
+      expect(await snapshot('button-restored'), page1);
+      cases.add('button-takeover');
+      await tester.pumpWidget(const SizedBox());
+      await save('passed');
+    } catch (_) {
+      await save('failed');
+      rethrow;
+    }
+  });
+}

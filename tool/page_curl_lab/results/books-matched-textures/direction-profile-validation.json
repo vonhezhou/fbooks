@@ -1,0 +1,458 @@
+{
+  "status": "unrestricted-candidate-rejected-gated-candidate-awaiting-device-validation",
+  "scope": "18 same-device held poses, including 13 horizontal controls and 5 added traces or origins",
+  "method": {
+    "rgb": "RGB MAE on each listed ROI; values 0..255",
+    "ink": "contrast >=12 against max of x+-4 and y+-6 neighbors, gray <245; symmetric Manhattan distance capped at4 logical pixels; mask excludes ROI margins needed for neighbors",
+    "same_source": true,
+    "sampling": "same-device live PNG for native reference, retained Mesh and candidate Mesh"
+  },
+  "unrestricted_results": [
+    {
+      "case": "between-horizontal",
+      "roi": [
+        173,
+        329,
+        100,
+        740
+      ],
+      "reference_ink_count": 19189,
+      "models": {
+        "baseline": {
+          "rgb_mae": 6.509686629503396,
+          "ink_l1_truncated4": 0.3996111975116641,
+          "ink_count": 19391
+        },
+        "candidate": {
+          "rgb_mae": 4.95567567925647,
+          "ink_l1_truncated4": 0.14421875,
+          "ink_count": 19211
+        }
+      },
+      "improvement_fraction": 0.23872285083644296
+    },
+    {
+      "case": "late-between-horizontal",
+      "roi": [
+        93,
+        269,
+        100,
+        740
+      ],
+      "reference_ink_count": 20971,
+      "models": {
+        "baseline": {
+          "rgb_mae": 6.8212479911625845,
+          "ink_l1_truncated4": 0.6536056788266266,
+          "ink_count": 21573
+        },
+        "candidate": {
+          "rgb_mae": 4.143931180976052,
+          "ink_l1_truncated4": 0.11148632912571615,
+          "ink_count": 21967
+        }
+      },
+      "improvement_fraction": 0.3924966243208263
+    },
+    {
+      "case": "middle-control",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_ink_count": 19895,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.146179422934493,
+          "ink_l1_truncated4": 0.4193710439063599,
+          "ink_count": 19917
+        },
+        "candidate": {
+          "rgb_mae": 6.075585811311241,
+          "ink_l1_truncated4": 0.10727439009318536,
+          "ink_count": 20562
+        }
+      },
+      "improvement_fraction": 0.25417972083867546
+    },
+    {
+      "case": "far-horizontal",
+      "roi": [
+        10,
+        199,
+        100,
+        740
+      ],
+      "reference_ink_count": 14713,
+      "models": {
+        "baseline": {
+          "rgb_mae": 14.261023072501848,
+          "ink_l1_truncated4": 2.413764116808596,
+          "ink_count": 12648
+        },
+        "candidate": {
+          "rgb_mae": 4.797624326025673,
+          "ink_l1_truncated4": 0.4083055471354956,
+          "ink_count": 14978
+        }
+      },
+      "improvement_fraction": 0.6635848422911208
+    },
+    {
+      "case": "early-horizontal",
+      "roi": [
+        215,
+        362,
+        100,
+        740
+      ],
+      "reference_ink_count": 16290,
+      "models": {
+        "baseline": {
+          "rgb_mae": 9.629151382271507,
+          "ink_l1_truncated4": 0.5949428346742484,
+          "ink_count": 16772
+        },
+        "candidate": {
+          "rgb_mae": 7.6897759694171555,
+          "ink_l1_truncated4": 0.11324151588801873,
+          "ink_count": 17037
+        }
+      },
+      "improvement_fraction": 0.20140668018004038
+    },
+    {
+      "case": "late-horizontal",
+      "roi": [
+        53,
+        244,
+        100,
+        740
+      ],
+      "reference_ink_count": 22290,
+      "models": {
+        "baseline": {
+          "rgb_mae": 10.490439200901369,
+          "ink_l1_truncated4": 0.8859015216122806,
+          "ink_count": 22268
+        },
+        "candidate": {
+          "rgb_mae": 3.0904186167446697,
+          "ink_l1_truncated4": 0.09309641970932293,
+          "ink_count": 22846
+        }
+      },
+      "improvement_fraction": 0.7054061743688356
+    },
+    {
+      "case": "holdout-333",
+      "roi": [
+        257,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 16316,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.158047224144605,
+          "ink_l1_truncated4": 0.36853912419239054,
+          "ink_count": 17116
+        },
+        "candidate": {
+          "rgb_mae": 5.643774021637557,
+          "ink_l1_truncated4": 0.12048595292331056,
+          "ink_count": 16609
+        }
+      },
+      "improvement_fraction": 0.211548367185857
+    },
+    {
+      "case": "holdout-270",
+      "roi": [
+        193,
+        345,
+        100,
+        740
+      ],
+      "reference_ink_count": 17811,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.30748184175733,
+          "ink_l1_truncated4": 0.525407372687419,
+          "ink_count": 18458
+        },
+        "candidate": {
+          "rgb_mae": 5.7401391480495825,
+          "ink_l1_truncated4": 0.12833223176911213,
+          "ink_count": 18501
+        }
+      },
+      "improvement_fraction": 0.30903982008158837
+    },
+    {
+      "case": "holdout-230",
+      "roi": [
+        152,
+        313,
+        100,
+        740
+      ],
+      "reference_ink_count": 19373,
+      "models": {
+        "baseline": {
+          "rgb_mae": 5.275630284470638,
+          "ink_l1_truncated4": 0.3948884734564265,
+          "ink_count": 19676
+        },
+        "candidate": {
+          "rgb_mae": 4.5563484267765775,
+          "ink_l1_truncated4": 0.09700843773970852,
+          "ink_count": 19737
+        }
+      },
+      "improvement_fraction": 0.13634045960562113
+    },
+    {
+      "case": "holdout-190",
+      "roi": [
+        112,
+        281,
+        100,
+        740
+      ],
+      "reference_ink_count": 20972,
+      "models": {
+        "baseline": {
+          "rgb_mae": 10.317472698907956,
+          "ink_l1_truncated4": 0.5601009619963806,
+          "ink_count": 21024
+        },
+        "candidate": {
+          "rgb_mae": 8.562754274876877,
+          "ink_l1_truncated4": 0.2082836852390258,
+          "ink_count": 20990
+        }
+      },
+      "improvement_fraction": 0.17007250469553514
+    },
+    {
+      "case": "holdout-150",
+      "roi": [
+        74,
+        257,
+        100,
+        740
+      ],
+      "reference_ink_count": 22470,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.409869655655791,
+          "ink_l1_truncated4": 0.7640599594627704,
+          "ink_count": 22427
+        },
+        "candidate": {
+          "rgb_mae": 3.1341597142146553,
+          "ink_l1_truncated4": 0.05710673970415382,
+          "ink_count": 22621
+        }
+      },
+      "improvement_fraction": 0.6273236277678959
+    },
+    {
+      "case": "holdout-90",
+      "roi": [
+        15,
+        220,
+        100,
+        740
+      ],
+      "reference_ink_count": 19698,
+      "models": {
+        "baseline": {
+          "rgb_mae": 12.029835562354533,
+          "ink_l1_truncated4": 1.310211449200619,
+          "ink_count": 19082
+        },
+        "candidate": {
+          "rgb_mae": 5.140178422670887,
+          "ink_l1_truncated4": 0.37368592718970317,
+          "ink_count": 20159
+        }
+      },
+      "improvement_fraction": 0.5727141575603691
+    },
+    {
+      "case": "center-origin",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_ink_count": 19895,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.146179422934493,
+          "ink_l1_truncated4": 0.4193710439063599,
+          "ink_count": 19917
+        },
+        "candidate": {
+          "rgb_mae": 6.075585811311241,
+          "ink_l1_truncated4": 0.10727439009318536,
+          "ink_count": 20562
+        }
+      },
+      "improvement_fraction": 0.25417972083867546
+    },
+    {
+      "case": "center-up",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 29922,
+      "models": {
+        "baseline": {
+          "rgb_mae": 5.126363686126393,
+          "ink_l1_truncated4": 0.7130878661087866,
+          "ink_count": 29828
+        },
+        "candidate": {
+          "rgb_mae": 6.733061006650792,
+          "ink_l1_truncated4": 0.8039926795278631,
+          "ink_count": 29637
+        }
+      },
+      "improvement_fraction": -0.3134185202022721
+    },
+    {
+      "case": "center-late-up",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 23039,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.340601308262857,
+          "ink_l1_truncated4": 1.6391404558470888,
+          "ink_count": 19914
+        },
+        "candidate": {
+          "rgb_mae": 7.830571749185757,
+          "ink_l1_truncated4": 1.3802807066545633,
+          "ink_count": 19924
+        }
+      },
+      "improvement_fraction": 0.06115021450213953
+    },
+    {
+      "case": "partial-corner",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 43620,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.87457645674248,
+          "ink_l1_truncated4": 0.340627840313221,
+          "ink_count": 42198
+        },
+        "candidate": {
+          "rgb_mae": 9.362891041957468,
+          "ink_l1_truncated4": 0.42828326819708207,
+          "ink_count": 43633
+        }
+      },
+      "improvement_fraction": -0.055023987634248206
+    },
+    {
+      "case": "inner-grip",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_ink_count": 19895,
+      "models": {
+        "baseline": {
+          "rgb_mae": 13.923809073575065,
+          "ink_l1_truncated4": 1.2704166234842988,
+          "ink_count": 18701
+        },
+        "candidate": {
+          "rgb_mae": 6.075585811311241,
+          "ink_l1_truncated4": 0.10727439009318536,
+          "ink_count": 20562
+        }
+      },
+      "improvement_fraction": 0.5636549036828125
+    },
+    {
+      "case": "edge-grip",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_ink_count": 19895,
+      "models": {
+        "baseline": {
+          "rgb_mae": 14.67701980806505,
+          "ink_l1_truncated4": 0.48440895660879546,
+          "ink_count": 21058
+        },
+        "candidate": {
+          "rgb_mae": 6.075585811311241,
+          "ink_l1_truncated4": 0.10727439009318536,
+          "ink_count": 20562
+        }
+      },
+      "improvement_fraction": 0.586047720125533
+    }
+  ],
+  "summary": {
+    "rgb_improved": 16,
+    "rgb_regressed": 2,
+    "regressed_cases": [
+      "center-up",
+      "partial-corner"
+    ]
+  },
+  "decision": "do not apply cylinder calibration to every zero-locality pose; separate established-near-horizontal weight from spatial corner locality",
+  "gated_rule": {
+    "near_horizontal_slope_limit": 0.05,
+    "establish_distance_page_width_fraction": 0.05,
+    "curve": "C1 smoothstep; near-horizontal and establishment factors multiply",
+    "default_without_pointer_direction": "retained configuration",
+    "legacy_corner_and_material_grip_preserved_when_weight_zero": true
+  },
+  "software_checks": {
+    "targeted_tests_passed": 73,
+    "existing_13_horizontal_pose_parameters_unchanged": true,
+    "full_corner_pixels_unchanged": true,
+    "shader_coverage_includes_horizontal_weights": [
+      0,
+      0.5,
+      1
+    ],
+    "high_density_shadow_index_wrap_regression": "failed before separate band-row cap, passed after cap"
+  },
+  "remaining": [
+    "same-device gated samples including shallow transition angles",
+    "full repository checks and focused adoption"
+  ],
+  "latest_adoption_report": "early-outward-profile-validation.json"
+}

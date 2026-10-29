@@ -1,0 +1,39 @@
+{
+  "method": "consecutive_same_coordinate_pointerMove",
+  "requested_hold_ms": 2200,
+  "observation": "raw_flutter_pointer_events",
+  "intermediate_holds": [
+    {
+      "position": [
+        292.0,
+        710.0
+      ],
+      "start_s": 1.3,
+      "stationary_s": 2.224762
+    },
+    {
+      "position": [
+        211.0,
+        689.0
+      ],
+      "start_s": 4.816667,
+      "stationary_s": 2.208333
+    },
+    {
+      "position": [
+        129.0,
+        667.0
+      ],
+      "start_s": 8.325,
+      "stationary_s": 2.207772
+    }
+  ],
+  "books_capture": "recaptured_with_verified_action_sequence",
+  "books_cancel_page_sequence_visually_checked": [
+    4,
+    4
+  ],
+  "full_png_identical": false,
+  "png_difference_visually_checked": "system_home_indicator_visibility",
+  "visual_alignment_verified": false
+}

@@ -19,6 +19,7 @@ enum ComicArchiveFileNameEncoding {
 }
 
 extension ComicArchiveFileNameEncodingX on ComicArchiveFileNameEncoding {
+  bool get available => this != ComicArchiveFileNameEncoding.eucKr;
   String? get storageName => switch (this) {
     ComicArchiveFileNameEncoding.auto => null,
     _ => name,
@@ -26,11 +27,11 @@ extension ComicArchiveFileNameEncodingX on ComicArchiveFileNameEncoding {
 
   String get displayName => switch (this) {
     ComicArchiveFileNameEncoding.auto => 'Automatic',
-    ComicArchiveFileNameEncoding.gbk => 'GBK / GB18030',
+    ComicArchiveFileNameEncoding.gbk => 'GBK',
     ComicArchiveFileNameEncoding.big5 => 'Big5',
     ComicArchiveFileNameEncoding.shiftJis => 'Shift_JIS',
     ComicArchiveFileNameEncoding.eucJp => 'EUC-JP',
-    ComicArchiveFileNameEncoding.eucKr => 'EUC-KR',
+    ComicArchiveFileNameEncoding.eucKr => 'EUC-KR (unavailable)',
     ComicArchiveFileNameEncoding.cp437 => 'CP437 (DOS)',
     ComicArchiveFileNameEncoding.cp737 => 'CP737 (Greek)',
     ComicArchiveFileNameEncoding.windows1250 => 'Windows-1250',

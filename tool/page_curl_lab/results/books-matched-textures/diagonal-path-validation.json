@@ -1,0 +1,272 @@
+{
+  "status": "diagnostic-only-no-controller-change",
+  "date": "2026-11-01",
+  "device": "iPhone 12",
+  "viewport": [
+    390,
+    844
+  ],
+  "methods": {
+    "capture": "same WDA held live PNG and exact source-page verification; repeated straight and horizontal-kick paths alternate",
+    "straight": "50ms initial stationary keyframe then 1300ms diagonal move",
+    "horizontal_kick": "12 logical pixels left in 60ms, then 1240ms diagonal move",
+    "held": "2600ms same-coordinate pointerMove; captures at request-relative 2.5/3.2s",
+    "metric": "RGB MAE 0..255 over normalized body [0,40,390,800]"
+  },
+  "origin_cases": [
+    {
+      "name": "center-350-mid",
+      "origin": [
+        350,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.001154970760233918,
+      "held_vs_initial_body_mae": 18.80734480431849
+    },
+    {
+      "name": "center-373-mid",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.001106612685560054,
+      "held_vs_initial_body_mae": 18.842132253711203
+    },
+    {
+      "name": "center-385-mid",
+      "origin": [
+        385,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.001154970760233918,
+      "held_vs_initial_body_mae": 18.80734480431849
+    },
+    {
+      "name": "center-350-late",
+      "origin": [
+        350,
+        422
+      ],
+      "target": [
+        129,
+        350
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.0009817813765182187,
+      "held_vs_initial_body_mae": 21.903896761133602
+    },
+    {
+      "name": "center-373-late",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        129,
+        350
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.0009817813765182187,
+      "held_vs_initial_body_mae": 21.903896761133602
+    },
+    {
+      "name": "center-385-late",
+      "origin": [
+        385,
+        422
+      ],
+      "target": [
+        129,
+        350
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.0009761583445793972,
+      "held_vs_initial_body_mae": 21.918065677013047
+    }
+  ],
+  "origin_comparisons": [
+    {
+      "pose": "mid",
+      "origins_x": [
+        350,
+        373
+      ],
+      "body_rgb_mae": 0.602070400359874
+    },
+    {
+      "pose": "mid",
+      "origins_x": [
+        350,
+        385
+      ],
+      "body_rgb_mae": 0.0
+    },
+    {
+      "pose": "mid",
+      "origins_x": [
+        373,
+        385
+      ],
+      "body_rgb_mae": 0.602070400359874
+    },
+    {
+      "pose": "late",
+      "origins_x": [
+        350,
+        373
+      ],
+      "body_rgb_mae": 0.0
+    },
+    {
+      "pose": "late",
+      "origins_x": [
+        350,
+        385
+      ],
+      "body_rgb_mae": 0.4823875393612236
+    },
+    {
+      "pose": "late",
+      "origins_x": [
+        373,
+        385
+      ],
+      "body_rgb_mae": 0.4823875393612236
+    },
+    {
+      "pose": "mid",
+      "repeat_previous_body_rgb_mae": 3.434168915879442
+    },
+    {
+      "pose": "late",
+      "repeat_previous_body_rgb_mae": 2.37008547008547
+    }
+  ],
+  "path_cases": [
+    {
+      "name": "straight-1",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.0010919928025191184,
+      "held_vs_initial_body_mae": 19.130461088618983
+    },
+    {
+      "name": "kick-1",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.001154970760233918,
+      "held_vs_initial_body_mae": 18.80734480431849
+    },
+    {
+      "name": "straight-2",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.001269680611785875,
+      "held_vs_initial_body_mae": 19.103554880791723
+    },
+    {
+      "name": "kick-2",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        362
+      ],
+      "cancel_body_mae": 0.0,
+      "hold_pair_body_mae": 0.001154970760233918,
+      "held_vs_initial_body_mae": 18.80734480431849
+    }
+  ],
+  "path_comparisons": [
+    {
+      "a": "straight-1",
+      "b": "kick-1",
+      "body_rgb_mae": 3.8860717498875395
+    },
+    {
+      "a": "straight-1",
+      "b": "straight-2",
+      "body_rgb_mae": 0.6319152046783626
+    },
+    {
+      "a": "straight-1",
+      "b": "kick-2",
+      "body_rgb_mae": 3.8860717498875395
+    },
+    {
+      "a": "kick-1",
+      "b": "straight-2",
+      "body_rgb_mae": 3.6490620782726046
+    },
+    {
+      "a": "kick-1",
+      "b": "kick-2",
+      "body_rgb_mae": 0.0
+    },
+    {
+      "a": "straight-2",
+      "b": "kick-2",
+      "body_rgb_mae": 3.6490620782726046
+    },
+    {
+      "a": "straight-1",
+      "b": "previous-center-up",
+      "body_rgb_mae": 0.6319152046783626
+    },
+    {
+      "a": "straight-2",
+      "b": "previous-center-up",
+      "body_rgb_mae": 0.0
+    }
+  ],
+  "conclusion": {
+    "horizontal_rule_not_generalized": true,
+    "path_effect_observed": "same origin and target produced body MAE 3.649..3.886 across straight and horizontal-kick paths; repeated kicks MAE0",
+    "straight_repeat_variation": 0.6319152046783626,
+    "one_straight_repeat_matches_previous_body": true,
+    "not_inferred": [
+      "Books internal virtual material edge",
+      "physical material slip",
+      "exact touch-recognizer mechanism",
+      "origin-only dependence separated from path"
+    ]
+  }
+}

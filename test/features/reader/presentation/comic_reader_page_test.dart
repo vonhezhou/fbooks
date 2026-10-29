@@ -87,7 +87,17 @@ void main() {
         find.byType(DropdownButtonFormField<ComicArchiveFileNameEncoding>),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('GBK / GB18030').last);
+      final unsupported = tester
+          .widget<DropdownMenuItem<ComicArchiveFileNameEncoding>>(
+            find
+                .widgetWithText(
+                  DropdownMenuItem<ComicArchiveFileNameEncoding>,
+                  'EUC-KR (unavailable)',
+                )
+                .last,
+          );
+      expect(unsupported.enabled, false);
+      await tester.tap(find.text('GBK').last);
       await tester.pumpAndSettle();
       expect(encoding.values['bobby'], 'gbk');
       expect(tester.takeException(), isNull);

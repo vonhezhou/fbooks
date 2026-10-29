@@ -1,0 +1,149 @@
+{
+  "status": "bidirectional-interaction-verified-in-ios-simulator-not-books-visual-calibration",
+  "date": "2026-11-02",
+  "scope": {
+    "app": "independent curl lab and matched-texture capture entry; formal reader unchanged",
+    "simulator_model": "iPhone 17",
+    "renderer": "Flutter Mesh",
+    "capture_pixel_size": [
+      1206,
+      1554
+    ],
+    "synthetic_pages_only": true,
+    "new_physical_device_use": false
+  },
+  "implementation": {
+    "single_page_backward": "inverse projected entering fold X; relative horizontal pull maps from left boundary to right boundary; solve tilt from vertical control displacement",
+    "spread_backward": "inverse previous-sheet material control point already visible on left page",
+    "profiles": "same direction/locality classification for both directions; no extra forward inversion on backward path",
+    "takeover": "freeze current profile; apply new relative displacement to existing control; cancel ticker and invalidate old async continuation before page commit",
+    "buttons": "Next and Previous share interruptible settling; preset horizontal cylinder",
+    "loading": "keep current flat page until previous texture window is ready; release uses last two-dimensional pointer, not scalar overwrite",
+    "endpoints": "explicit page commit after settling; cancellation restores original anchor; first/last capture pages bounded",
+    "reference_entry": "same backward and continuation helpers; all three supplied textures can become current page"
+  },
+  "automated_checks": {
+    "flutter_analyze": "No issues found",
+    "flutter_tests_passed": 269,
+    "targeted_tests_passed": 31,
+    "simulator_integration_tests_passed": 1,
+    "simulator_scenarios": [
+      "first-page-boundary",
+      "backward-cancel-0",
+      "backward-cancel-1",
+      "backward-cancel-2",
+      "backward-completed",
+      "forward-takeover",
+      "backward-takeover",
+      "button-takeover"
+    ],
+    "widget_matrix": [
+      "forward takeover LTR and RTL",
+      "backward two-dimensional drag and takeover LTR and RTL",
+      "button-started forward takeover",
+      "page order, immediate release during texture preparation, forward/backward cancellation",
+      "reference entry first and last boundaries, all three texture pages"
+    ],
+    "geometry_assertions": {
+      "sizes": [
+        [
+          390,
+          844
+        ],
+        [
+          600,
+          800
+        ]
+      ],
+      "selected_single_page_backward_control_error_lt_logical_pixels": 0.01,
+      "selected_spread_backward_control_error_lt_logical_pixels": 0.01,
+      "continuation_zero_displacement": "exact same pose",
+      "small_displacement_round_trip_progress_tolerance": 1e-06,
+      "small_displacement_round_trip_tilt_tolerance": 1e-05
+    },
+    "snapshot_restoration": [
+      {
+        "capture": "first-page-boundary",
+        "reference": "page-1",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "backward-completed",
+        "reference": "page-1",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "forward-restored",
+        "reference": "page-1",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "backward-restored",
+        "reference": "page-2",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "button-restored",
+        "reference": "page-1",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "backward-cancel-0",
+        "reference": "page-2",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "backward-cancel-1",
+        "reference": "page-2",
+        "png_sha256_equal": true
+      },
+      {
+        "capture": "backward-cancel-2",
+        "reference": "page-2",
+        "png_sha256_equal": true
+      }
+    ],
+    "reference_system_cancel_beyond_half_page": {
+      "reproduced_before_fix": true,
+      "after_fix": "original page restored; explicit raw PointerCancel ownership precedes possible onEnd"
+    }
+  },
+  "snapshot_sha256": {
+    "backward-completed": "27313e24bca50271c214627d2539c92eaf90b65c75a801c796e7abe8e37fee54",
+    "forward-restored": "27313e24bca50271c214627d2539c92eaf90b65c75a801c796e7abe8e37fee54",
+    "backward-held-0": "df8c662c5876d264f64d50c937d48aeac8b6c8dd7659e79fb83bff778c0dbca2",
+    "backward-held-1": "df8c662c5876d264f64d50c937d48aeac8b6c8dd7659e79fb83bff778c0dbca2",
+    "backward-restored": "a8cd4fb1612f2a75286de77d985777513df76592fb1b7d1d276f2c8eeb9b8533",
+    "backward-held-2": "df8c662c5876d264f64d50c937d48aeac8b6c8dd7659e79fb83bff778c0dbca2",
+    "backward-cancel-2": "a8cd4fb1612f2a75286de77d985777513df76592fb1b7d1d276f2c8eeb9b8533",
+    "page-1": "27313e24bca50271c214627d2539c92eaf90b65c75a801c796e7abe8e37fee54",
+    "first-page-boundary": "27313e24bca50271c214627d2539c92eaf90b65c75a801c796e7abe8e37fee54",
+    "backward-cancel-0": "a8cd4fb1612f2a75286de77d985777513df76592fb1b7d1d276f2c8eeb9b8533",
+    "backward-cancel-1": "a8cd4fb1612f2a75286de77d985777513df76592fb1b7d1d276f2c8eeb9b8533",
+    "page-2": "a8cd4fb1612f2a75286de77d985777513df76592fb1b7d1d276f2c8eeb9b8533",
+    "button-restored": "27313e24bca50271c214627d2539c92eaf90b65c75a801c796e7abe8e37fee54",
+    "button-takeover": "b8966bbf3cd3ab15802cf4b35f192d8062c551f6b7dd94db2d59cb4aba340076",
+    "forward-takeover": "4a109d88db55201ad3cd5e0e5c54e123224b45fd7fe9b30eda04df34a1053958",
+    "backward-takeover": "f9e28a4d99223e55cb2ad302942b5b4e62a6a8f909f1602426aa67c2c292fb1a"
+  },
+  "source_sha256": {
+    "curl_drag.dart": "d99891a2ccc74cccb19a41d4b8da3ce21c6c56ea80eb2a3943b0e5dd37c719e6",
+    "curl_geometry.dart": "29decc6a0d2c5567b195107d90d6991cbe9efa457f6d9f65f224c9c03981f7d5",
+    "main.dart": "edb951246bc08d0084a72633fdc5857317deec00416fd7eb0ec19a0f34433795",
+    "reference_capture.dart": "a0be9d7afe990d44822148542948611e7e3cfe329925c90844acf13f497bede7",
+    "prepare_simulator_lab.py": "b2dd4a125ede3d2bcaf1d653db03e8f561caca5af149e9694f1b8a0a55094330",
+    "bidirectional_smoke.dart.source": "ab9261708dc44cbd782665466bc4fb9f343ad21a936adfeabc9b0c74a01b5041"
+  },
+  "limits": [
+    "no new native Books backward slow-drag or interruption visual comparison; forward profile reports remain historical calibration records",
+    "simulator pointer injection validates app behavior, not OS touch interruption delivery or real-device 60Hz/thermal budget",
+    "new visual integration exercised Mesh on phone simulator; no new hardware Shader, tablet or desktop visual validation",
+    "inactive half of spread and native Metal experimental input retain existing fallback policy; Metal settling takeover remains blocked",
+    "tilt cap2 retained; very steep/early pulls are bounded, not exact material tracking",
+    "formal reader integration is still deferred"
+  ],
+  "skills_and_docs": {
+    "new_skill_needed": false,
+    "experience": "document frozen-profile relative control, ticker cancellation with ownership token, texture-window ordering and simulator dependency reproducibility in existing evaluation document"
+  }
+}

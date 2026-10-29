@@ -1,0 +1,71 @@
+{
+  "measurement": "Native RepaintBoundary PNG at progress 0.52 and grabY 0.8; RGB pixel difference is not a perceptual quality verdict.",
+  "scenes": [
+    {
+      "source": "text",
+      "spread": false,
+      "width": 412,
+      "height": 647,
+      "rgb_mae_0_to_255": 1.2971606568528884,
+      "rgb_rmse_0_to_255": 6.45477803269708,
+      "different_pixel_fraction": 0.17052190093185876,
+      "pixels_with_channel_error_over_16_fraction": 0.02822211551447307,
+      "max_channel_error": 175
+    },
+    {
+      "source": "text",
+      "spread": true,
+      "width": 412,
+      "height": 647,
+      "rgb_mae_0_to_255": 0.7862627111437903,
+      "rgb_rmse_0_to_255": 5.7170016950956875,
+      "different_pixel_fraction": 0.08108371723113399,
+      "pixels_with_channel_error_over_16_fraction": 0.01725664380786603,
+      "max_channel_error": 179
+    },
+    {
+      "source": "comic",
+      "spread": false,
+      "width": 412,
+      "height": 647,
+      "rgb_mae_0_to_255": 0.9467807605928282,
+      "rgb_rmse_0_to_255": 5.163912775999986,
+      "different_pixel_fraction": 0.3753507600426164,
+      "pixels_with_channel_error_over_16_fraction": 0.018453354541498476,
+      "max_channel_error": 196
+    },
+    {
+      "source": "comic",
+      "spread": true,
+      "width": 412,
+      "height": 647,
+      "rgb_mae_0_to_255": 1.0055083707227281,
+      "rgb_rmse_0_to_255": 5.194560605292289,
+      "different_pixel_fraction": 0.21493525007127745,
+      "pixels_with_channel_error_over_16_fraction": 0.01664890983028466,
+      "max_channel_error": 182
+    },
+    {
+      "source": "pdf",
+      "spread": false,
+      "width": 412,
+      "height": 647,
+      "rgb_mae_0_to_255": 1.2950035763769052,
+      "rgb_rmse_0_to_255": 6.430415409855119,
+      "different_pixel_fraction": 0.16830854879128465,
+      "pixels_with_channel_error_over_16_fraction": 0.029805225011629476,
+      "max_channel_error": 161
+    },
+    {
+      "source": "pdf",
+      "spread": true,
+      "width": 412,
+      "height": 647,
+      "rgb_mae_0_to_255": 1.4344322564187213,
+      "rgb_rmse_0_to_255": 7.535390242771284,
+      "different_pixel_fraction": 0.10982353205984303,
+      "pixels_with_channel_error_over_16_fraction": 0.03287015500967873,
+      "max_channel_error": 192
+    }
+  ]
+}

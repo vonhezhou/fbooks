@@ -1,0 +1,236 @@
+{
+  "baseline_commit": "6b6bdff",
+  "device_model": "iPhone 12",
+  "os": "iOS 27.0.1",
+  "refresh_rate_hz": 60,
+  "mode": "profile",
+  "renderer": "mesh",
+  "input_format": "epub",
+  "measurement": "Dart dispatch to raster finish; same XCTest UIKit five-forward, two-reverse and short-rebound sequence.",
+  "runs": [
+    {
+      "group": "baseline",
+      "run": 1,
+      "fresh_build_first_run": true,
+      "mesh_warmup_ms": 0,
+      "first_captured_input_ms": 146.88,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 127.774,
+      "first_build_ms": 2.771,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 469,
+        "p50": 17.796,
+        "p95": 19.761,
+        "p99": 26.208,
+        "max": 146.88
+      },
+      "initial_preparation_ms": 159.169
+    },
+    {
+      "group": "baseline",
+      "run": 2,
+      "fresh_build_first_run": false,
+      "mesh_warmup_ms": 0,
+      "first_captured_input_ms": 26.561,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 8.298,
+      "first_build_ms": 3.048,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 474,
+        "p50": 17.632,
+        "p95": 19.521,
+        "p99": 24.165,
+        "max": 28.661
+      },
+      "initial_preparation_ms": 159.976
+    },
+    {
+      "group": "baseline",
+      "run": 3,
+      "fresh_build_first_run": false,
+      "mesh_warmup_ms": 0,
+      "first_captured_input_ms": 38.646,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 13.539,
+      "first_build_ms": 4.264,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 477,
+        "p50": 17.824,
+        "p95": 20.455,
+        "p99": 25.013,
+        "max": 38.646
+      },
+      "initial_preparation_ms": 159.455
+    },
+    {
+      "group": "prewarm",
+      "run": 1,
+      "fresh_build_first_run": true,
+      "mesh_warmup_ms": 71.109,
+      "first_captured_input_ms": 23.421,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 4.164,
+      "first_build_ms": 3.022,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 474,
+        "p50": 17.852,
+        "p95": 21.704,
+        "p99": 24.589,
+        "max": 28.516
+      },
+      "initial_preparation_ms": 230.522
+    },
+    {
+      "group": "prewarm",
+      "run": 2,
+      "fresh_build_first_run": false,
+      "mesh_warmup_ms": 7.465,
+      "first_captured_input_ms": 21.081,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 3.688,
+      "first_build_ms": 2.937,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 475,
+        "p50": 17.652,
+        "p95": 20.015,
+        "p99": 25.21,
+        "max": 28.284
+      },
+      "initial_preparation_ms": 166.693
+    },
+    {
+      "group": "prewarm",
+      "run": 3,
+      "fresh_build_first_run": false,
+      "mesh_warmup_ms": 8.085,
+      "first_captured_input_ms": 6.42,
+      "first_captured_pointer_move": 2,
+      "first_raster_ms": 3.177,
+      "first_build_ms": 3.037,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 474,
+        "p50": 17.797,
+        "p95": 19.453,
+        "p99": 24.606,
+        "max": 26.499
+      },
+      "initial_preparation_ms": 167.401
+    },
+    {
+      "group": "disabled-control",
+      "run": 1,
+      "fresh_build_first_run": true,
+      "mesh_warmup_ms": 0.0,
+      "first_captured_input_ms": 26.503,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 11.481,
+      "first_build_ms": 2.853,
+      "render_cache_reset_requested": false,
+      "render_cache_directories_removed": 0,
+      "all_input_ms": {
+        "samples": 475,
+        "p50": 17.758,
+        "p95": 22.473,
+        "p99": 25.452,
+        "max": 28.465
+      },
+      "initial_preparation_ms": 159.585
+    },
+    {
+      "group": "cold-disabled",
+      "run": 1,
+      "fresh_build_first_run": true,
+      "mesh_warmup_ms": 0.0,
+      "first_captured_input_ms": 64.555,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 46.828,
+      "first_build_ms": 4.218,
+      "render_cache_reset_requested": true,
+      "render_cache_directories_removed": 3,
+      "all_input_ms": {
+        "samples": 474,
+        "p50": 17.698,
+        "p95": 20.774,
+        "p99": 25.674,
+        "max": 64.555
+      },
+      "initial_preparation_ms": 159.679
+    },
+    {
+      "group": "cold-enabled",
+      "run": 1,
+      "fresh_build_first_run": true,
+      "mesh_warmup_ms": 56.243,
+      "first_captured_input_ms": 7.507,
+      "first_captured_pointer_move": 2,
+      "first_raster_ms": 4.095,
+      "first_build_ms": 3.183,
+      "render_cache_reset_requested": true,
+      "render_cache_directories_removed": 2,
+      "all_input_ms": {
+        "samples": 475,
+        "p50": 17.777,
+        "p95": 19.426,
+        "p99": 24.289,
+        "max": 35.711
+      },
+      "initial_preparation_ms": 216.735
+    },
+    {
+      "group": "cold-enabled",
+      "run": 2,
+      "fresh_build_first_run": false,
+      "mesh_warmup_ms": 51.952,
+      "first_captured_input_ms": 40.583,
+      "first_captured_pointer_move": 1,
+      "first_raster_ms": 20.48,
+      "first_build_ms": 3.056,
+      "render_cache_reset_requested": true,
+      "render_cache_directories_removed": 2,
+      "all_input_ms": {
+        "samples": 475,
+        "p50": 17.776,
+        "p95": 19.538,
+        "p99": 22.376,
+        "max": 40.583
+      },
+      "initial_preparation_ms": 212.073
+    }
+  ],
+  "cache_control": "Cold runs launch with --curl-reset-render-cache. Temporary AppDelegate deletes only the dedicated app bundle subdirectory entries com.apple.metal, com.apple.metalfe and com.apple.gpuarchiver under its own Library/Caches before Flutter initialization. Removal counts are recorded; absent directories are skipped. No system-wide cache reset.",
+  "change": "On iOS only, render progress 0.005 and 0.52 offscreen at actual viewport and output pixel ratio before readiness. Borrowed page textures remain owned by the page cache.",
+  "disable_flag": "--dart-define=CURL_MESH_WARMUP=false",
+  "observations": [
+    "Diagnostic first frame spent 127.774 ms in raster versus 2.771 ms in build; the next frame waited 110.502 ms between build finish and raster start.",
+    "The warmed persistent-cache disabled control reached only 28.465 ms max; a fresh build alone does not establish a cold graphics cache.",
+    "After clearing only app-private Metal caches, disabled control max was 64.555 ms; enabled trials max were 35.711 and 40.583 ms.",
+    "Controlled enabled warmup took 56.243 and 51.952 ms before readiness. Sustained P95 remained near 20 ms.",
+    "Enable warmup for the iOS prototype to move some cold raster work before input; it does not eliminate every tail or prove the exact driver operation."
+  ],
+  "limitations": [
+    "Raster wall time is not isolated GPU execution; exact driver/pipeline operation was not traced.",
+    "Each group first run follows a new build/install; later launches may reuse persistent caches.",
+    "Small sequential sample; no statistical claim about every cold launch.",
+    "Warmup intentionally adds preparation time; sampled RSS begins after input and excludes warmup transient peak.",
+    "Event clock mismatches remain rejected; excludes pre-Dart platform input queue, presentation and display scanout.",
+    "Native latency comparison here uses EPUB single page; all-format spread behavior is checked separately.",
+    "Source books and screenshots remain outside repository."
+  ],
+  "functional": {
+    "status": "passed",
+    "cases": 6,
+    "physical_device": true
+  }
+}

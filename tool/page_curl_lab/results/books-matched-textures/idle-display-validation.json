@@ -1,0 +1,23 @@
+{
+  "idle_seconds": 21,
+  "wake_tap": [
+    195,
+    80
+  ],
+  "restored_body_mae_vs_awake": 0.0,
+  "device": "iPhone 12",
+  "logical_size": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "idle_delay_seconds": 20,
+  "captured_black_max_rgb": 2,
+  "captured_image_size": [
+    1170,
+    2532
+  ],
+  "holds_during_sampling_or_pointer_down": "remain visible; widget pixel regression passed",
+  "global_auto_lock_setting_changed": false,
+  "final_system_lock": "required after all device work; pending objective completion"
+}

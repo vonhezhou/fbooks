@@ -1,0 +1,118 @@
+{
+  "method": {
+    "source": "same_iPhone_Mesh_recording_frames",
+    "logical_size": [
+      390,
+      844
+    ],
+    "texture_size": [
+      1170,
+      2532
+    ],
+    "ink_threshold_rgb_mean_below": 140,
+    "distance": "symmetric_manhattan_capped_at_12_logical_pixels",
+    "region": "y160_to780_and_15_to80_pixels_left_of_reference_gray_peak",
+    "purpose": "auxiliary_text_deformation_check_not_perceptual_acceptance"
+  },
+  "case_set": "five_new_poses_and_repeated_center_control",
+  "baseline": {
+    "corner_radius_scale": 0.3,
+    "center_radius_scale": 0.3,
+    "corner_opening": 1.16,
+    "center_opening": 1.16
+  },
+  "current": {
+    "corner_radius_scale": 0.3,
+    "center_radius_scale": 0.42,
+    "corner_opening": 1.16,
+    "center_opening": 1.2
+  },
+  "cases": [
+    {
+      "case": "between-early",
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 0.9401846587950775,
+        "reference_ink_pixels": 5599,
+        "model_ink_pixels": 5660
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.938772396889697,
+        "reference_ink_pixels": 5599,
+        "model_ink_pixels": 5663
+      }
+    },
+    {
+      "case": "between-late",
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.8173555068339786,
+        "reference_ink_pixels": 5525,
+        "model_ink_pixels": 4850
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.8172581369111884,
+        "reference_ink_pixels": 5525,
+        "model_ink_pixels": 4849
+      }
+    },
+    {
+      "case": "upper-quarter",
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.2679311230395576,
+        "reference_ink_pixels": 4895,
+        "model_ink_pixels": 4924
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.2035828087038976,
+        "reference_ink_pixels": 4895,
+        "model_ink_pixels": 5020
+      }
+    },
+    {
+      "case": "lower-quarter",
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.3836405529953917,
+        "reference_ink_pixels": 4929,
+        "model_ink_pixels": 4746
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.291336793471069,
+        "reference_ink_pixels": 4929,
+        "model_ink_pixels": 4762
+      }
+    },
+    {
+      "case": "mid-up",
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 2.114159348704306,
+        "reference_ink_pixels": 3151,
+        "model_ink_pixels": 3489
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.7965630387607538,
+        "reference_ink_pixels": 3151,
+        "model_ink_pixels": 3700
+      }
+    },
+    {
+      "case": "center-horizontal",
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 0.9543562305771829,
+        "reference_ink_pixels": 4638,
+        "model_ink_pixels": 4336
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.22567993895834276,
+        "reference_ink_pixels": 4638,
+        "model_ink_pixels": 4667
+      }
+    }
+  ],
+  "cancel_body_mae_all_zero": true,
+  "visual_alignment_verified": false
+}

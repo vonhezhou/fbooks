@@ -1,0 +1,150 @@
+{
+  "status": "passed",
+  "platform": "ios",
+  "simulator": false,
+  "renderer": "metal",
+  "performance_statistics_usable": false,
+  "cases": [
+    {
+      "format": "text",
+      "spread": false,
+      "passed": true,
+      "cpu_reference_rgb_mae": 0.029963240500019823,
+      "flutter_composite_rgb_mae": 0.0,
+      "width": 1170,
+      "height": 1509,
+      "depth_test": true,
+      "msaa": 4,
+      "checks": [
+        "real source",
+        "CPU endpoint reference",
+        "Flutter texture composition",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "corner cancellation",
+        "reverse cancellation",
+        "RTL",
+        "restored native pixels identical"
+      ]
+    },
+    {
+      "format": "text",
+      "spread": true,
+      "passed": true,
+      "cpu_reference_rgb_mae": 0.025541905263575245,
+      "flutter_composite_rgb_mae": 0.0,
+      "width": 1170,
+      "height": 1509,
+      "depth_test": true,
+      "msaa": 4,
+      "checks": [
+        "real source",
+        "CPU endpoint reference",
+        "Flutter texture composition",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "corner cancellation",
+        "reverse cancellation",
+        "RTL",
+        "restored native pixels identical"
+      ]
+    },
+    {
+      "format": "comic",
+      "spread": false,
+      "passed": true,
+      "cpu_reference_rgb_mae": 0.11479820035154693,
+      "flutter_composite_rgb_mae": 0.0,
+      "width": 1170,
+      "height": 1509,
+      "depth_test": true,
+      "msaa": 4,
+      "checks": [
+        "real source",
+        "CPU endpoint reference",
+        "Flutter texture composition",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "corner cancellation",
+        "reverse cancellation",
+        "RTL",
+        "restored native pixels identical"
+      ]
+    },
+    {
+      "format": "comic",
+      "spread": true,
+      "passed": true,
+      "cpu_reference_rgb_mae": 0.02515014377174748,
+      "flutter_composite_rgb_mae": 0.0,
+      "width": 1170,
+      "height": 1509,
+      "depth_test": true,
+      "msaa": 4,
+      "checks": [
+        "real source",
+        "CPU endpoint reference",
+        "Flutter texture composition",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "corner cancellation",
+        "reverse cancellation",
+        "RTL",
+        "restored native pixels identical"
+      ]
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "passed": true,
+      "cpu_reference_rgb_mae": 0.1310777311440002,
+      "flutter_composite_rgb_mae": 0.0,
+      "width": 1170,
+      "height": 1509,
+      "depth_test": true,
+      "msaa": 4,
+      "checks": [
+        "real source",
+        "CPU endpoint reference",
+        "Flutter texture composition",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "corner cancellation",
+        "reverse cancellation",
+        "RTL",
+        "restored native pixels identical"
+      ]
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "passed": true,
+      "cpu_reference_rgb_mae": 0.02550508912337938,
+      "flutter_composite_rgb_mae": 0.0,
+      "width": 1170,
+      "height": 1509,
+      "depth_test": true,
+      "msaa": 4,
+      "checks": [
+        "real source",
+        "CPU endpoint reference",
+        "Flutter texture composition",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "corner cancellation",
+        "reverse cancellation",
+        "RTL",
+        "restored native pixels identical"
+      ]
+    }
+  ],
+  "gesture_delivery": "Flutter integration-test pointer events",
+  "os_touch_interruption_verified": false,
+  "validation_revision_note": "Final Metal renderer with memoryless depth/MSAA attachments; six physical-device functional cases passed."
+}

@@ -1,0 +1,179 @@
+{
+  "status": "passed",
+  "platform": "macos",
+  "simulator": false,
+  "performance_statistics_usable": false,
+  "renderer": "mesh",
+  "cases": [
+    {
+      "format": "epub",
+      "spread": false,
+      "source_is_real": true,
+      "visible_face_count": 2,
+      "window_dpr": 2.0,
+      "snapshot_pixels": [
+        1640,
+        1400
+      ],
+      "texture_pixels": [
+        1531,
+        1307
+      ],
+      "checks": [
+        "mesh paint",
+        "texture resolution matches native DPR and pixel budget",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "upper/lower corner drag cancellation",
+        "forward cancellation",
+        "backward cancellation",
+        "RTL drag forward/back",
+        "returned front pixels identical"
+      ],
+      "passed": true
+    },
+    {
+      "format": "epub",
+      "spread": true,
+      "source_is_real": true,
+      "visible_face_count": 4,
+      "window_dpr": 2.0,
+      "snapshot_pixels": [
+        1640,
+        1400
+      ],
+      "texture_pixels": [
+        820,
+        1400
+      ],
+      "checks": [
+        "mesh paint",
+        "texture resolution matches native DPR and pixel budget",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "upper/lower corner drag cancellation",
+        "forward cancellation",
+        "backward cancellation",
+        "RTL drag forward/back",
+        "returned front pixels identical"
+      ],
+      "passed": true
+    },
+    {
+      "format": "comic",
+      "spread": false,
+      "source_is_real": true,
+      "visible_face_count": 2,
+      "window_dpr": 2.0,
+      "snapshot_pixels": [
+        1640,
+        1400
+      ],
+      "texture_pixels": [
+        1531,
+        1307
+      ],
+      "checks": [
+        "mesh paint",
+        "texture resolution matches native DPR and pixel budget",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "upper/lower corner drag cancellation",
+        "forward cancellation",
+        "backward cancellation",
+        "RTL drag forward/back",
+        "returned front pixels identical"
+      ],
+      "passed": true
+    },
+    {
+      "format": "comic",
+      "spread": true,
+      "source_is_real": true,
+      "visible_face_count": 4,
+      "window_dpr": 2.0,
+      "snapshot_pixels": [
+        1640,
+        1400
+      ],
+      "texture_pixels": [
+        820,
+        1400
+      ],
+      "checks": [
+        "mesh paint",
+        "texture resolution matches native DPR and pixel budget",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "upper/lower corner drag cancellation",
+        "forward cancellation",
+        "backward cancellation",
+        "RTL drag forward/back",
+        "returned front pixels identical"
+      ],
+      "passed": true
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "source_is_real": true,
+      "visible_face_count": 2,
+      "window_dpr": 2.0,
+      "snapshot_pixels": [
+        1640,
+        1400
+      ],
+      "texture_pixels": [
+        1531,
+        1307
+      ],
+      "checks": [
+        "mesh paint",
+        "texture resolution matches native DPR and pixel budget",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "upper/lower corner drag cancellation",
+        "forward cancellation",
+        "backward cancellation",
+        "RTL drag forward/back",
+        "returned front pixels identical"
+      ],
+      "passed": true
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "source_is_real": true,
+      "visible_face_count": 4,
+      "window_dpr": 2.0,
+      "snapshot_pixels": [
+        1640,
+        1400
+      ],
+      "texture_pixels": [
+        820,
+        1400
+      ],
+      "checks": [
+        "mesh paint",
+        "texture resolution matches native DPR and pixel budget",
+        "button forward/back",
+        "drag forward/back",
+        "short rebound",
+        "upper/lower corner drag cancellation",
+        "forward cancellation",
+        "backward cancellation",
+        "RTL drag forward/back",
+        "returned front pixels identical"
+      ],
+      "passed": true
+    }
+  ],
+  "gesture_delivery": "Flutter integration-test pointer events",
+  "os_touch_interruption_verified": false
+}

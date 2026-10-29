@@ -1,0 +1,194 @@
+{
+  "date": "2026-10-29",
+  "baseline_commit": "fcfb267",
+  "device": "Redmi K70 Pro / Android 16 / SM8650",
+  "backend": "Impeller / Vulkan",
+  "mode": "profile",
+  "paired_method": "Same process; common cache and page textures; renderer order alternates by scene; warmup discarded. One pair per scene.",
+  "matched_viewport_texture_and_dpr": true,
+  "mesh": {
+    "frames": 1879,
+    "ui_p95_range_ms": [
+      5.006,
+      5.63
+    ],
+    "raster_p95_range_ms": [
+      4.569,
+      7.711
+    ],
+    "budget_exceedance": {
+      "60": {
+        "samples": 0,
+        "fraction": 0.0
+      },
+      "120": {
+        "samples": 9,
+        "fraction": 0.004789781798829164
+      }
+    },
+    "peak_texture_rgba_bytes": 33009120
+  },
+  "shader": {
+    "frames": 1871,
+    "ui_p95_range_ms": [
+      1.243,
+      1.785
+    ],
+    "raster_p95_range_ms": [
+      2.554,
+      3.158
+    ],
+    "budget_exceedance": {
+      "60": {
+        "samples": 0,
+        "fraction": 0.0
+      },
+      "120": {
+        "samples": 1,
+        "fraction": 0.0005344735435595938
+      }
+    },
+    "peak_texture_rgba_bytes": 33009120
+  },
+  "scenes": [
+    {
+      "source": "text",
+      "spread": false,
+      "mesh_ui_p95_ms": 5.033,
+      "shader_ui_p95_ms": 1.785,
+      "mesh_raster_p95_ms": 4.986,
+      "shader_raster_p95_ms": 2.779
+    },
+    {
+      "source": "text",
+      "spread": true,
+      "mesh_ui_p95_ms": 5.63,
+      "shader_ui_p95_ms": 1.243,
+      "mesh_raster_p95_ms": 6.472,
+      "shader_raster_p95_ms": 2.554
+    },
+    {
+      "source": "comic",
+      "spread": false,
+      "mesh_ui_p95_ms": 5.006,
+      "shader_ui_p95_ms": 1.705,
+      "mesh_raster_p95_ms": 5.055,
+      "shader_raster_p95_ms": 3.047
+    },
+    {
+      "source": "comic",
+      "spread": true,
+      "mesh_ui_p95_ms": 5.358,
+      "shader_ui_p95_ms": 1.697,
+      "mesh_raster_p95_ms": 4.569,
+      "shader_raster_p95_ms": 2.828
+    },
+    {
+      "source": "pdf",
+      "spread": false,
+      "mesh_ui_p95_ms": 5.372,
+      "shader_ui_p95_ms": 1.677,
+      "mesh_raster_p95_ms": 7.711,
+      "shader_raster_p95_ms": 3.066
+    },
+    {
+      "source": "pdf",
+      "spread": true,
+      "mesh_ui_p95_ms": 5.478,
+      "shader_ui_p95_ms": 1.718,
+      "mesh_raster_p95_ms": 4.83,
+      "shader_raster_p95_ms": 3.158
+    }
+  ],
+  "input_comparison": {
+    "mesh": {
+      "pointer_moves": 673,
+      "coalesced_moves": 37,
+      "clock_mismatches": 0,
+      "unmatched_painted_frames": 0,
+      "dispatch_to_paint_ms": {
+        "samples": 636,
+        "p50": 3.088,
+        "p95": 4.825,
+        "p99": 5.769,
+        "max": 8.63
+      },
+      "event_to_raster_finish_ms": {
+        "samples": 636,
+        "p50": 11.744,
+        "p95": 16.152,
+        "p99": 17.222,
+        "max": 20.478
+      },
+      "excludes": "touch hardware sampling, compositor presentation, display scanout"
+    },
+    "shader": {
+      "pointer_moves": 674,
+      "coalesced_moves": 105,
+      "clock_mismatches": 0,
+      "unmatched_painted_frames": 0,
+      "dispatch_to_paint_ms": {
+        "samples": 569,
+        "p50": 4.177,
+        "p95": 7.304,
+        "p99": 8.599,
+        "max": 9.116
+      },
+      "event_to_raster_finish_ms": {
+        "samples": 569,
+        "p50": 9.117,
+        "p95": 13.469,
+        "p99": 14.326,
+        "max": 43.535
+      },
+      "excludes": "touch hardware sampling, compositor presentation, display scanout"
+    }
+  },
+  "visual_assessment": {
+    "same_geometry_intent": "Spine-anchored row curl with corner control and perspective. Shader analytically inverts horizontal projection with three vertical corrections.",
+    "differences": [
+      "Analytic shadow instead of blurred path shadow.",
+      "No 0.6 logical pixel mesh outline stroke.",
+      "Different texture interpolation and approximate inverse; not pixel-identical.",
+      "Curved material boundaries currently have no explicit analytic antialiasing."
+    ],
+    "rgb_mae_range_0_to_255": [
+      0.7862627111437903,
+      1.4344322564187213
+    ]
+  },
+  "implementation_line_counts": {
+    "tool/page_curl_lab/curl_painter.dart": 352,
+    "tool/page_curl_lab/curl_geometry.dart": 170,
+    "tool/page_curl_lab/curl_shader_painter.dart": 112,
+    "tool/page_curl_lab/shaders/curl.frag": 115
+  },
+  "renderer_source_sha256": {
+    "curl_painter.dart": "bc7a709f20c8b6709b66f68509a979c8a254bf736df51eda9a02d005a6b3d775",
+    "curl_geometry.dart": "899275efea64d21916caa9027e249e19d63a786af1ccbc442030234b477f02f7",
+    "curl_shader_painter.dart": "1d6ea8b304370120a81431db4b7e88f3331ffe120872b587a9f6c2e2b7a64a00",
+    "curl.frag": "befbe1732566a6037b137cdd4757adff16ceadaa556b8c7e2e48e35f0420f3d0"
+  },
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 150,
+    "physical_gestures": "Both routes: 5 forward, 2 backward, 1 short cancel; final page 4.",
+    "native_paired_screenshots": 12,
+    "python_compile": "passed"
+  },
+  "recommendation": "Continue shader route as the next prototype baseline. Keep mesh for visual comparisons; do not integrate into production readers yet.",
+  "limitations": [
+    "Synthetic typography and PNG fixtures; real PDFium rendering of a simple generated PDF.",
+    "No production chapter layout, EPUB capture, CBZ extraction, disk I/O, selection or progress integration.",
+    "RGBA bytes exclude PDF/native/transient/cached GPU allocations; RSS is whole-process memory.",
+    "Pipeline budget exceedance is not measured dropped-frame rate or input-to-display latency.",
+    "No Apple Books side-by-side comparison; row curl is not a physical paper solver.",
+    "Shader uses an approximate vertical inverse, analytic shadows, and no mesh edge stroke. It is not pixel-equivalent to the mesh.",
+    "Only one Android device; iOS and desktop shader performance not tested.",
+    "Initial separate shader run showed PDF raster P95 8.702/8.845 ms; this did not reproduce in the same-process pair. Raw standalone trials retained; frequency/scheduling variability remains.",
+    "Input shader max event-to-raster-finish was 43.535 ms versus mesh 20.478 ms. Cold pipeline warmup and rare-tail behavior need profiling; shader latency does not improve at every percentile.",
+    "Input dispatch-to-paint P95 increased from 4.825 to 7.304 ms despite lower event-to-raster-finish P95. Both stages are retained, not treated as universal improvement.",
+    "One adjacent input session per renderer; software input injection excludes hardware touch sampling and display scanout.",
+    "No Apple Books parity or side-by-side comparison; analytic shadows and material-edge treatment require further visual work."
+  ]
+}

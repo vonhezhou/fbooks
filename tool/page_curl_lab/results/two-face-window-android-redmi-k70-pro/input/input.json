@@ -1,0 +1,322 @@
+{
+  "renderer": "shader",
+  "initial_preparation": {
+    "visible_face_count": 2,
+    "elapsed_ms": 337.247,
+    "decode_elapsed_ms": 212.218,
+    "rgba_bytes": 8013096,
+    "decode_misses_before_prefetch": 2,
+    "resident_bytes_before_prefetch": 8013096
+  },
+  "visible_face_count": 2,
+  "shader_warmup_enabled": true,
+  "shader_warmup_ms": 124.998,
+  "logical_width": 411.42857142857144,
+  "logical_height": 614.6666666666667,
+  "texture_dpr": 1.9885336527738289,
+  "window_dpr": 2.625,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 674,
+    "coalesced_moves": 64,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 610,
+      "p50": 3.443,
+      "p95": 6.726,
+      "p99": 8.226,
+      "max": 9.49
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 610,
+      "p50": 8.49,
+      "p95": 12.94,
+      "p99": 14.373,
+      "max": 15.507
+    },
+    "first_frames": [
+      {
+        "frame_number": 9,
+        "pointer_move": 2,
+        "progress_at_paint": 0.01979143708627213,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.742,
+        "dispatch_to_paint_ms": 4.418,
+        "build_ms": 1.229,
+        "raster_ms": 1.771,
+        "vsync_to_build_start_ms": 0.439
+      },
+      {
+        "frame_number": 10,
+        "pointer_move": 3,
+        "progress_at_paint": 0.02604136458720012,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 11.645,
+        "dispatch_to_paint_ms": 5.188,
+        "build_ms": 0.528,
+        "raster_ms": 4.141,
+        "vsync_to_build_start_ms": 0.298
+      },
+      {
+        "frame_number": 11,
+        "pointer_move": 4,
+        "progress_at_paint": 0.03541625583859204,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.163,
+        "dispatch_to_paint_ms": 5.335,
+        "build_ms": 0.469,
+        "raster_ms": 2.407,
+        "vsync_to_build_start_ms": 0.309
+      },
+      {
+        "frame_number": 12,
+        "pointer_move": 5,
+        "progress_at_paint": 0.042707837923008043,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.442,
+        "dispatch_to_paint_ms": 6.679,
+        "build_ms": 0.691,
+        "raster_ms": 1.112,
+        "vsync_to_build_start_ms": 0.377
+      },
+      {
+        "frame_number": 13,
+        "pointer_move": 6,
+        "progress_at_paint": 0.05208365756529435,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.54,
+        "dispatch_to_paint_ms": 5.463,
+        "build_ms": 0.829,
+        "raster_ms": 1.264,
+        "vsync_to_build_start_ms": 0.561
+      },
+      {
+        "frame_number": 14,
+        "pointer_move": 7,
+        "progress_at_paint": 0.06145854881668627,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.738,
+        "dispatch_to_paint_ms": 5.622,
+        "build_ms": 0.963,
+        "raster_ms": 1.752,
+        "vsync_to_build_start_ms": 0.645
+      },
+      {
+        "frame_number": 15,
+        "pointer_move": 8,
+        "progress_at_paint": 0.06875013090110228,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 10.084,
+        "dispatch_to_paint_ms": 6.204,
+        "build_ms": 0.971,
+        "raster_ms": 1.081,
+        "vsync_to_build_start_ms": 0.533
+      },
+      {
+        "frame_number": 16,
+        "pointer_move": 9,
+        "progress_at_paint": 0.07812502215249434,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 10.164,
+        "dispatch_to_paint_ms": 6.284,
+        "build_ms": 1.138,
+        "raster_ms": 1.461,
+        "vsync_to_build_start_ms": 0.774
+      },
+      {
+        "frame_number": 17,
+        "pointer_move": 10,
+        "progress_at_paint": 0.08645825882039837,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.837,
+        "dispatch_to_paint_ms": 5.709,
+        "build_ms": 0.794,
+        "raster_ms": 1.309,
+        "vsync_to_build_start_ms": 0.546
+      },
+      {
+        "frame_number": 18,
+        "pointer_move": 11,
+        "progress_at_paint": 0.09479149548830226,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.994,
+        "dispatch_to_paint_ms": 6.406,
+        "build_ms": 0.838,
+        "raster_ms": 1.164,
+        "vsync_to_build_start_ms": 0.57
+      },
+      {
+        "frame_number": 19,
+        "pointer_move": 12,
+        "progress_at_paint": 0.10416638673969418,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 9.555,
+        "dispatch_to_paint_ms": 5.561,
+        "build_ms": 0.967,
+        "raster_ms": 1.252,
+        "vsync_to_build_start_ms": 0.497
+      },
+      {
+        "frame_number": 20,
+        "pointer_move": 13,
+        "progress_at_paint": 0.11249962340759821,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 10.059,
+        "dispatch_to_paint_ms": 5.885,
+        "build_ms": 0.948,
+        "raster_ms": 1.535,
+        "vsync_to_build_start_ms": 0.489
+      }
+    ],
+    "slowest_frames_over_20ms": [],
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 288542720,
+      "resident_rgba_bytes": 20032740,
+      "peak_rgba_bytes": 20032740,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 290332672,
+      "resident_rgba_bytes": 24039288,
+      "peak_rgba_bytes": 24039288,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 292528128,
+      "resident_rgba_bytes": 28045836,
+      "peak_rgba_bytes": 28045836,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 292831232,
+      "resident_rgba_bytes": 28045836,
+      "peak_rgba_bytes": 28045836,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 292843520,
+      "resident_rgba_bytes": 32052384,
+      "peak_rgba_bytes": 32052384,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 292610048,
+      "resident_rgba_bytes": 32052384,
+      "peak_rgba_bytes": 32052384,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 293101568,
+      "resident_rgba_bytes": 32052384,
+      "peak_rgba_bytes": 32052384,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 292986880,
+      "resident_rgba_bytes": 32052384,
+      "peak_rgba_bytes": 32052384,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 292986880,
+      "resident_rgba_bytes": 32052384,
+      "peak_rgba_bytes": 32052384,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 10,
+      "rss_bytes": 292986880,
+      "resident_rgba_bytes": 32052384,
+      "peak_rgba_bytes": 32052384,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 872,
+    "build_ms": {
+      "mean": 1.0361628440366972,
+      "p95": 1.404,
+      "p99": 2.745,
+      "max": 3.861
+    },
+    "raster_ms": {
+      "mean": 1.9941009174311954,
+      "p95": 2.745,
+      "p99": 4.906,
+      "max": 80.618
+    },
+    "total_span_ms": {
+      "mean": 4.334513761467893,
+      "p95": 5.623,
+      "p99": 10.041,
+      "max": 87.413
+    },
+    "over_60hz_pipeline_budget": 0.0011467889908256881,
+    "over_120hz_pipeline_budget": 0.0034403669724770644
+  },
+  "page_start": 3
+}

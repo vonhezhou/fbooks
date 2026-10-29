@@ -1,0 +1,809 @@
+{
+  "renderer": "mesh",
+  "initial_preparation": {
+    "source_is_real": true,
+    "source_session_reused": false,
+    "input_format": "epub",
+    "source_open_ms": 600.338,
+    "source_page_count": 92,
+    "chapter_index": 19,
+    "pagination_scope": "selected-chapter",
+    "visible_face_count": 2,
+    "elapsed_ms": 159.679,
+    "decode_elapsed_ms": 159.678,
+    "rgba_bytes": 8006528,
+    "decode_misses_before_prefetch": 2,
+    "resident_bytes_before_prefetch": 8006528
+  },
+  "visible_face_count": 2,
+  "mesh_warmup_enabled": false,
+  "mesh_warmup_ms": 0.0,
+  "shader_warmup_enabled": true,
+  "shader_warmup_ms": 0.0,
+  "logical_width": 390.0,
+  "logical_height": 503.0,
+  "texture_dpr": 2.2577908255050376,
+  "window_dpr": 3.0,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 477,
+    "coalesced_moves": 3,
+    "clock_mismatches": 474,
+    "dispatch_clock_mismatches": 0,
+    "clock_pairs": [
+      {
+        "event_us": 353613630001,
+        "dispatch_timeline_us": 396518483128,
+        "raster_finish_us": 396518547683
+      },
+      {
+        "event_us": 353613638935,
+        "dispatch_timeline_us": 396518501214,
+        "raster_finish_us": 396518561706
+      },
+      {
+        "event_us": 353613688117,
+        "dispatch_timeline_us": 396518546377,
+        "raster_finish_us": 396518587718
+      },
+      {
+        "event_us": 353613705602,
+        "dispatch_timeline_us": 396518568211,
+        "raster_finish_us": 396518590723
+      },
+      {
+        "event_us": 353613721753,
+        "dispatch_timeline_us": 396518586013,
+        "raster_finish_us": 396518600902
+      },
+      {
+        "event_us": 353613738935,
+        "dispatch_timeline_us": 396518600083,
+        "raster_finish_us": 396518617776
+      },
+      {
+        "event_us": 353613755123,
+        "dispatch_timeline_us": 396518615841,
+        "raster_finish_us": 396518632781
+      },
+      {
+        "event_us": 353613779920,
+        "dispatch_timeline_us": 396518632285,
+        "raster_finish_us": 396518650140
+      },
+      {
+        "event_us": 353613788935,
+        "dispatch_timeline_us": 396518648510,
+        "raster_finish_us": 396518666387
+      },
+      {
+        "event_us": 353613805602,
+        "dispatch_timeline_us": 396518665806,
+        "raster_finish_us": 396518683548
+      },
+      {
+        "event_us": 353613822269,
+        "dispatch_timeline_us": 396518682770,
+        "raster_finish_us": 396518699642
+      },
+      {
+        "event_us": 353613838935,
+        "dispatch_timeline_us": 396518699095,
+        "raster_finish_us": 396518717205
+      }
+    ],
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 474,
+      "p50": 13.566,
+      "p95": 15.453,
+      "p99": 17.717,
+      "max": 18.305
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 0
+    },
+    "dispatch_to_raster_finish_ms": {
+      "samples": 474,
+      "p50": 17.698,
+      "p95": 20.774,
+      "p99": 25.674,
+      "max": 64.555
+    },
+    "dispatch_metric_excludes": "platform input queue before Dart dispatch, compositor presentation, display scanout",
+    "dispatch_first_frames": [
+      {
+        "frame_number": 54,
+        "pointer_move": 1,
+        "progress_at_paint": 0.011965811965812015,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 64.555,
+        "dispatch_to_paint_ms": 13.992,
+        "build_ms": 4.218,
+        "raster_ms": 46.828,
+        "build_finish_to_raster_start_ms": 0.057,
+        "vsync_to_build_start_ms": 1.05
+      },
+      {
+        "frame_number": 55,
+        "pointer_move": 2,
+        "progress_at_paint": 0.016239316239316192,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 60.492,
+        "dispatch_to_paint_ms": 12.579,
+        "build_ms": 2.461,
+        "raster_ms": 13.8,
+        "build_finish_to_raster_start_ms": 31.97,
+        "vsync_to_build_start_ms": 1.21
+      },
+      {
+        "frame_number": 58,
+        "pointer_move": 5,
+        "progress_at_paint": 0.042735042735042784,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 41.341,
+        "dispatch_to_paint_ms": 17.232,
+        "build_ms": 4.488,
+        "raster_ms": 20.106,
+        "build_finish_to_raster_start_ms": 0.057,
+        "vsync_to_build_start_ms": 0.597
+      },
+      {
+        "frame_number": 59,
+        "pointer_move": 6,
+        "progress_at_paint": 0.05213675213675209,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 22.512,
+        "dispatch_to_paint_ms": 12.202,
+        "build_ms": 5.435,
+        "raster_ms": 2.96,
+        "build_finish_to_raster_start_ms": 2.248,
+        "vsync_to_build_start_ms": 0.875
+      },
+      {
+        "frame_number": 60,
+        "pointer_move": 7,
+        "progress_at_paint": 0.062393162393162345,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 14.889,
+        "dispatch_to_paint_ms": 11.481,
+        "build_ms": 2.555,
+        "raster_ms": 0.929,
+        "build_finish_to_raster_start_ms": 0.138,
+        "vsync_to_build_start_ms": 1.341
+      },
+      {
+        "frame_number": 61,
+        "pointer_move": 8,
+        "progress_at_paint": 0.0726495726495726,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 17.693,
+        "dispatch_to_paint_ms": 13.259,
+        "build_ms": 2.022,
+        "raster_ms": 2.339,
+        "build_finish_to_raster_start_ms": 0.236,
+        "vsync_to_build_start_ms": 0.505
+      },
+      {
+        "frame_number": 62,
+        "pointer_move": 9,
+        "progress_at_paint": 0.08290598290598286,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 16.94,
+        "dispatch_to_paint_ms": 14.482,
+        "build_ms": 1.859,
+        "raster_ms": 0.693,
+        "build_finish_to_raster_start_ms": 0.06,
+        "vsync_to_build_start_ms": 0.76
+      },
+      {
+        "frame_number": 63,
+        "pointer_move": 10,
+        "progress_at_paint": 0.09829059829059825,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 17.855,
+        "dispatch_to_paint_ms": 14.348,
+        "build_ms": 1.463,
+        "raster_ms": 2.105,
+        "build_finish_to_raster_start_ms": 0.074,
+        "vsync_to_build_start_ms": 0.354
+      },
+      {
+        "frame_number": 64,
+        "pointer_move": 11,
+        "progress_at_paint": 0.10427350427350432,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 17.877,
+        "dispatch_to_paint_ms": 15.039,
+        "build_ms": 1.594,
+        "raster_ms": 1.403,
+        "build_finish_to_raster_start_ms": 0.048,
+        "vsync_to_build_start_ms": 0.463
+      },
+      {
+        "frame_number": 65,
+        "pointer_move": 12,
+        "progress_at_paint": 0.11538461538461539,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 17.742,
+        "dispatch_to_paint_ms": 14.488,
+        "build_ms": 2.341,
+        "raster_ms": 0.925,
+        "build_finish_to_raster_start_ms": 0.146,
+        "vsync_to_build_start_ms": 0.522
+      },
+      {
+        "frame_number": 66,
+        "pointer_move": 13,
+        "progress_at_paint": 0.12649572649572643,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 16.872,
+        "dispatch_to_paint_ms": 14.26,
+        "build_ms": 1.947,
+        "raster_ms": 0.72,
+        "build_finish_to_raster_start_ms": 0.081,
+        "vsync_to_build_start_ms": 0.545
+      },
+      {
+        "frame_number": 67,
+        "pointer_move": 14,
+        "progress_at_paint": 0.13760683760683765,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 18.11,
+        "dispatch_to_paint_ms": 14.86,
+        "build_ms": 2.467,
+        "raster_ms": 0.847,
+        "build_finish_to_raster_start_ms": 0.109,
+        "vsync_to_build_start_ms": 0.698
+      }
+    ],
+    "dispatch_slowest_frames_over_20ms": [
+      {
+        "frame_number": 54,
+        "pointer_move": 1,
+        "progress_at_paint": 0.011965811965812015,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 64.555,
+        "dispatch_to_paint_ms": 13.992,
+        "build_ms": 4.218,
+        "raster_ms": 46.828,
+        "build_finish_to_raster_start_ms": 0.057,
+        "vsync_to_build_start_ms": 1.05
+      },
+      {
+        "frame_number": 55,
+        "pointer_move": 2,
+        "progress_at_paint": 0.016239316239316192,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 60.492,
+        "dispatch_to_paint_ms": 12.579,
+        "build_ms": 2.461,
+        "raster_ms": 13.8,
+        "build_finish_to_raster_start_ms": 31.97,
+        "vsync_to_build_start_ms": 1.21
+      },
+      {
+        "frame_number": 58,
+        "pointer_move": 5,
+        "progress_at_paint": 0.042735042735042784,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 41.341,
+        "dispatch_to_paint_ms": 17.232,
+        "build_ms": 4.488,
+        "raster_ms": 20.106,
+        "build_finish_to_raster_start_ms": 0.057,
+        "vsync_to_build_start_ms": 0.597
+      },
+      {
+        "frame_number": 564,
+        "pointer_move": 403,
+        "progress_at_paint": 0.9846153846153847,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 28.267,
+        "dispatch_to_paint_ms": 15.529,
+        "build_ms": 6.116,
+        "raster_ms": 6.89,
+        "build_finish_to_raster_start_ms": 0.123,
+        "vsync_to_build_start_ms": 1.133
+      },
+      {
+        "frame_number": 139,
+        "pointer_move": 67,
+        "progress_at_paint": 0.004273504273504176,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 25.674,
+        "dispatch_to_paint_ms": 16.853,
+        "build_ms": 4.906,
+        "raster_ms": 4.268,
+        "build_finish_to_raster_start_ms": 0.168,
+        "vsync_to_build_start_ms": 0.218
+      },
+      {
+        "frame_number": 645,
+        "pointer_move": 470,
+        "progress_at_paint": 0.014529914529914579,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 25.487,
+        "dispatch_to_paint_ms": 15.702,
+        "build_ms": 4.436,
+        "raster_ms": 5.708,
+        "build_finish_to_raster_start_ms": 0.146,
+        "vsync_to_build_start_ms": 1.867
+      },
+      {
+        "frame_number": 482,
+        "pointer_move": 335,
+        "progress_at_paint": 1.0,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 24.259,
+        "dispatch_to_paint_ms": 17.099,
+        "build_ms": 5.508,
+        "raster_ms": 3.835,
+        "build_finish_to_raster_start_ms": 0.139,
+        "vsync_to_build_start_ms": 0.114
+      },
+      {
+        "frame_number": 225,
+        "pointer_move": 134,
+        "progress_at_paint": 0.004273504273504176,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 23.788,
+        "dispatch_to_paint_ms": 15.725,
+        "build_ms": 4.002,
+        "raster_ms": 4.387,
+        "build_finish_to_raster_start_ms": 0.141,
+        "vsync_to_build_start_ms": 0.796
+      },
+      {
+        "frame_number": 402,
+        "pointer_move": 274,
+        "progress_at_paint": 0.05213675213675209,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 23.702,
+        "dispatch_to_paint_ms": 17.717,
+        "build_ms": 4.657,
+        "raster_ms": 1.787,
+        "build_finish_to_raster_start_ms": 0.074,
+        "vsync_to_build_start_ms": 0.612
+      },
+      {
+        "frame_number": 311,
+        "pointer_move": 201,
+        "progress_at_paint": 0.007692307692307693,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 23.351,
+        "dispatch_to_paint_ms": 16.975,
+        "build_ms": 3.635,
+        "raster_ms": 3.096,
+        "build_finish_to_raster_start_ms": 0.087,
+        "vsync_to_build_start_ms": 0.106
+      },
+      {
+        "frame_number": 205,
+        "pointer_move": 133,
+        "progress_at_paint": 0.7102564102564103,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 23.066,
+        "dispatch_to_paint_ms": 17.343,
+        "build_ms": 4.776,
+        "raster_ms": 1.283,
+        "build_finish_to_raster_start_ms": 0.063,
+        "vsync_to_build_start_ms": 0.439
+      },
+      {
+        "frame_number": 365,
+        "pointer_move": 255,
+        "progress_at_paint": 0.617948717948718,
+        "renderer": "mesh",
+        "dispatch_to_raster_finish_ms": 23.064,
+        "dispatch_to_paint_ms": 17.546,
+        "build_ms": 4.496,
+        "raster_ms": 1.436,
+        "build_finish_to_raster_start_ms": 0.067,
+        "vsync_to_build_start_ms": 0.582
+      }
+    ],
+    "first_frames": [],
+    "slowest_frames_over_20ms": [],
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 184680448,
+      "resident_rgba_bytes": 16013056,
+      "peak_rgba_bytes": 16013056,
+      "budget_bytes": 33554432,
+      "cached_pages": 4,
+      "hits": 0,
+      "misses": 4,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 196493312,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 196509696,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 197591040,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 190693376,
+      "resident_rgba_bytes": 20016320,
+      "peak_rgba_bytes": 20016320,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 198541312,
+      "resident_rgba_bytes": 24019584,
+      "peak_rgba_bytes": 24019584,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 198590464,
+      "resident_rgba_bytes": 24019584,
+      "peak_rgba_bytes": 24019584,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 197738496,
+      "resident_rgba_bytes": 24019584,
+      "peak_rgba_bytes": 24019584,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 188121088,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 10,
+      "rss_bytes": 188121088,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 11,
+      "rss_bytes": 200556544,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 12,
+      "rss_bytes": 195330048,
+      "resident_rgba_bytes": 28022848,
+      "peak_rgba_bytes": 28022848,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 13,
+      "rss_bytes": 188956672,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 14,
+      "rss_bytes": 188956672,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 15,
+      "rss_bytes": 192724992,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 16,
+      "rss_bytes": 188940288,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 24,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 17,
+      "rss_bytes": 189005824,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 24,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 18,
+      "rss_bytes": 189497344,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 24,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 19,
+      "rss_bytes": 198049792,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 20,
+      "rss_bytes": 196935680,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 21,
+      "rss_bytes": 196952064,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 22,
+      "rss_bytes": 191463424,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 23,
+      "rss_bytes": 194166784,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 24,
+      "rss_bytes": 187744256,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 25,
+      "rss_bytes": 187744256,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 26,
+      "rss_bytes": 187875328,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 27,
+      "rss_bytes": 187875328,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 28,
+      "rss_bytes": 187875328,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 29,
+      "rss_bytes": 187875328,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 30,
+      "rss_bytes": 187891712,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 31,
+      "rss_bytes": 188203008,
+      "resident_rgba_bytes": 32026112,
+      "peak_rgba_bytes": 32026112,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 639,
+    "build_ms": {
+      "mean": 3.7005571205007826,
+      "p95": 5.525,
+      "p99": 28.362,
+      "max": 142.347
+    },
+    "raster_ms": {
+      "mean": 2.1280172143974965,
+      "p95": 3.212,
+      "p99": 13.029,
+      "max": 249.589
+    },
+    "total_span_ms": {
+      "mean": 6.873474178403761,
+      "p95": 10.489,
+      "p99": 52.153,
+      "max": 249.673
+    },
+    "over_60hz_pipeline_budget": 0.017214397496087636,
+    "over_120hz_pipeline_budget": 0.026604068857589983
+  },
+  "page_start": 3
+}

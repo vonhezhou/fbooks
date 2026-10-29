@@ -1,0 +1,58 @@
+{
+  "status": "reference-behavior-validated-controller-update-in-private-testing",
+  "scope": "horizontal drag at y732, viewport 390x844, source unchanged",
+  "origin_x_values": [
+    350,
+    373,
+    385
+  ],
+  "target_x_values": [
+    292,
+    211,
+    129
+  ],
+  "metric": "RGB MAE in logical body ROI [0,40,390,800] after uniform downsample; not PNG byte identity",
+  "comparisons": [
+    {
+      "case": "inner-grip",
+      "reference_case": "middle-control",
+      "body_rgb_mae": 0.0
+    },
+    {
+      "case": "edge-grip",
+      "reference_case": "middle-control",
+      "body_rgb_mae": 0.0
+    },
+    {
+      "case": "inner-early",
+      "reference_case": "early-horizontal",
+      "body_rgb_mae": 0.0
+    },
+    {
+      "case": "edge-early",
+      "reference_case": "early-horizontal",
+      "body_rgb_mae": 0.0
+    },
+    {
+      "case": "inner-late",
+      "reference_case": "late-horizontal",
+      "body_rgb_mae": 0.0
+    },
+    {
+      "case": "edge-late",
+      "reference_case": "late-horizontal",
+      "body_rgb_mae": 0.0
+    }
+  ],
+  "reference_cancel_body_mae_max": 0.0,
+  "reference_hold_pair_body_mae_max": 0.010455465587044535,
+  "interpretation": "all three origins reproduce the same held image at each sampled target; original-material-point following is not sufficient as a Books alignment constraint",
+  "not_inferred": [
+    "Books internal physical grip or virtual material edge",
+    "behavior before gesture recognition or during return motion",
+    "other starting heights, devices or oblique traces"
+  ],
+  "automation_note": "inner text origins require an early 12px move in 60ms before a slow drag; static initial holding may invoke selection; invalid selection samples were excluded and source state restored by body tap",
+  "controller_scope": "private candidate blends toward an absolute page reference control once drag is established, retaining original-point fades at start/finish and full-corner controls",
+  "latest_adoption_report": "early-outward-profile-validation.json"
+}

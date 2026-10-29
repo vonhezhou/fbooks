@@ -1,0 +1,176 @@
+{
+  "renderer": "shader",
+  "logical_width": 411.42857142857144,
+  "logical_height": 598.6666666666667,
+  "texture_dpr": 2.01493127244211,
+  "window_dpr": 2.625,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 674,
+    "coalesced_moves": 105,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 569,
+      "p50": 4.177,
+      "p95": 7.304,
+      "p99": 8.599,
+      "max": 9.116
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 569,
+      "p50": 9.117,
+      "p95": 13.469,
+      "p99": 14.326,
+      "max": 43.535
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 292966400,
+      "resident_rgba_bytes": 28050680,
+      "peak_rgba_bytes": 28050680,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 6,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 294555648,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 13,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 294649856,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 18,
+      "misses": 11,
+      "evictions": 3,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 295849984,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 23,
+      "misses": 14,
+      "evictions": 6,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 296226816,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 28,
+      "misses": 17,
+      "evictions": 9,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 296759296,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 35,
+      "misses": 18,
+      "evictions": 10,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 296624128,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 296996864,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 296996864,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 10,
+      "rss_bytes": 296996864,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 863,
+    "build_ms": {
+      "mean": 0.9575643105446124,
+      "p95": 1.282,
+      "p99": 2.914,
+      "max": 8.527
+    },
+    "raster_ms": {
+      "mean": 1.71542989571263,
+      "p95": 2.22,
+      "p99": 3.474,
+      "max": 44.034
+    },
+    "total_span_ms": {
+      "mean": 3.9531541135573596,
+      "p95": 5.227,
+      "p99": 7.745,
+      "max": 92.943
+    },
+    "over_60hz_pipeline_budget": 0.002317497103128621,
+    "over_120hz_pipeline_budget": 0.004634994206257242
+  },
+  "page_start": 3
+}

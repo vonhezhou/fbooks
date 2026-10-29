@@ -1,0 +1,142 @@
+{
+  "device_model": "iPhone 12",
+  "os": "iOS 27.0.1",
+  "maximum_refresh_rate_hz": 60,
+  "build_mode": "profile",
+  "backend": "Impeller",
+  "quality": {
+    "target_pixels_per_face": 1000000,
+    "native_dpr": 3,
+    "benchmark_viewport": [
+      390,
+      551
+    ],
+    "native_input_viewport": [
+      390,
+      503
+    ]
+  },
+  "benchmark_cases": 6,
+  "benchmark_frames": 934,
+  "native_input": {
+    "delivery": "XCTest coordinate drag through UIKit",
+    "per_format_sequence": "five forward, two reverse, short rebound",
+    "expected_final_page_start": 3,
+    "all_final_pages_correct": true,
+    "dispatch_to_raster_p95_ms": {
+      "text": 26.179,
+      "comic": 25.937,
+      "pdf": 26.231
+    }
+  },
+  "comparison": {
+    "same_process": true,
+    "same_source_and_texture_resolution": true,
+    "mesh_grid": [
+      96,
+      24
+    ],
+    "mesh_raster_p95_ms": [
+      1.518,
+      1.474,
+      1.538
+    ],
+    "shader_raster_p95_ms": [
+      18.247,
+      14.693,
+      16.507
+    ],
+    "mesh_build_p95_ms": [
+      4.346,
+      4.425,
+      4.512
+    ]
+  },
+  "interpretation": "On this iPhone, the mesh path has a steadier raster tail while spending more time on the UI thread. Both paths use GPU rasterization; no default renderer changed.",
+  "limitations": [
+    "Single device and short warm runs; no soak or 120 Hz validation.",
+    "No Apple Books visual parity claim; mesh and shader are not pixel-equivalent.",
+    "FrameTiming raster wall time is not isolated GPU kernel time; budget exceedance is not actual dropped-frame rate.",
+    "UIKit event timestamps and FrameTiming have different origins; event-to-raster samples are rejected.",
+    "Dart dispatch-to-raster excludes system input queue before Dart, presentation and display scanout.",
+    "RGBA cache accounting excludes native/PDF/transient GPU allocations; RSS is whole-process memory.",
+    "Functional integration-test cancellation does not prove native OS interruption handling.",
+    "Source books, screenshots, device identifiers, signing metadata and private paths are excluded."
+  ],
+  "functional": {
+    "status": "passed",
+    "cases": 6,
+    "simulator": false
+  },
+  "mesh_native_comparison": {
+    "delivery": "Same XCTest UIKit drag sequence; separate app builds/runs, not paired trials or same-process input comparison.",
+    "same_viewport_and_texture_dpr": true,
+    "all_final_pages_correct": true,
+    "formats": {
+      "text": {
+        "mesh": {
+          "samples": 472,
+          "p50": 17.751,
+          "p95": 19.707,
+          "p99": 24.875,
+          "max": 113.631
+        },
+        "shader": {
+          "samples": 475,
+          "p50": 17.463,
+          "p95": 26.179,
+          "p99": 31.756,
+          "max": 39.149
+        },
+        "mesh_peak_sampled_process_rss_bytes": 217743360,
+        "shader_peak_sampled_process_rss_bytes": 213467136,
+        "mesh_peak_page_rgba_bytes": 32026112
+      },
+      "comic": {
+        "mesh": {
+          "samples": 475,
+          "p50": 17.862,
+          "p95": 21.545,
+          "p99": 25.08,
+          "max": 31.137
+        },
+        "shader": {
+          "samples": 478,
+          "p50": 17.471,
+          "p95": 25.937,
+          "p99": 28.805,
+          "max": 32.923
+        },
+        "mesh_peak_sampled_process_rss_bytes": 142999552,
+        "shader_peak_sampled_process_rss_bytes": 141819904,
+        "mesh_peak_page_rgba_bytes": 32026112
+      },
+      "pdf": {
+        "mesh": {
+          "samples": 476,
+          "p50": 17.847,
+          "p95": 20.582,
+          "p99": 24.66,
+          "max": 32.061
+        },
+        "shader": {
+          "samples": 477,
+          "p50": 17.507,
+          "p95": 26.231,
+          "p99": 29.732,
+          "max": 35.581
+        },
+        "mesh_peak_sampled_process_rss_bytes": 213762048,
+        "shader_peak_sampled_process_rss_bytes": 217186304,
+        "mesh_peak_page_rgba_bytes": 32026112
+      }
+    },
+    "observed_outlier": "First mesh EPUB drag had 113.631 ms dispatch-to-raster; retained, not removed from percentiles. Cause unproven; startup/pipeline warmup is a hypothesis.",
+    "interpretation": "Mesh improves observed P95; median is similar. This does not establish end-to-end touch latency or universal superiority."
+  },
+  "mesh_functional": {
+    "status": "passed",
+    "cases": 6,
+    "simulator": false
+  }
+}

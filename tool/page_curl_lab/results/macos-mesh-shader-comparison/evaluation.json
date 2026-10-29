@@ -1,0 +1,136 @@
+{
+  "status": "completed",
+  "base_commit": "3b3da84",
+  "scope": "Isolated macOS prototype; production reader, platform hosts and default renderer unchanged.",
+  "device": "Apple M5 Pro",
+  "os": "macOS 27.0.1",
+  "mode": "profile",
+  "backend": "Impeller/Metal for both Canvas paths; no native external texture bridge",
+  "benchmark": {
+    "real_inputs": [
+      "epub",
+      "cbz",
+      "pdf"
+    ],
+    "logical_viewport": [
+      1000,
+      600
+    ],
+    "window_dpr": 2,
+    "effective_logical_scale": 1,
+    "cases": 12,
+    "frames_per_case": 156,
+    "total_frame_samples": 1872,
+    "method": "Interleaved paired renderers; same prepared real textures per layout; two forward/reverse cycles after warmup."
+  },
+  "p95_ranges_ms": {
+    "mesh": {
+      "build_ms": [
+        2.186,
+        2.762
+      ],
+      "raster_ms": [
+        2.089,
+        2.765
+      ],
+      "renderer_request_to_flutter_raster_finish_ms": [
+        4.062,
+        4.942
+      ],
+      "functional_cases_passed": 6
+    },
+    "shader": {
+      "build_ms": [
+        0.563,
+        0.711
+      ],
+      "raster_ms": [
+        1.11,
+        1.327
+      ],
+      "renderer_request_to_flutter_raster_finish_ms": [
+        1.502,
+        1.774
+      ],
+      "functional_cases_passed": 6
+    }
+  },
+  "pairs": [
+    {
+      "source": "text",
+      "spread": false,
+      "mesh_backend_request_to_raster_p95_ms": 4.429,
+      "shader_backend_request_to_raster_p95_ms": 1.508,
+      "shader_backend_latency_reduction_fraction": 0.6595168209528111
+    },
+    {
+      "source": "text",
+      "spread": true,
+      "mesh_backend_request_to_raster_p95_ms": 4.549,
+      "shader_backend_request_to_raster_p95_ms": 1.621,
+      "shader_backend_latency_reduction_fraction": 0.6436579468014949
+    },
+    {
+      "source": "comic",
+      "spread": false,
+      "mesh_backend_request_to_raster_p95_ms": 4.062,
+      "shader_backend_request_to_raster_p95_ms": 1.597,
+      "shader_backend_latency_reduction_fraction": 0.6068439192516002
+    },
+    {
+      "source": "comic",
+      "spread": true,
+      "mesh_backend_request_to_raster_p95_ms": 4.684,
+      "shader_backend_request_to_raster_p95_ms": 1.774,
+      "shader_backend_latency_reduction_fraction": 0.6212638770281811
+    },
+    {
+      "source": "pdf",
+      "spread": false,
+      "mesh_backend_request_to_raster_p95_ms": 4.942,
+      "shader_backend_request_to_raster_p95_ms": 1.626,
+      "shader_backend_latency_reduction_fraction": 0.6709834075273169
+    },
+    {
+      "source": "pdf",
+      "spread": true,
+      "mesh_backend_request_to_raster_p95_ms": 4.401,
+      "shader_backend_request_to_raster_p95_ms": 1.502,
+      "shader_backend_latency_reduction_fraction": 0.6587139286525789
+    }
+  ],
+  "visual": {
+    "endpoint_rgb_mae_range": [
+      0.0,
+      0.009960365853658537
+    ],
+    "curl_and_corner_rgb_mae_range": [
+      0.821100900116144,
+      2.4654876596980255
+    ],
+    "functional_logical_viewport": [
+      820,
+      700
+    ],
+    "note": "Both backends pass page recovery, cancellation, RTL and texture budget checks. Shader has more aliased curved text in inspected EPUB corners, plus different shadows; visual quality is not equivalent."
+  },
+  "recommendation": "On tested M5 Pro, Flutter fragment shader is the faster macOS candidate. Before production adoption under Apple Books-like quality requirements, improve curved texture sampling/antialiasing and assess shadow differences. Retain mesh as fallback; do not migrate to the tested native Metal external texture path. iOS recommendation remains mesh.",
+  "limitations": [
+    "Warm automated animation data; not native mouse/trackpad-to-display latency.",
+    "Raster wall time is not isolated GPU kernel time. Pipeline budget exceedance is not a measured dropped-frame rate.",
+    "Only M5 Pro tested; no Intel or other Mac GPU conclusion. No 120 Hz presentation verification.",
+    "Functional pointers are delivered through Flutter integration tests, not native input automation.",
+    "Full-frame RGB MAE is a descriptive difference, not a visual quality score.",
+    "No Apple Books side-by-side visual comparison; paper model remains approximate."
+  ],
+  "verification": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 170,
+    "python_tests": 6,
+    "macos_profile_benchmark_cases": 12,
+    "mesh_functional_cases": 6,
+    "shader_functional_cases": 6,
+    "python_compile": "passed"
+  },
+  "privacy": "Anonymous JSON only; source books, titles, absolute paths, screenshots and console logs remain outside the repository."
+}

@@ -1,0 +1,164 @@
+{
+  "renderer": "mesh",
+  "logical_width": 411.42857142857144,
+  "logical_height": 598.6666666666667,
+  "texture_dpr": 2.01493127244211,
+  "window_dpr": 2.625,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 673,
+    "coalesced_moves": 37,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 636,
+      "p50": 3.088,
+      "p95": 4.825,
+      "p99": 5.769,
+      "max": 8.63
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 636,
+      "p50": 11.744,
+      "p95": 16.152,
+      "p99": 17.222,
+      "max": 20.478
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 310071296,
+      "resident_rgba_bytes": 28050680,
+      "peak_rgba_bytes": 28050680,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 6,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 311762944,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 13,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 315535360,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 18,
+      "misses": 11,
+      "evictions": 3,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 317747200,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 23,
+      "misses": 14,
+      "evictions": 6,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 320950272,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 28,
+      "misses": 17,
+      "evictions": 9,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 321085440,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 35,
+      "misses": 18,
+      "evictions": 10,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 322019328,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 314167296,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 314167296,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 42,
+      "misses": 19,
+      "evictions": 11,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 928,
+    "build_ms": {
+      "mean": 2.838177801724134,
+      "p95": 4.676,
+      "p99": 5.759,
+      "max": 19.451
+    },
+    "raster_ms": {
+      "mean": 2.8672273706896525,
+      "p95": 4.202,
+      "p99": 5.456,
+      "max": 33.309
+    },
+    "total_span_ms": {
+      "mean": 6.578780172413806,
+      "p95": 9.527,
+      "p99": 12.23,
+      "max": 78.002
+    },
+    "over_60hz_pipeline_budget": 0.0021551724137931034,
+    "over_120hz_pipeline_budget": 0.004310344827586207
+  },
+  "page_start": 3
+}

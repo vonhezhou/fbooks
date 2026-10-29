@@ -1,0 +1,562 @@
+{
+  "status": "paired-mesh-horizontal-candidate-validated-not-adopted",
+  "scope": "13 held horizontal traces including one center-origin repeat control; same iPhone, source textures and WDA live PNG method",
+  "metric": "RGB mean absolute error on per-case ROI, values 0..255; not whole-frame acceptance",
+  "viewport": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "baseline": "retained repository Mesh geometry, material and shadow",
+  "candidate": "continuous cylinder, backlight 1-.035*sin(angle)^4, own-page shadow, radius-dependent Gaussian cast shadow",
+  "prototype_limit": "Gaussian rectangle is only valid for these uniform horizontal sections; row-following production band and Shader synchronization validated offline but not yet on device",
+  "results": [
+    {
+      "case": "between-horizontal",
+      "roi": [
+        173,
+        329,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 243.66666666666666,
+        "edge_jump": 30,
+        "fold": 269.6666666666667,
+        "fold_jump": -34,
+        "name": "between-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 6.509686629503396,
+        "candidate": 4.988052770518464
+      },
+      "improvement_fraction": 0.233749171901538
+    },
+    {
+      "case": "late-between-horizontal",
+      "roi": [
+        93,
+        269,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 163,
+        "edge_jump": 43,
+        "fold": 209.33333333333334,
+        "fold_jump": -34,
+        "name": "late-between-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 6.8212479911625845,
+        "candidate": 4.142309421190407
+      },
+      "improvement_fraction": 0.39273437550473667
+    },
+    {
+      "case": "middle-control",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 203,
+        "edge_jump": 37,
+        "fold": 237.66666666666666,
+        "fold_jump": -34,
+        "name": "middle-control"
+      },
+      "rgb_mae": {
+        "baseline": 8.146179422934493,
+        "candidate": 6.102097417230023
+      },
+      "improvement_fraction": 0.25092523741247674
+    },
+    {
+      "case": "far-horizontal",
+      "roi": [
+        10,
+        199,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 45.333333333333336,
+        "edge_jump": 53,
+        "fold": 139.66666666666666,
+        "fold_jump": -34,
+        "name": "far-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 14.261023072501848,
+        "candidate": 4.792706024030435
+      },
+      "improvement_fraction": 0.6639297195113759
+    },
+    {
+      "case": "early-horizontal",
+      "roi": [
+        215,
+        362,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 285.3333333333333,
+        "edge_jump": 22,
+        "fold": 302.6666666666667,
+        "fold_jump": -34,
+        "name": "early-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 9.629151382271507,
+        "candidate": 7.706771514103807
+      },
+      "improvement_fraction": 0.19964167057411164
+    },
+    {
+      "case": "late-horizontal",
+      "roi": [
+        53,
+        244,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 123.66666666666667,
+        "edge_jump": 46,
+        "fold": 184,
+        "fold_jump": -34,
+        "name": "late-horizontal"
+      },
+      "rgb_mae": {
+        "baseline": 10.490439200901369,
+        "candidate": 3.090629875195008
+      },
+      "improvement_fraction": 0.7053860361795479
+    },
+    {
+      "case": "holdout-333",
+      "roi": [
+        257,
+        389,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 327,
+        "edge_jump": 18,
+        "fold": 335.3333333333333,
+        "fold_jump": -34,
+        "name": "holdout-333"
+      },
+      "rgb_mae": {
+        "baseline": 7.158047224144605,
+        "candidate": 5.671221736087489
+      },
+      "improvement_fraction": 0.20771384170838492
+    },
+    {
+      "case": "holdout-270",
+      "roi": [
+        193,
+        345,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 263,
+        "edge_jump": 27,
+        "fold": 285,
+        "fold_jump": -34,
+        "name": "holdout-270"
+      },
+      "rgb_mae": {
+        "baseline": 8.30748184175733,
+        "candidate": 5.772101733742552
+      },
+      "improvement_fraction": 0.3051923743330691
+    },
+    {
+      "case": "holdout-230",
+      "roi": [
+        152,
+        313,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 222.33333333333334,
+        "edge_jump": 34,
+        "fold": 253,
+        "fold_jump": -34,
+        "name": "holdout-230"
+      },
+      "rgb_mae": {
+        "baseline": 5.275630284470638,
+        "candidate": 4.575252145888305
+      },
+      "improvement_fraction": 0.13275724431334168
+    },
+    {
+      "case": "holdout-190",
+      "roi": [
+        112,
+        281,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 182,
+        "edge_jump": 40,
+        "fold": 221.66666666666666,
+        "fold_jump": -34,
+        "name": "holdout-190"
+      },
+      "rgb_mae": {
+        "baseline": 10.317472698907956,
+        "candidate": 8.58203175185831
+      },
+      "improvement_fraction": 0.16820407455338682
+    },
+    {
+      "case": "holdout-150",
+      "roi": [
+        74,
+        257,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 144,
+        "edge_jump": 45,
+        "fold": 197,
+        "fold_jump": -34,
+        "name": "holdout-150"
+      },
+      "rgb_mae": {
+        "baseline": 8.409869655655791,
+        "candidate": 3.1118496913789597
+      },
+      "improvement_fraction": 0.6299764658913372
+    },
+    {
+      "case": "holdout-90",
+      "roi": [
+        15,
+        220,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 85.66666666666667,
+        "edge_jump": 50,
+        "fold": 160,
+        "fold_jump": -34,
+        "name": "holdout-90"
+      },
+      "rgb_mae": {
+        "baseline": 12.029835562354533,
+        "candidate": 5.1405469811025455
+      },
+      "improvement_fraction": 0.5726835205304822
+    },
+    {
+      "case": "center-origin",
+      "roi": [
+        133,
+        297,
+        100,
+        740
+      ],
+      "reference_edges": {
+        "edge": 203,
+        "edge_jump": 37,
+        "fold": 237.66666666666666,
+        "fold_jump": -34,
+        "name": "center-origin"
+      },
+      "rgb_mae": {
+        "baseline": 8.146179422934493,
+        "candidate": 6.102097417230023
+      },
+      "improvement_fraction": 0.25092523741247674
+    }
+  ],
+  "summary": {
+    "valid_cases": 13,
+    "improved_cases": 13,
+    "improvement_fraction_min": 0.13275724431334168,
+    "improvement_fraction_max": 0.7053860361795479
+  },
+  "source_body_rgb_mae": {
+    "baseline_vs_source": 0.028142150247413407,
+    "candidate_vs_source": 0.028142150247413407
+  },
+  "cancel_body_rgb_mae_max": 0.0,
+  "hold_pair_body_rgb_mae_max": 0.0,
+  "mesh_performance": [
+    {
+      "case": "mesh-legacy",
+      "round": 0,
+      "frames": 121,
+      "build_ms": {
+        "mean": 5.685561983471077,
+        "p95": 6.375,
+        "p99": 9.801,
+        "max": 11.343
+      },
+      "raster_ms": {
+        "mean": 0.513504132231405,
+        "p95": 0.603,
+        "p99": 1.446,
+        "max": 1.512
+      },
+      "total_span_ms": {
+        "mean": 6.4623140495867775,
+        "p95": 7.214,
+        "p99": 11.447,
+        "max": 13.338
+      },
+      "over_60hz_pipeline_budget": 0.0,
+      "over_120hz_pipeline_budget": 0.024793388429752067
+    },
+    {
+      "case": "mesh-neutral",
+      "round": 0,
+      "frames": 121,
+      "build_ms": {
+        "mean": 5.693628099173556,
+        "p95": 6.231,
+        "p99": 8.959,
+        "max": 9.17
+      },
+      "raster_ms": {
+        "mean": 0.4831074380165287,
+        "p95": 0.63,
+        "p99": 1.162,
+        "max": 1.862
+      },
+      "total_span_ms": {
+        "mean": 6.441024793388429,
+        "p95": 7.05,
+        "p99": 10.17,
+        "max": 10.225
+      },
+      "over_60hz_pipeline_budget": 0.0,
+      "over_120hz_pipeline_budget": 0.01652892561983471
+    },
+    {
+      "case": "mesh-neutral",
+      "round": 1,
+      "frames": 120,
+      "build_ms": {
+        "mean": 5.7256083333333345,
+        "p95": 6.344,
+        "p99": 8.049,
+        "max": 13.668
+      },
+      "raster_ms": {
+        "mean": 0.4829999999999999,
+        "p95": 0.565,
+        "p99": 1.264,
+        "max": 1.505
+      },
+      "total_span_ms": {
+        "mean": 6.474683333333335,
+        "p95": 6.995,
+        "p99": 9.427,
+        "max": 15.52
+      },
+      "over_60hz_pipeline_budget": 0.0,
+      "over_120hz_pipeline_budget": 0.008333333333333333
+    },
+    {
+      "case": "mesh-legacy",
+      "round": 1,
+      "frames": 120,
+      "build_ms": {
+        "mean": 5.783249999999999,
+        "p95": 6.405,
+        "p99": 8.422,
+        "max": 13.256
+      },
+      "raster_ms": {
+        "mean": 0.4768750000000001,
+        "p95": 0.579,
+        "p99": 1.147,
+        "max": 2.008
+      },
+      "total_span_ms": {
+        "mean": 6.536291666666667,
+        "p95": 7.191,
+        "p99": 9.729,
+        "max": 14.975
+      },
+      "over_60hz_pipeline_budget": 0.0,
+      "over_120hz_pipeline_budget": 0.016666666666666666
+    },
+    {
+      "case": "mesh-legacy",
+      "round": 2,
+      "frames": 121,
+      "build_ms": {
+        "mean": 5.847140495867765,
+        "p95": 6.293,
+        "p99": 8.396,
+        "max": 13.31
+      },
+      "raster_ms": {
+        "mean": 0.4710495867768595,
+        "p95": 0.595,
+        "p99": 1.177,
+        "max": 1.402
+      },
+      "total_span_ms": {
+        "mean": 6.5878181818181805,
+        "p95": 7.129,
+        "p99": 9.8,
+        "max": 15.064
+      },
+      "over_60hz_pipeline_budget": 0.0,
+      "over_120hz_pipeline_budget": 0.01652892561983471
+    },
+    {
+      "case": "mesh-neutral",
+      "round": 2,
+      "frames": 120,
+      "build_ms": {
+        "mean": 5.754033333333334,
+        "p95": 6.389,
+        "p99": 7.436,
+        "max": 11.27
+      },
+      "raster_ms": {
+        "mean": 0.47926666666666684,
+        "p95": 0.598,
+        "p99": 1.151,
+        "max": 1.341
+      },
+      "total_span_ms": {
+        "mean": 6.507899999999998,
+        "p95": 7.247,
+        "p99": 8.593,
+        "max": 12.935
+      },
+      "over_60hz_pipeline_budget": 0.0,
+      "over_120hz_pipeline_budget": 0.008333333333333333
+    }
+  ],
+  "offline_production_checks": {
+    "shader_interior_coverage_and_geometry_checks": "55 tests passed",
+    "interaction_checks": "6 tests passed after isolated host used repository locked html 0.15.6",
+    "band_and_full_corner_pixels": [
+      {
+        "case": "between-horizontal",
+        "rgb_mae": 0.019880795231809273
+      },
+      {
+        "case": "late-between-horizontal",
+        "rgb_mae": 0.023408936357454297
+      },
+      {
+        "case": "middle-control",
+        "rgb_mae": 0.028849153966158645
+      },
+      {
+        "case": "far-horizontal",
+        "rgb_mae": 0.03566142645705828
+      },
+      {
+        "case": "early-horizontal",
+        "rgb_mae": 0.014428577143085724
+      },
+      {
+        "case": "late-horizontal",
+        "rgb_mae": 0.03014120564822593
+      },
+      {
+        "case": "holdout-333",
+        "rgb_mae": 0.011212448497939918
+      },
+      {
+        "case": "holdout-270",
+        "rgb_mae": 0.019556782271290853
+      },
+      {
+        "case": "holdout-230",
+        "rgb_mae": 0.02372894915796632
+      },
+      {
+        "case": "holdout-190",
+        "rgb_mae": 0.025973038921556862
+      },
+      {
+        "case": "holdout-150",
+        "rgb_mae": 0.03045721828873155
+      },
+      {
+        "case": "holdout-90",
+        "rgb_mae": 0.029789191567662708
+      },
+      {
+        "case": "center-origin",
+        "rgb_mae": 0.028849153966158645
+      },
+      {
+        "corner_progress": 0.15,
+        "tilt": 0.0,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.15,
+        "tilt": 0.4,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.15,
+        "tilt": 1.0,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.45,
+        "tilt": 0.0,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.45,
+        "tilt": 0.4,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.45,
+        "tilt": 1.0,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.7,
+        "tilt": 0.0,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.7,
+        "tilt": 0.4,
+        "rgba_mae": 0.0
+      },
+      {
+        "corner_progress": 0.7,
+        "tilt": 1.0,
+        "rgba_mae": 0.0
+      }
+    ]
+  },
+  "remaining": [
+    "device performance and pixels of reusable band plus matching Shader",
+    "diagonal and different horizontal grip origins against new native references",
+    "full repository analyze and tests before adoption",
+    "full visual alignment remains unfinished"
+  ],
+  "latest_adoption_report": "early-outward-profile-validation.json"
+}

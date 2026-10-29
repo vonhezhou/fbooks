@@ -1,0 +1,314 @@
+{
+  "renderer": "shader",
+  "initial_preparation": {
+    "source_is_real": true,
+    "input_format": "pdf",
+    "source_open_ms": 443.602,
+    "source_page_count": 856,
+    "visible_face_count": 2,
+    "elapsed_ms": 59.808,
+    "decode_elapsed_ms": 33.159,
+    "rgba_bytes": 8014480,
+    "decode_misses_before_prefetch": 2,
+    "resident_bytes_before_prefetch": 8014480
+  },
+  "visible_face_count": 2,
+  "shader_warmup_enabled": true,
+  "shader_warmup_ms": 26.634,
+  "logical_width": 411.42857142857144,
+  "logical_height": 598.6666666666667,
+  "texture_dpr": 2.01493127244211,
+  "window_dpr": 2.625,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 674,
+    "coalesced_moves": 82,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 592,
+      "p50": 3.136,
+      "p95": 6.728,
+      "p99": 8.453,
+      "max": 9.575
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 592,
+      "p50": 7.338,
+      "p95": 11.468,
+      "p99": 13.657,
+      "max": 14.825
+    },
+    "first_frames": [
+      {
+        "frame_number": 88,
+        "pointer_move": 1,
+        "progress_at_paint": 0.008116319444444464,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 8.711,
+        "dispatch_to_paint_ms": 5.743,
+        "build_ms": 1.035,
+        "raster_ms": 0.931,
+        "vsync_to_build_start_ms": 0.311
+      },
+      {
+        "frame_number": 89,
+        "pointer_move": 2,
+        "progress_at_paint": 0.01623263888888893,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 8.474,
+        "dispatch_to_paint_ms": 5.316,
+        "build_ms": 0.486,
+        "raster_ms": 1.021,
+        "vsync_to_build_start_ms": 0.22
+      },
+      {
+        "frame_number": 90,
+        "pointer_move": 3,
+        "progress_at_paint": 0.025363498263888968,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.208,
+        "dispatch_to_paint_ms": 3.894,
+        "build_ms": 0.501,
+        "raster_ms": 0.435,
+        "vsync_to_build_start_ms": 0.212
+      },
+      {
+        "frame_number": 91,
+        "pointer_move": 4,
+        "progress_at_paint": 0.03347981770833343,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.569,
+        "dispatch_to_paint_ms": 5.18,
+        "build_ms": 0.517,
+        "raster_ms": 0.465,
+        "vsync_to_build_start_ms": 0.207
+      },
+      {
+        "frame_number": 92,
+        "pointer_move": 5,
+        "progress_at_paint": 0.04159613715277789,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.825,
+        "dispatch_to_paint_ms": 5.159,
+        "build_ms": 0.433,
+        "raster_ms": 0.444,
+        "vsync_to_build_start_ms": 0.256
+      },
+      {
+        "frame_number": 93,
+        "pointer_move": 6,
+        "progress_at_paint": 0.05072790075231482,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.013,
+        "dispatch_to_paint_ms": 5.413,
+        "build_ms": 0.432,
+        "raster_ms": 0.351,
+        "vsync_to_build_start_ms": 0.224
+      },
+      {
+        "frame_number": 94,
+        "pointer_move": 7,
+        "progress_at_paint": 0.058844220196759285,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.33,
+        "dispatch_to_paint_ms": 5.781,
+        "build_ms": 0.404,
+        "raster_ms": 0.365,
+        "vsync_to_build_start_ms": 0.23
+      },
+      {
+        "frame_number": 95,
+        "pointer_move": 8,
+        "progress_at_paint": 0.06696053964120374,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.556,
+        "dispatch_to_paint_ms": 6.089,
+        "build_ms": 0.369,
+        "raster_ms": 0.331,
+        "vsync_to_build_start_ms": 0.205
+      },
+      {
+        "frame_number": 96,
+        "pointer_move": 9,
+        "progress_at_paint": 0.07609139901620379,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 6.824,
+        "dispatch_to_paint_ms": 5.459,
+        "build_ms": 0.355,
+        "raster_ms": 0.298,
+        "vsync_to_build_start_ms": 0.2
+      },
+      {
+        "frame_number": 97,
+        "pointer_move": 10,
+        "progress_at_paint": 0.08522225839120369,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 6.513,
+        "dispatch_to_paint_ms": 4.93,
+        "build_ms": 0.359,
+        "raster_ms": 0.618,
+        "vsync_to_build_start_ms": 0.213
+      },
+      {
+        "frame_number": 98,
+        "pointer_move": 11,
+        "progress_at_paint": 0.09232403790509258,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 7.512,
+        "dispatch_to_paint_ms": 5.305,
+        "build_ms": 0.376,
+        "raster_ms": 0.3,
+        "vsync_to_build_start_ms": 0.187
+      },
+      {
+        "frame_number": 99,
+        "pointer_move": 12,
+        "progress_at_paint": 0.10145489728009262,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 6.777,
+        "dispatch_to_paint_ms": 4.724,
+        "build_ms": 0.321,
+        "raster_ms": 0.312,
+        "vsync_to_build_start_ms": 0.207
+      }
+    ],
+    "slowest_frames_over_20ms": [],
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 388599808,
+      "resident_rgba_bytes": 20036200,
+      "peak_rgba_bytes": 20036200,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 4,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 390430720,
+      "resident_rgba_bytes": 24043440,
+      "peak_rgba_bytes": 24043440,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 9,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 392351744,
+      "resident_rgba_bytes": 28050680,
+      "peak_rgba_bytes": 28050680,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 14,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 392847360,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 19,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 393248768,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 393424896,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 390037504,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 390770688,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 390987776,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 933,
+    "build_ms": {
+      "mean": 0.7637759914255092,
+      "p95": 1.199,
+      "p99": 1.847,
+      "max": 4.124
+    },
+    "raster_ms": {
+      "mean": 1.48062486602358,
+      "p95": 2.143,
+      "p99": 2.497,
+      "max": 37.228
+    },
+    "total_span_ms": {
+      "mean": 3.3185734190782483,
+      "p95": 4.674,
+      "p99": 6.686,
+      "max": 90.318
+    },
+    "over_60hz_pipeline_budget": 0.0010718113612004287,
+    "over_120hz_pipeline_budget": 0.0021436227224008574
+  },
+  "page_start": 3
+}

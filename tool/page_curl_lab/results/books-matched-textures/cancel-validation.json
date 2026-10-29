@@ -1,0 +1,89 @@
+{
+  "viewport": [
+    390,
+    844
+  ],
+  "body_roi": [
+    0,
+    40,
+    390,
+    800
+  ],
+  "metric": "mean_absolute_rgb_0_to_255",
+  "cases": [
+    {
+      "name": "bottom-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        211,
+        732
+      ],
+      "cancel_body_mae_vs_initial": 0.0
+    },
+    {
+      "name": "bottom-steep",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        211,
+        582
+      ],
+      "cancel_body_mae_vs_initial": 0.0
+    },
+    {
+      "name": "center-horizontal",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        422
+      ],
+      "cancel_body_mae_vs_initial": 0.0
+    },
+    {
+      "name": "top-horizontal",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        211,
+        112
+      ],
+      "cancel_body_mae_vs_initial": 0.0
+    },
+    {
+      "name": "top-mirror",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        211,
+        155
+      ],
+      "cancel_body_mae_vs_initial": 0.0
+    },
+    {
+      "name": "bottom-early",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        292,
+        732
+      ],
+      "cancel_body_mae_vs_initial": 0.0
+    }
+  ],
+  "source_page_retained": true,
+  "visual_alignment_verified": false
+}

@@ -1,0 +1,1011 @@
+{
+  "status": "adopted-independent-prototype-with-small-recorded-angular-rgb-tradeoffs-overall-alignment-in-progress",
+  "date": "2026-11-01",
+  "scope": {
+    "device": "iPhone 12",
+    "logical_viewport": [
+      390,
+      844
+    ],
+    "pixel_ratio": 3,
+    "paired_gpu_poses": 21,
+    "offline_pose_count": 37,
+    "formal_reader_integration": false
+  },
+  "activation": {
+    "default_without_pointer": 0,
+    "direction_slope_ramp": [
+      0.25,
+      0.35
+    ],
+    "central_corner_weight_ramp": [
+      0.3,
+      0
+    ],
+    "central_extent_normalized_grab_y": [
+      0.4,
+      0.6
+    ],
+    "progress_ramp": [
+      0.2,
+      0.32
+    ],
+    "maximum_center_bend_drop": 0.3,
+    "all_ramps": "C1 smoothstep",
+    "geometry_only": "camera, radius, material and control policy retained; opening shared by Mesh and Shader through existing CPU uniform uModel.z"
+  },
+  "methods": {
+    "capture": "same iPhone same source textures same complete straight-start WDA path and live held PNG",
+    "rgb": "mean absolute RGB 0..255 in specified ROI",
+    "ink": "symmetric L1 distance capped at4 logical pixels; same contrast mask as preceding reports",
+    "quality_decision": "accept visible/contour gains in core central drag with two explicitly retained sub-.016 ROI RGB tradeoffs; do not claim every metric improved"
+  },
+  "results": [
+    {
+      "case": "center-up",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 29922,
+      "models": {
+        "baseline": {
+          "rgb_mae": 5.126363686126393,
+          "ink_l1_truncated4": 0.7130878661087866,
+          "ink_count": 29828
+        },
+        "candidate": {
+          "rgb_mae": 4.7640186660097985,
+          "ink_l1_truncated4": 0.6564996368917938,
+          "ink_count": 29289
+        }
+      },
+      "improvement_fraction": 0.07068265973739196
+    },
+    {
+      "case": "center-late-up",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 23039,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.340601308262857,
+          "ink_l1_truncated4": 1.6391404558470888,
+          "ink_count": 19914
+        },
+        "candidate": {
+          "rgb_mae": 7.397903495087172,
+          "ink_l1_truncated4": 1.5522370605982647,
+          "ink_count": 19718
+        }
+      },
+      "improvement_fraction": 0.11302516189591438
+    },
+    {
+      "case": "center-early-up",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 45103,
+      "models": {
+        "baseline": {
+          "rgb_mae": 2.9598970625491687,
+          "ink_l1_truncated4": 0.26238100089426203,
+          "ink_count": 43238
+        },
+        "candidate": {
+          "rgb_mae": 2.9598970625491687,
+          "ink_l1_truncated4": 0.26238100089426203,
+          "ink_count": 43238
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "center-mid-up",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 36414,
+      "models": {
+        "baseline": {
+          "rgb_mae": 5.700782697974586,
+          "ink_l1_truncated4": 0.3666487625500971,
+          "ink_count": 36195
+        },
+        "candidate": {
+          "rgb_mae": 5.700782697974586,
+          "ink_l1_truncated4": 0.3666487625500971,
+          "ink_count": 36195
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "center-between-up",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 26621,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.039722922250223,
+          "ink_l1_truncated4": 1.2492946352820473,
+          "ink_count": 24062
+        },
+        "candidate": {
+          "rgb_mae": 6.0050028667813375,
+          "ink_l1_truncated4": 1.1503406296609828,
+          "ink_count": 22993
+        }
+      },
+      "improvement_fraction": 0.1469830655122064
+    },
+    {
+      "case": "center-down",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 33556,
+      "models": {
+        "baseline": {
+          "rgb_mae": 4.879373841620332,
+          "ink_l1_truncated4": 0.5813079916192757,
+          "ink_count": 33264
+        },
+        "candidate": {
+          "rgb_mae": 4.388147525901036,
+          "ink_l1_truncated4": 0.5371080770857246,
+          "ink_count": 32656
+        }
+      },
+      "improvement_fraction": 0.10067404787253831
+    },
+    {
+      "case": "center-slope28",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 35439,
+      "models": {
+        "baseline": {
+          "rgb_mae": 5.886963478539141,
+          "ink_l1_truncated4": 0.3684828492354142,
+          "ink_count": 36103
+        },
+        "candidate": {
+          "rgb_mae": 5.886963478539141,
+          "ink_l1_truncated4": 0.3684828492354142,
+          "ink_count": 36103
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "center-slope40",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 33478,
+      "models": {
+        "baseline": {
+          "rgb_mae": 6.929545181807272,
+          "ink_l1_truncated4": 0.4801940656154779,
+          "ink_count": 34128
+        },
+        "candidate": {
+          "rgb_mae": 6.929545181807272,
+          "ink_l1_truncated4": 0.4801940656154779,
+          "ink_count": 34128
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "upper-mid-up",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 24408,
+      "models": {
+        "baseline": {
+          "rgb_mae": 4.360813099190635,
+          "ink_l1_truncated4": 1.2668206445485355,
+          "ink_count": 21919
+        },
+        "candidate": {
+          "rgb_mae": 4.360813099190635,
+          "ink_l1_truncated4": 1.2668206445485355,
+          "ink_count": 21919
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "lower-mid-down",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 28097,
+      "models": {
+        "baseline": {
+          "rgb_mae": 4.384928730482553,
+          "ink_l1_truncated4": 1.0388783021335426,
+          "ink_count": 25429
+        },
+        "candidate": {
+          "rgb_mae": 4.384928730482553,
+          "ink_l1_truncated4": 1.0388783021335426,
+          "ink_count": 25429
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "center-slope34",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 34425,
+      "models": {
+        "baseline": {
+          "rgb_mae": 6.55921703534808,
+          "ink_l1_truncated4": 0.43148453756188565,
+          "ink_count": 35260
+        },
+        "candidate": {
+          "rgb_mae": 6.55921703534808,
+          "ink_l1_truncated4": 0.43148453756188565,
+          "ink_count": 35260
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "center-slope44",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 32444,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.312064482579303,
+          "ink_l1_truncated4": 0.5331619850044865,
+          "ink_count": 33309
+        },
+        "candidate": {
+          "rgb_mae": 7.327905116204648,
+          "ink_l1_truncated4": 0.5312533341462299,
+          "ink_count": 33165
+        }
+      },
+      "improvement_fraction": -0.0021663695202749356
+    },
+    {
+      "case": "late-horizontal",
+      "roi": [
+        53,
+        244,
+        100,
+        740
+      ],
+      "reference_ink_count": 22290,
+      "models": {
+        "baseline": {
+          "rgb_mae": 3.0904186167446697,
+          "ink_l1_truncated4": 0.09309641970932293,
+          "ink_count": 22846
+        },
+        "candidate": {
+          "rgb_mae": 3.0904186167446697,
+          "ink_l1_truncated4": 0.09309641970932293,
+          "ink_count": 22846
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "partial-corner",
+      "roi": [
+        10,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 43620,
+      "models": {
+        "baseline": {
+          "rgb_mae": 8.87457645674248,
+          "ink_l1_truncated4": 0.340627840313221,
+          "ink_count": 42198
+        },
+        "candidate": {
+          "rgb_mae": 8.87457645674248,
+          "ink_l1_truncated4": 0.340627840313221,
+          "ink_count": 42198
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "shallow-13",
+      "roi": [
+        53,
+        244,
+        100,
+        740
+      ],
+      "reference_ink_count": 26207,
+      "models": {
+        "baseline": {
+          "rgb_mae": 12.0427283758017,
+          "ink_l1_truncated4": 0.9682205474330466,
+          "ink_count": 24612
+        },
+        "candidate": {
+          "rgb_mae": 12.0427283758017,
+          "ink_l1_truncated4": 0.9682205474330466,
+          "ink_count": 24612
+        }
+      },
+      "improvement_fraction": 0.0
+    },
+    {
+      "case": "upper-near-up",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 28005,
+      "models": {
+        "baseline": {
+          "rgb_mae": 4.559889062229156,
+          "ink_l1_truncated4": 0.8578130440359911,
+          "ink_count": 26564
+        },
+        "candidate": {
+          "rgb_mae": 4.3503260130405215,
+          "ink_l1_truncated4": 0.8262765663814519,
+          "ink_count": 26340
+        }
+      },
+      "improvement_fraction": 0.04595792711811886
+    },
+    {
+      "case": "lower-near-down",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 31548,
+      "models": {
+        "baseline": {
+          "rgb_mae": 4.6685147405896235,
+          "ink_l1_truncated4": 0.6951706019719772,
+          "ink_count": 30116
+        },
+        "candidate": {
+          "rgb_mae": 4.393447737909517,
+          "ink_l1_truncated4": 0.6668131653481786,
+          "ink_count": 29886
+        }
+      },
+      "improvement_fraction": 0.05891959605237673
+    },
+    {
+      "case": "upper-near-late",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 22142,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.394182433964025,
+          "ink_l1_truncated4": 1.835756172079042,
+          "ink_count": 18444
+        },
+        "candidate": {
+          "rgb_mae": 6.992390362281158,
+          "ink_l1_truncated4": 1.7956015204620626,
+          "ink_count": 18372
+        }
+      },
+      "improvement_fraction": 0.05433894487608226
+    },
+    {
+      "case": "lower-near-late",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 25263,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.448185927437097,
+          "ink_l1_truncated4": 1.541050256497584,
+          "ink_count": 21716
+        },
+        "candidate": {
+          "rgb_mae": 7.0051268717415365,
+          "ink_l1_truncated4": 1.4809573538500884,
+          "ink_count": 21658
+        }
+      },
+      "improvement_fraction": 0.05948549888684329
+    },
+    {
+      "case": "center-slope42",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 32926,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.103634812059149,
+          "ink_l1_truncated4": 0.5052184866388747,
+          "ink_count": 33760
+        },
+        "candidate": {
+          "rgb_mae": 7.105410883101991,
+          "ink_l1_truncated4": 0.5048824755876221,
+          "ink_count": 33741
+        }
+      },
+      "improvement_fraction": -0.0002500228530648574
+    },
+    {
+      "case": "center-slope50",
+      "roi": [
+        0,
+        389,
+        100,
+        740
+      ],
+      "reference_ink_count": 31523,
+      "models": {
+        "baseline": {
+          "rgb_mae": 7.727065082603304,
+          "ink_l1_truncated4": 0.6466177208835341,
+          "ink_count": 32221
+        },
+        "candidate": {
+          "rgb_mae": 7.682628638478873,
+          "ink_l1_truncated4": 0.6392549056782634,
+          "ink_count": 31771
+        }
+      },
+      "improvement_fraction": 0.005750753183699109
+    }
+  ],
+  "summary": {
+    "rgb_and_ink_improved": 9,
+    "rgb_increased_ink_improved": 2,
+    "both_metrics_equal": 10,
+    "ink_regressions": 0,
+    "largest_rgb_increase": 0.015840633625344935,
+    "strict_no_regression_claim": false
+  },
+  "sampling_validation": {
+    "baseline_pose_captures": 26,
+    "candidate_pose_captures": 21,
+    "max_cancel_body_mae": 0.0,
+    "max_hold_pair_body_mae": 0.0,
+    "five_existing_baseline_repeats_body_mae": 0,
+    "unchanged_pose_body_comparisons": [
+      {
+        "case": "center-early-up",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "center-mid-up",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "center-slope28",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "center-slope40",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "upper-mid-up",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "lower-mid-down",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "center-slope34",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "late-horizontal",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "partial-corner",
+        "body_rgb_mae": 0.0
+      },
+      {
+        "case": "shallow-13",
+        "body_rgb_mae": 0.0
+      }
+    ]
+  },
+  "geometry_checks": {
+    "equivalent_to_paired_candidate_poses": 37,
+    "compared_vertices": 45325,
+    "maximum_position_depth_light_difference": 0,
+    "maximum_control_error_37_poses_two_sizes": 3.391791886997453e-05,
+    "sizes": [
+      [
+        390,
+        844
+      ],
+      [
+        600,
+        800
+      ]
+    ],
+    "not_a_visual_equivalence_proof": true
+  },
+  "performance": {
+    "status": "passed",
+    "capture_started_utc": "2026-10-31T21:28:41.974140Z",
+    "logical_width": 390.0,
+    "logical_height": 844.0,
+    "pixel_ratio": 3.0,
+    "source": "books-screenshot-textures",
+    "pose_input": "pointer-trace",
+    "sample_mode": "diagonal",
+    "pointer_origin": [
+      373.0,
+      422.0
+    ],
+    "pointer_samples": [
+      {
+        "fraction": 0.25,
+        "progress": 0.12756183743476868,
+        "linear_progress": 0.2076923076923077,
+        "tilt": 0.9237659377948103,
+        "corner_weight": 0.0,
+        "horizontal_weight": 0.0,
+        "diagonal_weight": 1.0,
+        "control_x": 373.0,
+        "control_error_pixels": 2.3203988916975504e-06,
+        "anchor_error_pixels": 2.3203988916975504e-06
+      },
+      {
+        "fraction": 0.5,
+        "progress": 0.24315837025642395,
+        "linear_progress": 0.4153846153846154,
+        "tilt": 0.5266231127526388,
+        "corner_weight": 0.0,
+        "horizontal_weight": 0.0,
+        "diagonal_weight": 1.0,
+        "control_x": 373.0,
+        "control_error_pixels": 2.850159859235646e-06,
+        "anchor_error_pixels": 2.850159859235646e-06
+      },
+      {
+        "fraction": 0.75,
+        "progress": 0.35800376534461975,
+        "linear_progress": 0.6256410256410256,
+        "tilt": 0.4052925174615586,
+        "corner_weight": 0.0,
+        "horizontal_weight": 0.0,
+        "diagonal_weight": 1.0,
+        "control_x": 373.0,
+        "control_error_pixels": 9.57274656343543e-06,
+        "anchor_error_pixels": 9.57274656343543e-06
+      }
+    ],
+    "performance": [
+      {
+        "case": "mesh-legacy",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.183628099173555,
+          "p95": 5.171,
+          "p99": 6.485,
+          "max": 6.66
+        },
+        "raster_ms": {
+          "mean": 1.0249752066115703,
+          "p95": 1.702,
+          "p99": 2.471,
+          "max": 2.621
+        },
+        "total_span_ms": {
+          "mean": 5.450165289256197,
+          "p95": 7.292,
+          "p99": 9.37,
+          "max": 9.553
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.0
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 0,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.20407438016529,
+          "p95": 5.017,
+          "p99": 6.934,
+          "max": 8.194
+        },
+        "raster_ms": {
+          "mean": 1.0294297520661155,
+          "p95": 1.402,
+          "p99": 2.139,
+          "max": 2.313
+        },
+        "total_span_ms": {
+          "mean": 5.456702479338843,
+          "p95": 6.718,
+          "p99": 9.55,
+          "max": 10.995
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.0
+      },
+      {
+        "case": "shader-legacy",
+        "round": 0,
+        "frames": 104,
+        "build_ms": {
+          "mean": 0.06900961538461538,
+          "p95": 0.111,
+          "p99": 0.492,
+          "max": 0.65
+        },
+        "raster_ms": {
+          "mean": 15.943673076923078,
+          "p95": 37.029,
+          "p99": 39.107,
+          "max": 41.245
+        },
+        "total_span_ms": {
+          "mean": 24.036278846153856,
+          "p95": 39.384,
+          "p99": 41.509,
+          "max": 46.175
+        },
+        "over_60hz_pipeline_budget": 0.5865384615384616,
+        "over_120hz_pipeline_budget": 0.5865384615384616
+      },
+      {
+        "case": "shader-neutral",
+        "round": 0,
+        "frames": 103,
+        "build_ms": {
+          "mean": 0.06867961165048543,
+          "p95": 0.119,
+          "p99": 0.559,
+          "max": 0.663
+        },
+        "raster_ms": {
+          "mean": 16.26490291262136,
+          "p95": 38.23,
+          "p99": 40.983,
+          "max": 41.121
+        },
+        "total_span_ms": {
+          "mean": 24.713990291262142,
+          "p95": 39.306,
+          "p99": 42.639,
+          "max": 43.703
+        },
+        "over_60hz_pipeline_budget": 0.5728155339805825,
+        "over_120hz_pipeline_budget": 0.5728155339805825
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.2704628099173565,
+          "p95": 5.29,
+          "p99": 7.281,
+          "max": 12.917
+        },
+        "raster_ms": {
+          "mean": 1.0072644628099172,
+          "p95": 1.381,
+          "p99": 2.213,
+          "max": 2.951
+        },
+        "total_span_ms": {
+          "mean": 5.514280991735537,
+          "p95": 7.113,
+          "p99": 9.746,
+          "max": 16.484
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "mesh-legacy",
+        "round": 1,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.188479338842977,
+          "p95": 4.84,
+          "p99": 5.595,
+          "max": 8.817
+        },
+        "raster_ms": {
+          "mean": 0.9705041322314051,
+          "p95": 1.376,
+          "p99": 1.515,
+          "max": 2.722
+        },
+        "total_span_ms": {
+          "mean": 5.399809917355371,
+          "p95": 6.38,
+          "p99": 7.495,
+          "max": 12.008
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "shader-neutral",
+        "round": 1,
+        "frames": 101,
+        "build_ms": {
+          "mean": 0.06611881188118812,
+          "p95": 0.086,
+          "p99": 0.508,
+          "max": 0.552
+        },
+        "raster_ms": {
+          "mean": 16.206930693069303,
+          "p95": 36.456,
+          "p99": 39.931,
+          "max": 39.943
+        },
+        "total_span_ms": {
+          "mean": 24.466,
+          "p95": 40.056,
+          "p99": 43.838,
+          "max": 44.248
+        },
+        "over_60hz_pipeline_budget": 0.6138613861386139,
+        "over_120hz_pipeline_budget": 0.6138613861386139
+      },
+      {
+        "case": "shader-legacy",
+        "round": 1,
+        "frames": 103,
+        "build_ms": {
+          "mean": 0.06980582524271844,
+          "p95": 0.108,
+          "p99": 0.561,
+          "max": 0.681
+        },
+        "raster_ms": {
+          "mean": 16.524271844660195,
+          "p95": 37.582,
+          "p99": 39.796,
+          "max": 40.061
+        },
+        "total_span_ms": {
+          "mean": 25.100514563106792,
+          "p95": 40.207,
+          "p99": 41.948,
+          "max": 44.002
+        },
+        "over_60hz_pipeline_budget": 0.6310679611650486,
+        "over_120hz_pipeline_budget": 0.6310679611650486
+      },
+      {
+        "case": "mesh-legacy",
+        "round": 2,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.242099173553719,
+          "p95": 5.342,
+          "p99": 7.217,
+          "max": 9.167
+        },
+        "raster_ms": {
+          "mean": 1.0032727272727273,
+          "p95": 1.421,
+          "p99": 2.088,
+          "max": 2.703
+        },
+        "total_span_ms": {
+          "mean": 5.4925537190082645,
+          "p95": 7.078,
+          "p99": 9.766,
+          "max": 12.333
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "mesh-neutral",
+        "round": 2,
+        "frames": 121,
+        "build_ms": {
+          "mean": 4.24878512396694,
+          "p95": 5.205,
+          "p99": 7.051,
+          "max": 8.624
+        },
+        "raster_ms": {
+          "mean": 0.9969008264462811,
+          "p95": 1.358,
+          "p99": 2.385,
+          "max": 2.714
+        },
+        "total_span_ms": {
+          "mean": 5.493553719008262,
+          "p95": 6.799,
+          "p99": 9.871,
+          "max": 11.869
+        },
+        "over_60hz_pipeline_budget": 0.0,
+        "over_120hz_pipeline_budget": 0.008264462809917356
+      },
+      {
+        "case": "shader-legacy",
+        "round": 2,
+        "frames": 102,
+        "build_ms": {
+          "mean": 0.06661764705882352,
+          "p95": 0.097,
+          "p99": 0.523,
+          "max": 0.525
+        },
+        "raster_ms": {
+          "mean": 17.10828431372549,
+          "p95": 38.061,
+          "p99": 41.083,
+          "max": 41.117
+        },
+        "total_span_ms": {
+          "mean": 25.871460784313726,
+          "p95": 41.365,
+          "p99": 44.485,
+          "max": 46.125
+        },
+        "over_60hz_pipeline_budget": 0.6666666666666666,
+        "over_120hz_pipeline_budget": 0.6666666666666666
+      },
+      {
+        "case": "shader-neutral",
+        "round": 2,
+        "frames": 103,
+        "build_ms": {
+          "mean": 0.06840776699029127,
+          "p95": 0.093,
+          "p99": 0.572,
+          "max": 0.588
+        },
+        "raster_ms": {
+          "mean": 16.834048543689324,
+          "p95": 36.549,
+          "p99": 38.429,
+          "max": 39.255
+        },
+        "total_span_ms": {
+          "mean": 25.711737864077673,
+          "p95": 39.496,
+          "p99": 41.829,
+          "max": 42.942
+        },
+        "over_60hz_pipeline_budget": 0.6601941747572816,
+        "over_120hz_pipeline_budget": 0.6796116504854369
+      }
+    ]
+  },
+  "checks": {
+    "flutter_analyze": "No issues found",
+    "flutter_test_passed": 244,
+    "shader_internal_back_coverage_assertions_retained": true,
+    "new_uniform_count": 0,
+    "first_drag_long_term_thermal_other_devices": "not validated"
+  },
+  "repo_implementation_sha256_at_verification": {
+    "curl_geometry.dart": "c330712614526a8baeb0282c1052729d438590ca55e9577f961ae81482c8ff8d",
+    "curl_drag.dart": "5df0eacead7431b5ea0ce559ba6ddee5cd8c73b6e96e84b3a0af5b840cac9a44",
+    "curl_painter.dart": "27b06d64e39722804d168c1227c9236aba3b8d048731475589b83016ac6d477d",
+    "curl_shader_painter.dart": "5ebfdd0f6b174536181a33335406ba3b849f3d9056741eab74ab534d84435e94",
+    "main.dart": "71d49c9ca865fafb6cf10202c9c3f5eec9153107b04e75a629e484c2d46a684f",
+    "reference_capture.dart": "c84e2031f97576ba6dc78f1ee2eae467b0f5e596d679564cb80cb4909b1a9aa9",
+    "shaders/curl.frag": "92946dc5112125daa42ccd1da015027687f713b032161db9d6cc65355b7936b3"
+  },
+  "remaining": [
+    "early steep drags may hit retained tilt cap2; retained source reproduced errors .678489 and2.695930 logical pixels, no exact tracking claim there",
+    "strong local corner and wider angular/spatial family still differ from Books",
+    "two angular ROIs have +.015840633625344935 and+.0017760710428413873 RGB MAE while contour improves",
+    "iOS Shader remains experimental; this diagonal trajectory exceeds60Hz raster budget",
+    "formal reader integration remains deferred"
+  ],
+  "final_interactive_proof": {
+    "sample_on_start": false,
+    "flat_source_body_mae": 0.028142150247413407,
+    "root_vs_paired_candidate_body_mae": 0.0,
+    "events": [
+      {
+        "name": "center-up",
+        "origin": [
+          373,
+          422
+        ],
+        "target": [
+          211,
+          362
+        ],
+        "captures": [
+          {
+            "at_s": 2.5039347499999995,
+            "elapsed_s": 0.2838859170000001
+          },
+          {
+            "at_s": 3.201852375,
+            "elapsed_s": 0.2868216669999999
+          }
+        ],
+        "held_vs_initial_body_mae": 18.69742465137202,
+        "cancel_body_mae": 0.0,
+        "hold_pair_body_mae": 0.0
+      }
+    ]
+  },
+  "latest_adoption_report": "early-outward-profile-validation.json"
+}

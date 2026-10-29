@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-29",
+  "baseline_commit": "5150a66",
+  "device": "Redmi K70 Pro / Android 16",
+  "mode": "profile",
+  "backend": "Impeller / Vulkan",
+  "matched_viewport_texture_and_dpr": true,
+  "unchanged_mesh": {
+    "columns": 96,
+    "rows": 24
+  },
+  "unchanged_texture_budget_bytes": 33554432,
+  "baseline_frames": 1718,
+  "optimized_frames": 1870,
+  "budget_exceedance": {
+    "60": {
+      "baseline_samples": 0,
+      "baseline_fraction": 0.0,
+      "optimized_samples": 0,
+      "optimized_fraction": 0.0
+    },
+    "120": {
+      "baseline_samples": 124,
+      "baseline_fraction": 0.07217694994179279,
+      "optimized_samples": 9,
+      "optimized_fraction": 0.004812834224598931
+    }
+  },
+  "baseline_max_ui_p95_ms": 10.57,
+  "optimized_max_ui_p95_ms": 6.451,
+  "baseline_input": {
+    "pointer_moves": 672,
+    "coalesced_moves": 168,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 504,
+      "p50": 3.02,
+      "p95": 5.831,
+      "p99": 7.488,
+      "max": 9.157
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 504,
+      "p50": 13.832,
+      "p95": 21.155,
+      "p99": 23.698,
+      "max": 30.938
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "optimized_input": {
+    "pointer_moves": 672,
+    "coalesced_moves": 84,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 588,
+      "p50": 2.86,
+      "p95": 4.495,
+      "p99": 8.528,
+      "max": 9.387
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 588,
+      "p50": 11.652,
+      "p95": 15.514,
+      "p99": 21.161,
+      "max": 25.313
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "peak_texture_rgba_bytes": 33009120,
+  "source_sha256": {
+    "curl_geometry.dart": "42a0bed5e352b50975605869aa09fa840658af26281ac882f75339dc659d6eb2",
+    "page_texture_cache.dart": "bfe6f27782d54e189e1773a3968a6dfd0c159a29b36b9efbfa217a32acef4a59",
+    "main.dart": "7ccfcb9ddfc90dde53dedcac7a23f6d7c4d856cb9cbd8b545cd90afe50accd8d",
+    "curl_painter.dart": "d47ec66f433a85644245bf98aba76126e2fa1f478f8fbd63a325b574781a835d",
+    "input_latency.dart": "983168426092603ecad413d9fe19289f682d85f01072a6f7ca2aef46dd03bdc3",
+    "page_sources.dart": "b591a3ce82d3e6fd554d98ea1f8be11d37b8272916b7aeb5eb602c9e1bc6f30d"
+  },
+  "scenes": [
+    {
+      "scene": "native-android-text-single",
+      "baseline_ui_p95_ms": 6.546,
+      "optimized_ui_p95_ms": 3.568,
+      "baseline_raster_p95_ms": 3.942,
+      "optimized_raster_p95_ms": 3.425,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-text-double",
+      "baseline_ui_p95_ms": 5.246,
+      "optimized_ui_p95_ms": 3.535,
+      "baseline_raster_p95_ms": 3.159,
+      "optimized_raster_p95_ms": 3.253,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-comic-single",
+      "baseline_ui_p95_ms": 8.633,
+      "optimized_ui_p95_ms": 6.451,
+      "baseline_raster_p95_ms": 4.365,
+      "optimized_raster_p95_ms": 6.43,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-comic-double",
+      "baseline_ui_p95_ms": 9.199,
+      "optimized_ui_p95_ms": 5.89,
+      "baseline_raster_p95_ms": 4.068,
+      "optimized_raster_p95_ms": 5.239,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-pdf-single",
+      "baseline_ui_p95_ms": 10.356,
+      "optimized_ui_p95_ms": 6.186,
+      "baseline_raster_p95_ms": 4.888,
+      "optimized_raster_p95_ms": 4.656,
+      "native_png_byte_identical": true
+    },
+    {
+      "scene": "native-android-pdf-double",
+      "baseline_ui_p95_ms": 10.57,
+      "optimized_ui_p95_ms": 5.979,
+      "baseline_raster_p95_ms": 4.408,
+      "optimized_raster_p95_ms": 5.26,
+      "native_png_byte_identical": true
+    }
+  ],
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 147,
+    "headless_pixel_equivalent_frames": 36,
+    "native_png_byte_equivalent_frames": 6,
+    "physical_gestures": "5 forward, 2 backward, 1 short cancel; final page 4"
+  },
+  "limitations": [
+    "Short-run warm-texture benchmark on one device; occasional 120 Hz pipeline budget exceedance remains.",
+    "Budget exceedance is not measured display dropped-frame rate.",
+    "ADB input-to-raster-finish excludes touch hardware sampling and display scanout.",
+    "Synthetic content and capped texture resolution; production EPUB/CBZ preparation is not measured."
+  ]
+}

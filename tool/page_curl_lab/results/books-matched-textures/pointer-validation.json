@@ -1,0 +1,50 @@
+{
+  "trace": {
+    "origin": [
+      373,
+      732
+    ],
+    "poses": [
+      [
+        292,
+        710
+      ],
+      [
+        211,
+        689
+      ],
+      [
+        129,
+        667
+      ],
+      [
+        48,
+        645
+      ]
+    ],
+    "move_ms": 1300,
+    "hold_ms": 2200,
+    "cancel_equal": true,
+    "hold_semantics": "requested_pause_only_not_verified",
+    "intermediate_holds_verified": false
+  },
+  "books": {
+    "forward_png_changed": true,
+    "cancel_png_identical": true,
+    "page_sequence_visually_checked": [
+      4,
+      5,
+      5
+    ]
+  },
+  "prototype": {
+    "forward_png_changed": true,
+    "cancel_png_identical": true,
+    "page_sequence_visually_checked": [
+      4,
+      5,
+      5
+    ]
+  },
+  "visual_alignment_verified": false
+}

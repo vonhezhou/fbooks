@@ -1,0 +1,328 @@
+{
+  "renderer": "shader",
+  "initial_preparation": {
+    "source_is_real": true,
+    "input_format": "epub",
+    "source_open_ms": 448.43,
+    "source_page_count": 77,
+    "chapter_index": 19,
+    "pagination_scope": "selected-chapter",
+    "visible_face_count": 2,
+    "elapsed_ms": 122.295,
+    "decode_elapsed_ms": 93.561,
+    "rgba_bytes": 8014480,
+    "decode_misses_before_prefetch": 2,
+    "resident_bytes_before_prefetch": 8014480
+  },
+  "visible_face_count": 2,
+  "shader_warmup_enabled": true,
+  "shader_warmup_ms": 28.714,
+  "logical_width": 411.42857142857144,
+  "logical_height": 598.6666666666667,
+  "texture_dpr": 2.01493127244211,
+  "window_dpr": 2.625,
+  "execution_target": "physical-mobile",
+  "timing_statistics_usable": true,
+  "input": {
+    "pointer_moves": 672,
+    "coalesced_moves": 100,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 572,
+      "p50": 2.816,
+      "p95": 7.452,
+      "p99": 8.858,
+      "max": 10.015
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 572,
+      "p50": 7.266,
+      "p95": 12.375,
+      "p99": 13.86,
+      "max": 15.72
+    },
+    "first_frames": [
+      {
+        "frame_number": 75,
+        "pointer_move": 1,
+        "progress_at_paint": 0.008116319444444464,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 3.585,
+        "dispatch_to_paint_ms": 0.902,
+        "build_ms": 0.957,
+        "raster_ms": 0.538,
+        "vsync_to_build_start_ms": 0.908
+      },
+      {
+        "frame_number": 76,
+        "pointer_move": 2,
+        "progress_at_paint": 0.01623263888888893,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 3.528,
+        "dispatch_to_paint_ms": 0.211,
+        "build_ms": 0.437,
+        "raster_ms": 0.995,
+        "vsync_to_build_start_ms": 0.585
+      },
+      {
+        "frame_number": 78,
+        "pointer_move": 4,
+        "progress_at_paint": 0.03347981770833343,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.316,
+        "dispatch_to_paint_ms": 0.252,
+        "build_ms": 0.403,
+        "raster_ms": 0.409,
+        "vsync_to_build_start_ms": 0.389
+      },
+      {
+        "frame_number": 79,
+        "pointer_move": 5,
+        "progress_at_paint": 0.04159613715277789,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.408,
+        "dispatch_to_paint_ms": 0.63,
+        "build_ms": 0.372,
+        "raster_ms": 0.381,
+        "vsync_to_build_start_ms": 0.223
+      },
+      {
+        "frame_number": 80,
+        "pointer_move": 6,
+        "progress_at_paint": 0.05072790075231482,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 1.759,
+        "dispatch_to_paint_ms": 0.216,
+        "build_ms": 0.36,
+        "raster_ms": 0.292,
+        "vsync_to_build_start_ms": 0.366
+      },
+      {
+        "frame_number": 81,
+        "pointer_move": 7,
+        "progress_at_paint": 0.058844220196759285,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.243,
+        "dispatch_to_paint_ms": 0.161,
+        "build_ms": 0.337,
+        "raster_ms": 0.308,
+        "vsync_to_build_start_ms": 0.532
+      },
+      {
+        "frame_number": 82,
+        "pointer_move": 8,
+        "progress_at_paint": 0.06696053964120374,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.4,
+        "dispatch_to_paint_ms": 0.781,
+        "build_ms": 0.498,
+        "raster_ms": 0.307,
+        "vsync_to_build_start_ms": 0.213
+      },
+      {
+        "frame_number": 83,
+        "pointer_move": 9,
+        "progress_at_paint": 0.07609139901620379,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 1.575,
+        "dispatch_to_paint_ms": 0.216,
+        "build_ms": 0.41,
+        "raster_ms": 0.269,
+        "vsync_to_build_start_ms": 0.193
+      },
+      {
+        "frame_number": 84,
+        "pointer_move": 10,
+        "progress_at_paint": 0.08420771846064826,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.287,
+        "dispatch_to_paint_ms": 0.172,
+        "build_ms": 0.354,
+        "raster_ms": 0.321,
+        "vsync_to_build_start_ms": 0.544
+      },
+      {
+        "frame_number": 85,
+        "pointer_move": 11,
+        "progress_at_paint": 0.09232403790509258,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.221,
+        "dispatch_to_paint_ms": 0.588,
+        "build_ms": 0.357,
+        "raster_ms": 0.316,
+        "vsync_to_build_start_ms": 0.188
+      },
+      {
+        "frame_number": 86,
+        "pointer_move": 13,
+        "progress_at_paint": 0.10957121672453708,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 1.855,
+        "dispatch_to_paint_ms": 0.37,
+        "build_ms": 0.33,
+        "raster_ms": 0.306,
+        "vsync_to_build_start_ms": 0.21
+      },
+      {
+        "frame_number": 87,
+        "pointer_move": 14,
+        "progress_at_paint": 0.11768753616898155,
+        "renderer": "shader",
+        "event_to_raster_finish_ms": 2.545,
+        "dispatch_to_paint_ms": 0.715,
+        "build_ms": 0.377,
+        "raster_ms": 0.569,
+        "vsync_to_build_start_ms": 0.206
+      }
+    ],
+    "slowest_frames_over_20ms": [],
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "memory_samples": [
+    {
+      "second": 1,
+      "rss_bytes": 375549952,
+      "resident_rgba_bytes": 16028960,
+      "peak_rgba_bytes": 16028960,
+      "budget_bytes": 33554432,
+      "cached_pages": 4,
+      "hits": 3,
+      "misses": 5,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 2,
+      "rss_bytes": 376938496,
+      "resident_rgba_bytes": 20036200,
+      "peak_rgba_bytes": 20036200,
+      "budget_bytes": 33554432,
+      "cached_pages": 5,
+      "hits": 7,
+      "misses": 6,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 3,
+      "rss_bytes": 379674624,
+      "resident_rgba_bytes": 24043440,
+      "peak_rgba_bytes": 24043440,
+      "budget_bytes": 33554432,
+      "cached_pages": 6,
+      "hits": 12,
+      "misses": 7,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 4,
+      "rss_bytes": 381784064,
+      "resident_rgba_bytes": 28050680,
+      "peak_rgba_bytes": 28050680,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 17,
+      "misses": 8,
+      "evictions": 0,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 5,
+      "rss_bytes": 386367488,
+      "resident_rgba_bytes": 28050680,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 7,
+      "hits": 22,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 6,
+      "rss_bytes": 385384448,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 30,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 7,
+      "rss_bytes": 384376832,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 8,
+      "rss_bytes": 385187840,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 9,
+      "rss_bytes": 385396736,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    },
+    {
+      "second": 10,
+      "rss_bytes": 385396736,
+      "resident_rgba_bytes": 32057920,
+      "peak_rgba_bytes": 32057920,
+      "budget_bytes": 33554432,
+      "cached_pages": 8,
+      "hits": 36,
+      "misses": 9,
+      "evictions": 1,
+      "prefetch_failures": 0
+    }
+  ],
+  "frames": {
+    "frames": 884,
+    "build_ms": {
+      "mean": 1.3238009049773756,
+      "p95": 1.277,
+      "p99": 5.67,
+      "max": 127.548
+    },
+    "raster_ms": {
+      "mean": 1.6323427601809954,
+      "p95": 2.161,
+      "p99": 9.136,
+      "max": 50.388
+    },
+    "total_span_ms": {
+      "mean": 4.1349355203619895,
+      "p95": 5.011,
+      "p99": 23.713,
+      "max": 144.799
+    },
+    "over_60hz_pipeline_budget": 0.007918552036199095,
+    "over_120hz_pipeline_budget": 0.012443438914027148
+  },
+  "page_start": 3
+}

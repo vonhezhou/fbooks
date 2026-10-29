@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-29",
+  "device": "Redmi K70 Pro",
+  "model": "23117RK66C",
+  "soc": "SM8650",
+  "os": "Android 16",
+  "physical_panel_pixels": [
+    1440,
+    3200
+  ],
+  "effective_display_pixels": [
+    1080,
+    2400
+  ],
+  "reported_display_refresh_hz": 120,
+  "backend": "Impeller / Vulkan",
+  "mode": "profile",
+  "temperature_after_celsius": 29.8,
+  "scenarios": 6,
+  "sampled_frames": 1718,
+  "max_scenario_ui_p95_ms": 10.57,
+  "max_scenario_raster_p95_ms": 4.888,
+  "budget_exceedance": {
+    "60": {
+      "samples": 0,
+      "fraction": 0.0
+    },
+    "120": {
+      "samples": 124,
+      "fraction": 0.07217694994179279
+    }
+  },
+  "texture_peak_rgba_bytes": 33009120,
+  "texture_budget_bytes": 33554432,
+  "stress_process_rss_min_bytes": 317128704,
+  "stress_process_rss_max_bytes": 352190464,
+  "input_gestures": "5 forward, 2 backward, 1 short cancel; expected and observed final page 4",
+  "input": {
+    "pointer_moves": 672,
+    "coalesced_moves": 168,
+    "clock_mismatches": 0,
+    "unmatched_painted_frames": 0,
+    "dispatch_to_paint_ms": {
+      "samples": 504,
+      "p50": 3.02,
+      "p95": 5.831,
+      "p99": 7.488,
+      "max": 9.157
+    },
+    "event_to_raster_finish_ms": {
+      "samples": 504,
+      "p50": 13.832,
+      "p95": 21.155,
+      "p99": 23.698,
+      "max": 30.938
+    },
+    "excludes": "touch hardware sampling, compositor presentation, display scanout"
+  },
+  "source_sha256": {
+    "curl_geometry.dart": "e8b2cdb35119b70896cd16c841b9f4deefc6598f73f6ee0805c1369b71794772",
+    "page_texture_cache.dart": "bfe6f27782d54e189e1773a3968a6dfd0c159a29b36b9efbfa217a32acef4a59",
+    "main.dart": "b28862bcc2177e5252d5e6afe067ccfdec4d4138ce21e0d1464df32482058b31",
+    "curl_painter.dart": "d69b07254e7950052e42bbdd75b2ee67e61b5779c08f26a191e568dff61a34da",
+    "input_latency.dart": "983168426092603ecad413d9fe19289f682d85f01072a6f7ca2aef46dd03bdc3",
+    "page_sources.dart": "b591a3ce82d3e6fd554d98ea1f8be11d37b8272916b7aeb5eb602c9e1bc6f30d"
+  },
+  "limitations": [
+    "Budget exceedance is not measured dropped-frame rate.",
+    "ADB-injected input to raster finish excludes touch hardware sampling and display scanout.",
+    "Current single-page textures are capped at one million pixels; full native single-page resolution was not evaluated.",
+    "Synthetic typography/PNG fixtures and simple PDFium PDF; production EPUB pagination and CBZ I/O are excluded.",
+    "RGBA ledger excludes decoder/native/GPU overhead. Short RSS sampling is not a long-term leak test."
+  ]
+}

@@ -1011,6 +1011,7 @@ class _ComicReadingSettingsPanelState
                   for (final encoding in ComicArchiveFileNameEncoding.values)
                     DropdownMenuItem(
                       value: encoding,
+                      enabled: encoding.available,
                       child: Text(encoding.displayName),
                     ),
                 ],

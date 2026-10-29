@@ -1,0 +1,108 @@
+{
+  "baseline_commit": "1924de6",
+  "device": "Redmi K70 Pro",
+  "mode": "profile / Impeller Vulkan",
+  "scope": "isolated prototype; real EPUB selected chapter, CBZ and PDF; portrait phone viewport; single-to-double reflow",
+  "comparison_setup": {
+    "mode_order": [
+      "reopen-a",
+      "reuse-a",
+      "reuse-b",
+      "reopen-b"
+    ],
+    "layout": "Before each measurement, prepare single-page with retained session, then time the complete double-page prepare operation including end-of-frame waits and cleanup. Reopen mode closes the source after the old cache settles; reuse mode retains it. Same shader, resolution and textures.",
+    "source_selection": "Same selected EPUB chapter and first page window in all cases; not complete-book coverage.",
+    "samples_per_policy_per_format": 2
+  },
+  "comparisons": [
+    {
+      "format": "text",
+      "reopen_samples_ms": [
+        693.142,
+        600.152
+      ],
+      "reuse_samples_ms": [
+        399.179,
+        432.763
+      ],
+      "reopen_mean_ms": 646.647,
+      "reuse_mean_ms": 415.971,
+      "reduction_percent": 35.67,
+      "raster_p95_ms": [
+        2.234,
+        2.241,
+        2.351,
+        3.284
+      ]
+    },
+    {
+      "format": "comic",
+      "reopen_samples_ms": [
+        156.964,
+        158.639
+      ],
+      "reuse_samples_ms": [
+        150.404,
+        157.889
+      ],
+      "reopen_mean_ms": 157.802,
+      "reuse_mean_ms": 154.147,
+      "reduction_percent": 2.32,
+      "raster_p95_ms": [
+        3.174,
+        2.338,
+        2.219,
+        2.328
+      ]
+    },
+    {
+      "format": "pdf",
+      "reopen_samples_ms": [
+        316.617,
+        326.235
+      ],
+      "reuse_samples_ms": [
+        67.313,
+        58.127
+      ],
+      "reopen_mean_ms": 321.426,
+      "reuse_mean_ms": 62.72,
+      "reduction_percent": 80.49,
+      "raster_p95_ms": [
+        2.823,
+        2.917,
+        2.321,
+        2.765
+      ]
+    }
+  ],
+  "screenshots": {
+    "text": {
+      "cases": 4,
+      "png_files_byte_identical": true
+    },
+    "comic": {
+      "cases": 4,
+      "png_files_byte_identical": true
+    },
+    "pdf": {
+      "cases": 4,
+      "png_files_byte_identical": true
+    }
+  },
+  "trace_finding": "Slow native raster frames spend most wall time inside QueuePresentKHR / queueBuffer / waitForever. Flat rendering can also show high raster duration. This does not isolate GPU execution or establish the underlying driver/compositor cause.",
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 156,
+    "python_trace_tests": 3,
+    "source_paths_and_book_files_saved": false
+  },
+  "limitations": [
+    "Only two prepare samples per policy per format; CBZ difference is not a demonstrated speedup.",
+    "The improvement is reflow preparation, not warm curl frame speed or cold launch time.",
+    "Native tracing perturbs timings. Raw traces and book screenshots remain private temporary files; only numeric summaries are retained.",
+    "Raster wall time includes waits; budget exceedance does not establish dropped frames. Stable 120 Hz is not claimed.",
+    "Cache remains bounded at 32 MiB RGBA; no claim that total process RSS falls by the same percentage.",
+    "No new iOS, tablet or desktop real-book validation; no production reader integration or persisted book data."
+  ]
+}

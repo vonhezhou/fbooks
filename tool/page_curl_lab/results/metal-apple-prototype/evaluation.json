@@ -1,0 +1,170 @@
+{
+  "status": "macOS and physical iPhone paired benchmarks, functional matrices and representative iPhone native input complete",
+  "scope": "Isolated prototype; production reader and platform hosts unchanged",
+  "implementation": {
+    "geometry": "96x24 static mesh; Metal vertex deformation",
+    "occlusion": "hardware depth",
+    "lighting": "front/back shading, projected blur and contact shadow",
+    "antialiasing": "4x MSAA",
+    "transport": "CoreVideo Metal texture to FlutterTexture after GPU completion",
+    "backpressure": "one Dart render request in flight; intermediate states coalesced",
+    "memory": "memoryless depth/MSAA on supported Apple GPU; finite output pool"
+  },
+  "macos": {
+    "gpu": "Apple M5 Pro",
+    "profile_cases": 12,
+    "functional_cases": 6,
+    "logical_viewport": [
+      1000,
+      600
+    ],
+    "window_dpr": 2,
+    "frames_per_case": 160,
+    "mesh_ui_p95_ms": [
+      2.556,
+      3.19
+    ],
+    "metal_ui_p95_ms": [
+      0.561,
+      0.703
+    ],
+    "mesh_raster_p95_ms": [
+      2.231,
+      2.753
+    ],
+    "metal_raster_p95_ms": [
+      0.773,
+      0.981
+    ],
+    "metal_gpu_p95_ms": [
+      1.623,
+      1.741
+    ],
+    "mesh_backend_request_to_raster_finish_p95_ms": [
+      4.75,
+      5.123
+    ],
+    "metal_backend_request_to_raster_finish_p95_ms": [
+      18.081,
+      22.777
+    ],
+    "metal_matched_samples_per_case": [
+      127,
+      156
+    ],
+    "clock_uncertainty_us": [
+      28,
+      61
+    ],
+    "metal_owned_texture_estimate_mib": [
+      67.4,
+      70.1
+    ]
+  },
+  "ios": {
+    "device": "iPhone 12",
+    "os": "iOS 27.0.1",
+    "refresh_rate_hz": 60,
+    "low_power_mode": false,
+    "thermal_state": 0,
+    "functional_cases": 6,
+    "profile_cases": 12,
+    "logical_benchmark_viewport": [
+      390,
+      551
+    ],
+    "latest_profile_binary_build": "passed",
+    "mesh_ui_p95_ms": [
+      4.093,
+      4.598
+    ],
+    "metal_ui_p95_ms": [
+      1.232,
+      1.327
+    ],
+    "mesh_raster_p95_ms": [
+      1.483,
+      1.679
+    ],
+    "metal_raster_p95_ms": [
+      1.207,
+      1.284
+    ],
+    "metal_gpu_p95_ms": [
+      7.765,
+      8.421
+    ],
+    "mesh_backend_request_to_raster_finish_p95_ms": [
+      5.486,
+      5.872
+    ],
+    "metal_backend_request_to_raster_finish_p95_ms": [
+      19.072,
+      19.245
+    ],
+    "metal_matched_samples_per_case": [
+      154,
+      155
+    ],
+    "clock_uncertainty_us": [
+      115,
+      207
+    ],
+    "metal_owned_texture_estimate_mib": [
+      49.39,
+      57.45
+    ],
+    "native_input": {
+      "source": "real EPUB single page",
+      "logical_viewport": [
+        390,
+        503
+      ],
+      "sequence": "XCTest five forward, two reverse, short rebound",
+      "mesh_dispatch_to_raster_finish_ms": {
+        "samples": 472,
+        "p50": 17.853,
+        "p95": 21.175,
+        "p99": 23.533,
+        "max": 120.926
+      },
+      "metal_dispatch_to_raster_finish_ms": {
+        "samples": 450,
+        "p50": 33.7,
+        "p95": 35.248,
+        "p99": 41.507,
+        "max": 83.213
+      },
+      "mesh_pointer_moves": 478,
+      "metal_pointer_moves": 476,
+      "metal_clock_uncertainty_us": 26,
+      "metal_coalesced_updates": 7,
+      "metal_input_updates_without_observed_copy": 6,
+      "metal_copies_without_unambiguous_frame": 18,
+      "mesh_first_input_raster_ms": 100.286,
+      "mesh_first_input_dispatch_to_raster_ms": 120.926,
+      "runs_per_backend": 1
+    },
+    "previous_incomplete_attempt": "No root cause established; subsequent attached run with console logging completed all 12 cases without renderer changes."
+  },
+  "conclusion": "Metal reduces Flutter UI/raster work, but the current external texture path has substantially higher backend-request-to-raster-finish latency on both tested Apple devices. Same-sequence native iPhone input also has higher P95. Keep the existing mesh as default; do not migrate production on GPU time alone.",
+  "next_evidence": "No production migration recommended. If pursuing Metal for more complex visual quality, inspect texture publication and Flutter frame scheduling first, measuring the complete path. Existing mesh first-drag tails remain a separate optimization target.",
+  "limitations": [
+    "Raster finish is not display presentation or touch-to-photon latency.",
+    "Backend request timestamps do not cover identical framework work before request dispatch.",
+    "Clock matching rejects ambiguous copy/frame pairs; unobserved counts remain in paired report.",
+    "Output texture memory is a conservative five-buffer pool estimate; device allocation and process RSS include other subsystems.",
+    "No Apple Books visual parity claim; endpoint agreement does not establish intermediate-frame equivalence.",
+    "Paired app retains both backends; per-case RSS does not measure exclusive renderer memory.",
+    "Native input uses EPUB single page only; six-format/layout combinations use Flutter integration-test pointer events, not six native-input performance trials.",
+    "One native input run per backend; both have tail spikes. Maximum values 120.926 ms (mesh) and 83.213 ms (Metal) do not establish comparative cold-tail reliability."
+  ],
+  "verification": {
+    "flutter_analyze": "passed",
+    "flutter_tests": 170,
+    "python_tests": 5,
+    "ios_profile_build": "passed",
+    "macos_profile_build": "passed"
+  },
+  "privacy": "Anonymous JSON only; no book contents, titles, source paths, screenshots, device identifiers or signing identity included."
+}

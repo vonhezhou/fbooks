@@ -1,0 +1,74 @@
+{
+  "roi": {
+    "x": [
+      140,
+      155
+    ],
+    "y": [
+      180,
+      720
+    ]
+  },
+  "method": "gray = RGB mean; local contrast = max of four axial neighbors at distance 4 minus center, clamped to zero; stroke samples have contrast >= 10; quantiles use floor((n-1)*p)",
+  "results": {
+    "books": {
+      "gray_min": 197.0,
+      "gray_p01": 214.0,
+      "gray_median": 253.0,
+      "stroke_samples": 282,
+      "stroke_contrast_p50": 33.0,
+      "stroke_contrast_p95": 50.0,
+      "stroke_contrast_p99": 53.0,
+      "stroke_contrast_max": 55.0
+    },
+    "baseline": {
+      "gray_min": 226.0,
+      "gray_p01": 232.0,
+      "gray_median": 254.0,
+      "stroke_samples": 1693,
+      "stroke_contrast_p50": 14.0,
+      "stroke_contrast_p95": 22.0,
+      "stroke_contrast_p99": 25.0,
+      "stroke_contrast_max": 28.0
+    },
+    "candidate": {
+      "gray_min": 205.0,
+      "gray_p01": 214.0,
+      "gray_median": 254.0,
+      "stroke_samples": 2450,
+      "stroke_contrast_p50": 22.0,
+      "stroke_contrast_p95": 38.0,
+      "stroke_contrast_p99": 42.0,
+      "stroke_contrast_max": 50.0
+    }
+  },
+  "limits": [
+    "Local optical contrast only; different stroke counts do not imply material-coordinate alignment.",
+    "Back texture density, shape and shadow remain mismatched.",
+    "All private source and capture pixels remain outside the repository."
+  ],
+  "device": "iPhone 12",
+  "logical_size": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "baseline_back_alpha": 224,
+  "candidate_back_alpha": 200,
+  "origin": [
+    373,
+    732
+  ],
+  "target": [
+    129,
+    732
+  ],
+  "capture": "exact screen recording frames, same source texture",
+  "cancel_body_mae": {
+    "late-horizontal": 0.0,
+    "75": 0.0,
+    "mid-up": 0.0
+  },
+  "initial_body_rgb_mae_vs_source_texture": 0.028142150247413407,
+  "initial_body_max_channel_difference_vs_source_texture": 2
+}

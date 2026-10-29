@@ -1,0 +1,133 @@
+{
+  "device": "Redmi K70 Pro",
+  "renderer": "Impeller / Vulkan / analytic curl shader",
+  "source_scope": {
+    "epub": "one production-paginated chapter, index 19; no chapter transition",
+    "cbz": "23 pages; up to first 14 page textures requested including prefetch",
+    "pdf": "856 pages; up to first 14 page textures requested including prefetch"
+  },
+  "capture_policy": "EPUB capture host lays out continuously but paints only while obtaining a texture",
+  "capture_matches_reference": {
+    "cases": 6,
+    "png_files_byte_identical": true
+  },
+  "benchmark": [
+    {
+      "format": "epub",
+      "spread": false,
+      "source_open_and_visible_prepare_ms": 717.39,
+      "raster_p95_ms": 2.025,
+      "over_120hz_budget_fraction": 0.0,
+      "over_60hz_budget_fraction": 0.0,
+      "whole_process_rss_mib": 368.76,
+      "peak_texture_cache_bytes": 32022144
+    },
+    {
+      "format": "epub",
+      "spread": true,
+      "source_open_and_visible_prepare_ms": 603.471,
+      "raster_p95_ms": 2.116,
+      "over_120hz_budget_fraction": 0.0,
+      "over_60hz_budget_fraction": 0.0,
+      "whole_process_rss_mib": 370.66,
+      "peak_texture_cache_bytes": 33009120
+    },
+    {
+      "format": "comicArchive",
+      "spread": false,
+      "source_open_and_visible_prepare_ms": 102.529,
+      "raster_p95_ms": 8.678,
+      "over_120hz_budget_fraction": 0.13141025641025642,
+      "over_60hz_budget_fraction": 0.0,
+      "whole_process_rss_mib": 357.16,
+      "peak_texture_cache_bytes": 32022144
+    },
+    {
+      "format": "comicArchive",
+      "spread": true,
+      "source_open_and_visible_prepare_ms": 134.566,
+      "raster_p95_ms": 3.093,
+      "over_120hz_budget_fraction": 0.0,
+      "over_60hz_budget_fraction": 0.0,
+      "whole_process_rss_mib": 337.86,
+      "peak_texture_cache_bytes": 33009120
+    },
+    {
+      "format": "pdf",
+      "spread": false,
+      "source_open_and_visible_prepare_ms": 298.486,
+      "raster_p95_ms": 4.027,
+      "over_120hz_budget_fraction": 0.0,
+      "over_60hz_budget_fraction": 0.0,
+      "whole_process_rss_mib": 412.91,
+      "peak_texture_cache_bytes": 32022144
+    },
+    {
+      "format": "pdf",
+      "spread": true,
+      "source_open_and_visible_prepare_ms": 270.964,
+      "raster_p95_ms": 2.95,
+      "over_120hz_budget_fraction": 0.0031847133757961785,
+      "over_60hz_budget_fraction": 0.0,
+      "whole_process_rss_mib": 412.95,
+      "peak_texture_cache_bytes": 33009120
+    }
+  ],
+  "input": {
+    "text": {
+      "event_to_raster_finish_ms": {
+        "samples": 572,
+        "p50": 7.266,
+        "p95": 12.375,
+        "p99": 13.86,
+        "max": 15.72
+      },
+      "page_start": 3,
+      "peak_whole_process_rss_mib": 368.47,
+      "prefetch_failures": 0
+    },
+    "comic": {
+      "event_to_raster_finish_ms": {
+        "samples": 656,
+        "p50": 7.888,
+        "p95": 9.8,
+        "p99": 11.997,
+        "max": 13.969
+      },
+      "page_start": 3,
+      "peak_whole_process_rss_mib": 299.96,
+      "prefetch_failures": 0
+    },
+    "pdf": {
+      "event_to_raster_finish_ms": {
+        "samples": 592,
+        "p50": 7.338,
+        "p95": 11.468,
+        "p99": 13.657,
+        "max": 14.825
+      },
+      "page_start": 3,
+      "peak_whole_process_rss_mib": 375.2,
+      "prefetch_failures": 0
+    }
+  },
+  "limitations": [
+    "Profile mode, one Android phone; no new iOS/tablet/desktop real-book validation.",
+    "Input metrics end at raster completion, not display presentation.",
+    "120 Hz budget exceedance measures pipeline duration, not dropped frames.",
+    "Repeated runs vary across formats. The final run has 13.1% over the 120 Hz budget in CBZ single-page; earlier references have substantial EPUB double-page exceedance. No stable 120 Hz or thermal/shader root cause established.",
+    "Source open plus texture preparation excludes Flutter startup and APK launch. Warm animation excludes parsing, decoding and EPUB pagination.",
+    "32 MiB is the RGBA texture-cache budget, not total application memory. Native PDF, parser, images and GPU allocations are extra.",
+    "Texture quality is capped at 1,000,000 pixels per page; not full panel-resolution content.",
+    "Reference measurements used a continuously painted EPUB host. Final measurements park that host between captures.",
+    "No book files, titles, full content, absolute source paths or screenshots are included.",
+    "Not integrated into the production reader; no Apple Books visual equivalence claim."
+  ],
+  "validation": {
+    "flutter_analyze": "passed",
+    "flutter_test_count": 156,
+    "six_png_files_byte_identical": true,
+    "input_gestures_each_format": "5 forward, 2 backward, 1 short drag rebound; final page_start=3; no prefetch failures",
+    "installed_app": "isolated manual preview; stopped"
+  }
+}

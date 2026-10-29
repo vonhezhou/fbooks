@@ -1,0 +1,162 @@
+{
+  "device": "iPhone 12",
+  "logical_size": [
+    390,
+    844
+  ],
+  "pixel_ratio": 3,
+  "baseline": "direction-weighted corner profile and C1 late crease bow, full vertical perspective",
+  "candidate": "vertical perspective weighted by local corner strength; cylinder remains orthogonal along y",
+  "method": {
+    "distance": "symmetric Manhattan distance clipped at 12 logical pixels",
+    "roi": "15 to 80 pixels left of reference gray-band peak; rows 160 through 780",
+    "capture": "exact screen recording frames for both models",
+    "same_source_texture": true,
+    "same_pointer_coordinates": true
+  },
+  "results": [
+    {
+      "case": "bottom-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        211,
+        732
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.0323033912659865,
+        "reference_ink_pixels": 4635,
+        "model_ink_pixels": 5519
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.18915948672867108,
+        "reference_ink_pixels": 4635,
+        "model_ink_pixels": 4679
+      },
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "top-horizontal",
+      "origin": [
+        373,
+        112
+      ],
+      "target": [
+        211,
+        112
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.1004731137539505,
+        "reference_ink_pixels": 4635,
+        "model_ink_pixels": 5690
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.18919960636757252,
+        "reference_ink_pixels": 4635,
+        "model_ink_pixels": 4672
+      },
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "center-horizontal",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        422
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 0.22498268275923217,
+        "reference_ink_pixels": 4635,
+        "model_ink_pixels": 4672
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.18924570575056013,
+        "reference_ink_pixels": 4635,
+        "model_ink_pixels": 4680
+      },
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "mid-up",
+      "origin": [
+        373,
+        422
+      ],
+      "target": [
+        211,
+        380
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 1.7977420454411885,
+        "reference_ink_pixels": 3151,
+        "model_ink_pixels": 3699
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 1.5645147993692479,
+        "reference_ink_pixels": 3151,
+        "model_ink_pixels": 3584
+      },
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "late-horizontal",
+      "origin": [
+        373,
+        732
+      ],
+      "target": [
+        129,
+        732
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 0.6162339003005515,
+        "reference_ink_pixels": 2619,
+        "model_ink_pixels": 3057
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.43751012535426825,
+        "reference_ink_pixels": 2619,
+        "model_ink_pixels": 2404
+      },
+      "source_body_mae_after_cancel": 0.0
+    },
+    {
+      "case": "mid-late-horizontal",
+      "origin": [
+        373,
+        564
+      ],
+      "target": [
+        129,
+        564
+      ],
+      "region_pixels": 40365,
+      "baseline": {
+        "symmetric_manhattan_pixels": 0.44532244976919894,
+        "reference_ink_pixels": 2621,
+        "model_ink_pixels": 2556
+      },
+      "current": {
+        "symmetric_manhattan_pixels": 0.4347363980842739,
+        "reference_ink_pixels": 2621,
+        "model_ink_pixels": 2415
+      },
+      "source_body_mae_after_cancel": 0.0
+    }
+  ],
+  "limits": [
+    "Auxiliary text deformation metric; not a subjective quality score.",
+    "Strong local corner geometry is unchanged; center and intermediate profiles change.",
+    "No tablet, desktop, Android, first-drag or sustained thermal validation."
+  ]
+}

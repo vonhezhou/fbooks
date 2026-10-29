@@ -1,0 +1,124 @@
+{
+  "baseline_commit": "c98a1e0",
+  "device_model": "iPhone 12",
+  "os": "iOS 27.0.1",
+  "refresh_rate_hz": 60,
+  "mode": "profile",
+  "change": "Preserve existing cast and contact shadows. Multiply both alpha values by smoothstep of maximum lift from zero to three logical pixels. No new mesh, draw call or shadow buffer.",
+  "comparison_method": "Same process, same real CBZ input, same textures, 96x24 mesh; interleaved legacy-a/fade-a/fade-b/legacy-b/legacy-c/fade-c for single and double page. Each case includes unmeasured warmup and vsync-filtered FrameTiming.",
+  "measured_frames": 1872,
+  "comparison": [
+    {
+      "spread": false,
+      "shadow_model": "legacy",
+      "build_p95_ms": [
+        4.448,
+        4.368,
+        4.57
+      ],
+      "raster_p95_ms": [
+        1.623,
+        1.563,
+        1.676
+      ],
+      "pipeline_over_60hz_budget": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "spread": false,
+      "shadow_model": "height-fade",
+      "build_p95_ms": [
+        4.738,
+        4.507,
+        4.378
+      ],
+      "raster_p95_ms": [
+        1.606,
+        1.53,
+        1.554
+      ],
+      "pipeline_over_60hz_budget": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "spread": true,
+      "shadow_model": "legacy",
+      "build_p95_ms": [
+        4.505,
+        4.547,
+        4.559
+      ],
+      "raster_p95_ms": [
+        1.506,
+        1.574,
+        1.599
+      ],
+      "pipeline_over_60hz_budget": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "spread": true,
+      "shadow_model": "height-fade",
+      "build_p95_ms": [
+        4.592,
+        4.604,
+        4.532
+      ],
+      "raster_p95_ms": [
+        1.49,
+        1.822,
+        1.671
+      ],
+      "pipeline_over_60hz_budget": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "visual": {
+    "fixture": "Synthetic ruled paper; no book content",
+    "capture_count": 20,
+    "byte_identical_captures": 16,
+    "all_twelve_mid_phase_captures_identical": true,
+    "near_start_max_channel_darkening_before": 36,
+    "near_end_max_channel_darkening_before": 19,
+    "near_start_max_channel_darkening_after": 0,
+    "near_end_max_channel_darkening_after": 0,
+    "regression_rejects_legacy": true,
+    "legacy_regression_max_channel_darkening": 31,
+    "allowed_near_flat_quantization_noise": 2
+  },
+  "functional": {
+    "status": "passed",
+    "physical_device": true,
+    "cases": 6,
+    "formats": [
+      "epub",
+      "cbz",
+      "pdf"
+    ],
+    "layouts": [
+      "single",
+      "double"
+    ]
+  },
+  "interpretation": "Fixes abrupt shadow appearance/disappearance near flat endpoints while preserving middle curl appearance. No stable speed improvement established; measured build and raster stages stay within the 60 Hz budget.",
+  "limitations": [
+    "One 60 Hz iPhone; no 120 Hz or new Android hardware run in this iteration.",
+    "FrameTiming budget exceedance is not dropped-frame rate or touch-to-display latency.",
+    "Whole-process comparison RSS includes both reference and candidate workspaces; not a production memory measurement.",
+    "Synthetic pixel checks run in host Flutter tests; device functional checks use Flutter-injected gestures, not native OS interruption.",
+    "No Apple Books visual parity acceptance.",
+    "Books, real-book screenshots, private paths and signing/device identifiers are excluded."
+  ]
+}

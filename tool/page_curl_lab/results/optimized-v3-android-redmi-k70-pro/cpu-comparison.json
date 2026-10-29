@@ -1,0 +1,245 @@
+{
+  "baseline_commit": "b479475",
+  "mode": "profile",
+  "measurement": "Alternating same-process picture recording; excludes raster, texture preparation, vsync and display. Two warmup rounds; eight measured pairs per layout.",
+  "results": [
+    {
+      "spread": false,
+      "round": 2,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 85777
+    },
+    {
+      "spread": false,
+      "round": 2,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 51285
+    },
+    {
+      "spread": false,
+      "round": 3,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 59458
+    },
+    {
+      "spread": false,
+      "round": 3,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 82029
+    },
+    {
+      "spread": false,
+      "round": 4,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 83609
+    },
+    {
+      "spread": false,
+      "round": 4,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 57655
+    },
+    {
+      "spread": false,
+      "round": 5,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 53990
+    },
+    {
+      "spread": false,
+      "round": 5,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 88233
+    },
+    {
+      "spread": false,
+      "round": 6,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 83016
+    },
+    {
+      "spread": false,
+      "round": 6,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 61663
+    },
+    {
+      "spread": false,
+      "round": 7,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 61447
+    },
+    {
+      "spread": false,
+      "round": 7,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 91516
+    },
+    {
+      "spread": false,
+      "round": 8,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 91207
+    },
+    {
+      "spread": false,
+      "round": 8,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 66764
+    },
+    {
+      "spread": false,
+      "round": 9,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 68017
+    },
+    {
+      "spread": false,
+      "round": 9,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 88196
+    },
+    {
+      "spread": true,
+      "round": 2,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 83012
+    },
+    {
+      "spread": true,
+      "round": 2,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 62706
+    },
+    {
+      "spread": true,
+      "round": 3,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 56574
+    },
+    {
+      "spread": true,
+      "round": 3,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 71548
+    },
+    {
+      "spread": true,
+      "round": 4,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 75364
+    },
+    {
+      "spread": true,
+      "round": 4,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 54857
+    },
+    {
+      "spread": true,
+      "round": 5,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 56848
+    },
+    {
+      "spread": true,
+      "round": 5,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 69033
+    },
+    {
+      "spread": true,
+      "round": 6,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 68024
+    },
+    {
+      "spread": true,
+      "round": 6,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 47803
+    },
+    {
+      "spread": true,
+      "round": 7,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 54245
+    },
+    {
+      "spread": true,
+      "round": 7,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 66940
+    },
+    {
+      "spread": true,
+      "round": 8,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 66627
+    },
+    {
+      "spread": true,
+      "round": 8,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 49466
+    },
+    {
+      "spread": true,
+      "round": 9,
+      "candidate": "optimized",
+      "frames": 60,
+      "record_us": 50694
+    },
+    {
+      "spread": true,
+      "round": 9,
+      "candidate": "baseline",
+      "frames": 60,
+      "record_us": 73097
+    }
+  ],
+  "summary": [
+    {
+      "spread": false,
+      "baseline_median_ms": 1.4497749999999998,
+      "optimized_median_ms": 1.0075416666666666,
+      "reduction_fraction": 0.3050358388945411
+    },
+    {
+      "spread": true,
+      "baseline_median_ms": 1.1715083333333334,
+      "optimized_median_ms": 0.9091833333333333,
+      "reduction_fraction": 0.2239207289747548
+    }
+  ]
+}
