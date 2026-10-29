@@ -2,6 +2,7 @@ import 'package:fbooks/domain/reading/flow_document.dart';
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
 import 'package:fbooks/features/reader/presentation/flow_reader_page.dart';
+import 'package:fbooks/features/reader/presentation/flow_content_viewport.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,63 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fbooks/l10n/app_localizations.dart';
 
 void main() {
+  testWidgets(
+    'EPUB typography preferences override chapter CSS during reflow',
+    (tester) async {
+      FlowPagination? pagination;
+      final chapter = FlowChapter(
+        index: 0,
+        title: 'Styled chapter',
+        text: '',
+        transitionalHtml:
+            '<style>p { font-size: 12px; line-height: 100%; color: #ffffff; }</style>'
+            '<p style="font-size: 10px; line-height: 100%">'
+            '${List.filled(300, '阅读排版内容。').join()}</p>',
+      );
+      Future<void> render(double fontSize, double lineHeight) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: FlowChapterRenderer(
+                chapter: chapter,
+                initialPosition: const TextOffsetLocator(
+                  chapterIndex: 0,
+                  offset: 0,
+                ),
+                preferences: TextReadingPreferences(
+                  fontSize: fontSize,
+                  lineHeight: lineHeight,
+                  appearance: TextReadingAppearance.dark,
+                ),
+                onPositionChanged: (_) {},
+                onChapterSelected: (_) {},
+                onPaginationChanged: (value) => pagination = value,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await render(18, 1.3);
+      final smallPageCount = pagination!.pageCount;
+      await render(28, 2.1);
+      expect(pagination!.pageCount, greaterThan(smallPageCount));
+      final body = tester
+          .renderObjectList<RenderParagraph>(find.byType(RichText))
+          .firstWhere(
+            (paragraph) => paragraph.text.toPlainText().contains('阅读排版内容'),
+          );
+      final position = body.getPositionForOffset(Offset.zero);
+      final style = body.text.getSpanForPosition(position)!.style!;
+      expect(style.fontSize, 28);
+      expect(style.height, 2.1);
+      expect(style.color, const Color(0xFFE0E0E0));
+    },
+  );
+
   final text = List.generate(
     100,
     (i) =>
@@ -187,6 +245,37 @@ void main() {
       isNotNull,
     );
     expect(saved!.offset, lessThan(1 << 31));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('equivalent locator instances retain the anchor on rebuild', (
+    tester,
+  ) async {
+    TextOffsetLocator start() => TextOffsetLocator(chapterIndex: 0, offset: 0);
+    await tester.pumpWidget(reader(position: start(), html: true));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byTooltip('Next page'));
+      await tester.pumpAndSettle();
+    }
+    final anchor = saved!;
+    await tester.pumpWidget(
+      reader(
+        position: start(),
+        html: true,
+        preferences: const TextReadingPreferences(fontSize: 26, lineHeight: 2),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(saved!.paragraphIndex, anchor.paragraphIndex);
+    expect(saved!.characterOffset, anchor.characterOffset);
+
+    // 真正的外部跳转仍需生效。
+    await tester.pumpWidget(reader(position: anchor, html: true));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(reader(position: start(), html: true));
+    await tester.pumpAndSettle();
+    expect(saved!.offset, 0);
     expect(tester.takeException(), isNull);
   });
 }

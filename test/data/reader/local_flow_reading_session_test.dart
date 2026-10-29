@@ -113,6 +113,64 @@ void main() {
     expect(session.document.chapters.single.title, 'notes');
     expect(session.document.chapters.single.text, 'A plain-text chapter.');
   });
+
+  test('EPUB3 NAV chapters use the shared reflowable reading path', () async {
+    final directory = await Directory.systemTemp.createTemp('fbooks-epub3-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/sample.epub');
+    final text = List.filled(200, '同一章节内的流式文字应随窗口重新分页。').join();
+    final archive = Archive()
+      ..addFile(
+        _textArchiveFile(
+          'META-INF/container.xml',
+          '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container">'
+              '<rootfiles><rootfile full-path="book.opf" /></rootfiles></container>',
+        ),
+      )
+      ..addFile(
+        _textArchiveFile(
+          'book.opf',
+          '<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">'
+              '<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">'
+              '<dc:identifier id="id">sample</dc:identifier><dc:title>Sample</dc:title>'
+              '<dc:language>zh</dc:language>'
+              '<meta property="dcterms:modified">2026-10-28T00:00:00Z</meta>'
+              '</metadata><manifest>'
+              '<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav" />'
+              '<item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml" />'
+              '</manifest><spine><itemref idref="chapter" /></spine></package>',
+        ),
+      )
+      ..addFile(
+        _textArchiveFile(
+          'nav.xhtml',
+          '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">'
+              '<head><title>Contents</title></head><body><nav epub:type="toc"><ol>'
+              '<li><a href="chapter.xhtml">Chapter</a></li>'
+              '</ol></nav></body></html>',
+        ),
+      )
+      ..addFile(
+        _textArchiveFile(
+          'chapter.xhtml',
+          '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">'
+              '<head><title>Chapter</title></head>'
+              '<body><section epub:type="chapter"><h1>Chapter</h1><p>$text</p>'
+              '</section></body></html>',
+        ),
+      );
+    await file.writeAsBytes(ZipEncoder().encode(archive));
+    final session = await LocalFlowReadingSessionFactory().open(
+      _publication(id: 'epub3', file: file, format: PublicationFormat.epub),
+    );
+    addTearDown(session.close);
+    expect(session.document.chapters, hasLength(1));
+    expect(session.document.tableOfContents.single.title, 'Chapter');
+    final chapter = await session.loadChapter(0);
+    expect(chapter.title, 'Chapter');
+    expect(chapter.text, text);
+    expect(chapter.transitionalHtml, contains('<p>$text</p>'));
+  });
 }
 
 final _pixelGif = base64Decode(

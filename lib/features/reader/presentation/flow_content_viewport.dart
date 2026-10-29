@@ -81,7 +81,9 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
   @override
   void didUpdateWidget(covariant FlowContentViewport oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.position != widget.position && widget.position != _position) {
+    // 父组件重建时可能创建等值 locator；只有位置内容变化才是跳转请求。
+    if (!_samePosition(oldWidget.position, widget.position) &&
+        !_samePosition(widget.position, _position)) {
       _position = widget.position;
     }
     _scheduleMeasure();
@@ -407,6 +409,12 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     );
   }
 }
+
+bool _samePosition(TextOffsetLocator a, TextOffsetLocator b) =>
+    a.chapterIndex == b.chapterIndex &&
+    a.offset == b.offset &&
+    a.paragraphIndex == b.paragraphIndex &&
+    a.characterOffset == b.characterOffset;
 
 class _PageClipper extends CustomClipper<Rect> {
   const _PageClipper(this.height);

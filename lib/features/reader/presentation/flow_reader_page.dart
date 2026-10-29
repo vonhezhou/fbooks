@@ -770,13 +770,30 @@ class _FlowChapterRendererState extends State<FlowChapterRenderer> {
                       }
                     },
                     style: {
-                      'body': Style(
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
+                      // 出版物对子节点的 CSS 会覆盖 body 的继承值，阅读偏好
+                      // 必须直接应用到每个元素，才能按当前字号和行高重新分页。
+                      '*': Style(
                         color: _foregroundColor(widget.preferences.appearance),
                         fontSize: FontSize(widget.preferences.fontSize),
                         lineHeight: LineHeight(widget.preferences.lineHeight),
                       ),
+                      'body': Style(
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero,
+                      ),
+                      for (final (tag, scale) in [
+                        ('h1', 2.0),
+                        ('h2', 1.5),
+                        ('h3', 1.17),
+                        ('h4', 1.0),
+                        ('h5', 0.83),
+                        ('h6', 0.67),
+                      ])
+                        tag: Style(
+                          fontSize: FontSize(
+                            widget.preferences.fontSize * scale,
+                          ),
+                        ),
                     },
                   )
                 else
