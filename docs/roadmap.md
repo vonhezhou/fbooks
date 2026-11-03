@@ -83,6 +83,14 @@ focused commit and pass `flutter analyze` plus `flutter test`.
 - [x] Add text-reading preferences: font size, line height, margins, and
   light/dark/sepia appearance. Persist them locally and retain the reading
   position when they change.
+- [x] Integrate the validated paper-curl model into TXT/EPUB horizontal pages:
+  bounded real page textures, forward/backward dragging, cancellation and release
+  takeover, lazy chapter previews, and progress commits only after a completed
+  turn. Keyboard/buttons/page jumps remain direct navigation; continuous reading
+  retains its existing scrolling behavior.
+- [ ] Validate the integrated paper curl on physical Android/iOS hardware,
+  including actual display frame timing and system-back edge arbitration.
+  Android emulator interaction checks do not replace this acceptance step.
 - [x] Improve the text reader's EPUB presentation: preserve paragraph breaks
   and basic emphasis rather than flattening every spine item into one text
   string.

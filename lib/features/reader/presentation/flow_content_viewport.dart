@@ -1,4 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:fbooks/features/reader/presentation/page_curl/page_curl_viewport.dart';
 
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
@@ -6,6 +10,8 @@ import 'package:fbooks/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+
+typedef FlowPagePreview = Widget Function(VoidCallback onReady);
 
 class FlowPagination {
   const FlowPagination({
@@ -39,6 +45,11 @@ class FlowContentViewport extends StatefulWidget {
     this.onNextChapter,
     this.controlsBuilder,
     this.onPaginationChanged,
+    this.pagePadding = EdgeInsets.zero,
+    this.paperColor = Colors.white,
+    this.contentRevision = 0,
+    this.prepareChapter,
+    this.previewOnly = false,
   });
 
   final TextOffsetLocator position;
@@ -47,6 +58,11 @@ class FlowContentViewport extends StatefulWidget {
   final VoidCallback? onPreviousChapter;
   final VoidCallback? onNextChapter;
   final Widget child;
+  final EdgeInsets pagePadding;
+  final Color paperColor;
+  final Object contentRevision;
+  final Future<FlowPagePreview?> Function(int direction)? prepareChapter;
+  final bool previewOnly;
   final Widget Function(BuildContext context, FlowPagination pagination)?
   controlsBuilder;
   final ValueChanged<FlowPagination>? onPaginationChanged;
@@ -66,7 +82,11 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
   bool _measuring = false;
   bool _scheduled = false;
   bool _ready = false;
-  double _dragDistance = 0;
+  int _revision = 0;
+  Size _pageSize = Size.zero;
+  FlowPagePreview? _preview;
+  Completer<void>? _previewReady;
+  final _previewKey = GlobalKey();
 
   bool get _paged => widget.mode == TextReadingMode.paged;
   RenderBox? get _content =>
@@ -85,12 +105,29 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     if (!_samePosition(oldWidget.position, widget.position) &&
         !_samePosition(widget.position, _position)) {
       _position = widget.position;
+      _revision++;
+      _clearPreview();
+    }
+    if (oldWidget.contentRevision != widget.contentRevision ||
+        oldWidget.mode != widget.mode ||
+        oldWidget.paperColor != widget.paperColor) {
+      _revision++;
+      _clearPreview();
     }
     _scheduleMeasure();
   }
 
+  void _clearPreview() {
+    _preview = null;
+    final pending = _previewReady;
+    _previewReady = null;
+    if (pending != null && !pending.isCompleted) pending.complete();
+  }
+
   @override
   void dispose() {
+    _revision++;
+    _clearPreview();
     _scroll.dispose();
     super.dispose();
   }
@@ -182,6 +219,11 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
       breaks.add(end);
     }
     breaks.add(math.max(content.size.height, breaks.last + 1));
+    if (_breaks.length != breaks.length ||
+        Iterable.generate(breaks.length).any((i) => _breaks[i] != breaks[i])) {
+      _revision++;
+      _clearPreview();
+    }
     _breaks = breaks;
     var offset = _position.offset.toDouble();
     final paragraphIndex = _position.paragraphIndex;
@@ -264,9 +306,107 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     widget.onPositionChanged(_position);
   }
 
+  // 直接截取内容层中的页区间，不滚动正文，也不生成整章的大纹理。
+  ui.Image _capturePage(int page) {
+    final content = _content as _RenderPageContentBoundary;
+    final padding = widget.pagePadding;
+    final ratio = _textureRatio;
+    final height = math.min(_height, _breaks[page + 1] - _breaks[page]);
+    final image = content.capture(
+      Rect.fromLTWH(0, _breaks[page], content.size.width, height),
+      pixelRatio: ratio,
+    );
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder)..scale(ratio);
+    canvas.drawRect(
+      Offset.zero & _pageSize,
+      Paint()..color = widget.paperColor,
+    );
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      Rect.fromLTWH(padding.left, padding.top, content.size.width, height),
+      Paint(),
+    );
+    final picture = recorder.endRecording();
+    try {
+      return picture.toImageSync(
+        (_pageSize.width * ratio).ceil(),
+        (_pageSize.height * ratio).ceil(),
+      );
+    } finally {
+      picture.dispose();
+      image.dispose();
+    }
+  }
+
+  // 两张页面最多约 32 MiB RGBA；大桌面窗口也不按整章高度分配。
+  double get _textureRatio => math.min(
+    MediaQuery.devicePixelRatioOf(context),
+    math.min(
+      4096 / math.max(_pageSize.width, _pageSize.height),
+      math.sqrt(4 * 1024 * 1024 / (_pageSize.width * _pageSize.height)),
+    ),
+  );
+
+  Future<CurlTurnPages?> _prepareTurn(int direction) async {
+    if (!_ready) return null;
+    final page = _page + direction;
+    final chapterTurn = page < 0 || page >= _breaks.length - 1;
+    if (chapterTurn &&
+        (widget.prepareChapter == null ||
+            (direction < 0 ? widget.onPreviousChapter : widget.onNextChapter) ==
+                null)) {
+      return null;
+    }
+    final revision = _revision;
+    final sourcePage = _page;
+    ui.Image? current, target;
+    try {
+      if (!chapterTurn) {
+        current = _capturePage(_page);
+        target = _capturePage(page);
+      } else {
+        final builder = await widget.prepareChapter!(direction);
+        if (!mounted ||
+            revision != _revision ||
+            sourcePage != _page ||
+            builder == null) {
+          return null;
+        }
+        final ready = Completer<void>();
+        setState(() {
+          _preview = builder;
+          _previewReady = ready;
+        });
+        await ready.future;
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted || revision != _revision || sourcePage != _page) {
+          return null;
+        }
+        current = _capturePage(_page);
+        final boundary =
+            _previewKey.currentContext!.findRenderObject()
+                as RenderRepaintBoundary;
+        target = boundary.toImageSync(pixelRatio: _textureRatio);
+      }
+      final result = CurlTurnPages(current: current, target: target);
+      current = target = null;
+      return result;
+    } finally {
+      current?.dispose();
+      target?.dispose();
+      if (mounted && revision == _revision && _preview != null) {
+        setState(_clearPreview);
+      }
+    }
+  }
+
   void _turn(int delta) {
     if (!_ready) return;
     final next = _page + delta;
+    _revision++;
+    _clearPreview();
     if (next < 0) {
       widget.onPreviousChapter?.call();
     } else if (next >= _breaks.length - 1) {
@@ -287,6 +427,8 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     onNextPage: () => _turn(1),
     onPageSelected: (index) {
       if (!_ready) return;
+      _revision++;
+      _clearPreview();
       setState(() => _page = index.clamp(0, _breaks.length - 2));
       _scroll.jumpTo(_breaks[_page]);
       _reportPagination();
@@ -308,7 +450,15 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final height = math.max(1.0, constraints.maxHeight);
+              final padding = widget.pagePadding;
+              final size = constraints.biggest;
+              final height = math.max(1.0, size.height - padding.vertical);
+              if (_pageSize != size) {
+                _revision++;
+                _clearPreview();
+                _pageSize = size;
+                _scheduleMeasure();
+              }
               if (_height != height) {
                 _height = height;
                 _scheduleMeasure();
@@ -330,16 +480,55 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
                       return true;
                     },
                     child: SizeChangedLayoutNotifier(
-                      child: SizedBox(
+                      child: _PageContentBoundary(
                         key: _contentKey,
-                        width: constraints.maxWidth,
-                        child: widget.child,
+                        child: SizedBox(
+                          width: math.max(
+                            1,
+                            constraints.maxWidth - padding.horizontal,
+                          ),
+                          child: widget.child,
+                        ),
                       ),
                     ),
                   ),
                 ),
               );
+              viewport = ColoredBox(
+                color: widget.paperColor,
+                child: Padding(padding: padding, child: viewport),
+              );
               if (_paged) {
+                if (!widget.previewOnly) {
+                  viewport = PageCurlViewport(
+                    revision: (_revision, _page, widget.paperColor),
+                    paperColor: widget.paperColor,
+                    prepareTurn: _prepareTurn,
+                    onTurn: _turn,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (_preview case final builder?)
+                          IgnorePointer(
+                            child: ExcludeSemantics(
+                              child: RepaintBoundary(
+                                key: _previewKey,
+                                child: ExcludeFocus(
+                                  child: builder(() {
+                                    final ready = _previewReady;
+                                    if (ready != null && !ready.isCompleted) {
+                                      ready.complete();
+                                    }
+                                  }),
+                                ),
+                              ),
+                            ),
+                          ),
+                        viewport,
+                      ],
+                    ),
+                  );
+                }
                 viewport = CallbackShortcuts(
                   bindings: {
                     const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
@@ -351,25 +540,7 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
                     const SingleActivator(LogicalKeyboardKey.pageUp): () =>
                         _turn(-1),
                   },
-                  child: Focus(
-                    autofocus: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onHorizontalDragStart: (_) => _dragDistance = 0,
-                      onHorizontalDragUpdate: (details) =>
-                          _dragDistance += details.primaryDelta ?? 0,
-                      onHorizontalDragEnd: (details) {
-                        final velocity = details.primaryVelocity ?? 0;
-                        if (_dragDistance.abs() > 40 || velocity.abs() > 50) {
-                          final direction = _dragDistance.abs() > 40
-                              ? _dragDistance
-                              : velocity;
-                          _turn(direction < 0 ? 1 : -1);
-                        }
-                      },
-                      child: viewport,
-                    ),
-                  ),
+                  child: Focus(autofocus: true, child: viewport),
                 );
               }
               return SelectionArea(child: viewport);
@@ -425,4 +596,20 @@ class _PageClipper extends CustomClipper<Rect> {
 
   @override
   bool shouldReclip(_PageClipper oldClipper) => oldClipper.height != height;
+}
+
+// 在 RenderObject 内访问合成层，只允许按当前页区域截图。
+class _PageContentBoundary extends SingleChildRenderObjectWidget {
+  const _PageContentBoundary({super.key, required super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderPageContentBoundary();
+}
+
+class _RenderPageContentBoundary extends RenderRepaintBoundary {
+  ui.Image capture(Rect bounds, {required double pixelRatio}) {
+    assert(!debugNeedsPaint);
+    return (layer! as OffsetLayer).toImageSync(bounds, pixelRatio: pixelRatio);
+  }
 }

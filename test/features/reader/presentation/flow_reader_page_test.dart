@@ -21,6 +21,54 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
+    'curl previews chapters without saving and commits correct anchors in both directions',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repository = _ReadingProgressRepository();
+      await tester.pumpWidget(
+        _readerApp(
+          _documentWithTableOfContents,
+          progressRepository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 0);
+      final bounds = tester.getRect(
+        find.byKey(const Key('text-reader-content')),
+      );
+      final forward = await tester.startGesture(
+        Offset(bounds.right - 40, bounds.center.dy),
+      );
+      await forward.moveTo(Offset(bounds.left + 70, bounds.center.dy + 20));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('reader-page-curl')), findsOneWidget);
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 0);
+      await forward.up();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Continue'), findsOneWidget);
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 1);
+      final backward = await tester.startGesture(
+        Offset(bounds.left + 40, bounds.center.dy),
+      );
+      await backward.moveTo(Offset(bounds.right - 60, bounds.center.dy + 20));
+      await tester.pumpAndSettle();
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 1);
+      await backward.up();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Read'), findsOneWidget);
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'page buttons cross chapter boundaries and return to the last page',
     (tester) async {
       final repository = _ReadingProgressRepository();

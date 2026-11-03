@@ -45,6 +45,7 @@ class FlowReaderPage extends ConsumerWidget {
                 _showTextReadingSettings(context, ref, desktop: desktop);
             return session.when(
               data: (value) => _FlowChapterPager(
+                key: ObjectKey(value),
                 publicationId: publicationId,
                 title: title,
                 session: value,
@@ -125,6 +126,7 @@ class _FlowReaderFrame extends StatelessWidget {
 
 class _FlowChapterPager extends ConsumerStatefulWidget {
   const _FlowChapterPager({
+    super.key,
     required this.publicationId,
     required this.title,
     required this.session,
@@ -153,6 +155,13 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
   Timer? _pendingProgressWrite;
   var _outlineVisible = true;
   FlowPagination? _pagination;
+  final _loadedChapters = <int, FlowChapter>{};
+
+  Future<FlowChapter> _loadChapter(int index) async {
+    final chapter = await widget.session.loadChapter(index);
+    _loadedChapters[index] = chapter;
+    return chapter;
+  }
 
   @override
   void initState() {
@@ -291,7 +300,10 @@ class _FlowChapterPagerState extends ConsumerState<_FlowChapterPager> {
                     key: ValueKey(
                       widget.session.document.chapters[index].index,
                     ),
-                    loadChapter: () => widget.session.loadChapter(index),
+                    loadChapter: () => _loadChapter(index),
+                    initialChapter: _loadedChapters[index],
+                    loadAdjacentChapter: (direction) =>
+                        _loadChapter(index + direction),
                     initialPosition:
                         _chapterPositions[index] ??
                         TextOffsetLocator(chapterIndex: index, offset: 0),
@@ -611,7 +623,9 @@ class _DeferredFlowChapterView extends StatelessWidget {
   const _DeferredFlowChapterView({
     super.key,
     required this.loadChapter,
+    this.initialChapter,
     required this.initialPosition,
+    this.loadAdjacentChapter,
     this.onPreviousChapter,
     this.onNextChapter,
     required this.onPositionChanged,
@@ -621,7 +635,9 @@ class _DeferredFlowChapterView extends StatelessWidget {
   });
 
   final Future<FlowChapter> Function() loadChapter;
+  final FlowChapter? initialChapter;
   final TextOffsetLocator initialPosition;
+  final Future<FlowChapter> Function(int direction)? loadAdjacentChapter;
   final VoidCallback? onPreviousChapter;
   final VoidCallback? onNextChapter;
   final ValueChanged<TextOffsetLocator> onPositionChanged;
@@ -632,9 +648,11 @@ class _DeferredFlowChapterView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FutureBuilder<FlowChapter>(
     future: loadChapter(),
+    initialData: initialChapter,
     builder: (context, snapshot) => switch (snapshot) {
       AsyncSnapshot(:final data?) => FlowChapterRenderer(
         chapter: data,
+        loadAdjacentChapter: loadAdjacentChapter,
         initialPosition: initialPosition,
         onPreviousChapter: onPreviousChapter,
         onNextChapter: onNextChapter,
@@ -662,16 +680,20 @@ class FlowChapterRenderer extends StatefulWidget {
     super.key,
     required this.chapter,
     required this.initialPosition,
+    this.loadAdjacentChapter,
     this.onPreviousChapter,
     this.onNextChapter,
     required this.onPositionChanged,
     required this.onChapterSelected,
     required this.preferences,
     this.onPaginationChanged,
+    this.previewOnly = false,
   });
 
   final FlowChapter chapter;
+  final bool previewOnly;
   final TextOffsetLocator initialPosition;
+  final Future<FlowChapter> Function(int direction)? loadAdjacentChapter;
   final VoidCallback? onPreviousChapter;
   final VoidCallback? onNextChapter;
   final ValueChanged<TextOffsetLocator> onPositionChanged;
@@ -702,113 +724,138 @@ class _FlowChapterRendererState extends State<FlowChapterRenderer> {
           0.0,
           constraints.maxWidth / 4,
         );
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
+        return FlowContentViewport(
+          pagePadding: EdgeInsets.fromLTRB(
             horizontalPadding,
             16,
             horizontalPadding,
             8,
           ),
-          child: FlowContentViewport(
-            position: widget.initialPosition,
-            mode: widget.preferences.mode,
-            onPositionChanged: widget.onPositionChanged,
-            onPreviousChapter: widget.onPreviousChapter,
-            onNextChapter: widget.onNextChapter,
-            onPaginationChanged: widget.onPaginationChanged,
-            controlsBuilder: widget.onPaginationChanged == null
-                ? null
-                : (context, pagination) => const SizedBox.shrink(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  widget.chapter.title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _foregroundColor(widget.preferences.appearance),
-                  ),
+          paperColor: _backgroundColor(widget.preferences.appearance),
+          contentRevision: (
+            widget.chapter,
+            widget.preferences.fontSize,
+            widget.preferences.lineHeight,
+            widget.preferences.horizontalPadding,
+            widget.preferences.appearance,
+            MediaQuery.textScalerOf(context),
+            MediaQuery.devicePixelRatioOf(context),
+          ),
+          previewOnly: widget.previewOnly,
+          prepareChapter: widget.loadAdjacentChapter == null
+              ? null
+              : (direction) async {
+                  final chapter = await widget.loadAdjacentChapter!(direction);
+                  if (!mounted) return null;
+                  return (onReady) => FlowChapterRenderer(
+                    chapter: chapter,
+                    initialPosition: TextOffsetLocator(
+                      chapterIndex: chapter.index,
+                      offset: direction > 0 ? 0 : 1 << 31,
+                    ),
+                    preferences: widget.preferences,
+                    previewOnly: true,
+                    onPositionChanged: (_) {},
+                    onChapterSelected: (_) {},
+                    onPaginationChanged: (_) => onReady(),
+                  );
+                },
+          position: widget.initialPosition,
+          mode: widget.preferences.mode,
+          onPositionChanged: widget.onPositionChanged,
+          onPreviousChapter: widget.onPreviousChapter,
+          onNextChapter: widget.onNextChapter,
+          onPaginationChanged: widget.onPaginationChanged,
+          controlsBuilder: widget.onPaginationChanged == null
+              ? null
+              : (context, pagination) => const SizedBox.shrink(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                widget.chapter.title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: _foregroundColor(widget.preferences.appearance),
                 ),
-                const SizedBox(height: 28),
-                // EPUB currently supplies this transitional adapter. The
-                // semantic FlowBlock renderer will replace it in a follow-up.
-                if (widget.chapter.hasTransitionalHtml)
-                  Html(
-                    data: widget.chapter.transitionalHtml!,
-                    extensions: [
-                      TagWrapExtension(
-                        tagsToWrap: const {'img'},
-                        builder: (child) => ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth:
-                                constraints.maxWidth - horizontalPadding * 2,
-                            maxHeight: (constraints.maxHeight - 96).clamp(
-                              48,
-                              double.infinity,
-                            ),
-                          ),
-                          child: child,
-                        ),
-                      ),
-                      TagWrapExtension(
-                        tagsToWrap: const {'table'},
-                        builder: (child) => SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: child,
-                        ),
-                      ),
-                      const TableHtmlExtension(),
-                    ],
-                    onLinkTap: (url, attributes, element) {
-                      final uri = url == null ? null : Uri.tryParse(url);
-                      final chapterIndex = int.tryParse(
-                        uri?.pathSegments.singleOrNull ?? '',
-                      );
-                      if (uri?.scheme == 'fbooks' &&
-                          uri?.host == 'chapter' &&
-                          chapterIndex != null) {
-                        widget.onChapterSelected(chapterIndex);
-                      }
-                    },
-                    style: {
-                      // 出版物对子节点的 CSS 会覆盖 body 的继承值，阅读偏好
-                      // 必须直接应用到每个元素，才能按当前字号和行高重新分页。
-                      '*': Style(
-                        color: _foregroundColor(widget.preferences.appearance),
-                        fontSize: FontSize(widget.preferences.fontSize),
-                        lineHeight: LineHeight(widget.preferences.lineHeight),
-                      ),
-                      'body': Style(
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
-                      ),
-                      for (final (tag, scale) in [
-                        ('h1', 2.0),
-                        ('h2', 1.5),
-                        ('h3', 1.17),
-                        ('h4', 1.0),
-                        ('h5', 0.83),
-                        ('h6', 0.67),
-                      ])
-                        tag: Style(
-                          fontSize: FontSize(
-                            widget.preferences.fontSize * scale,
+              ),
+              const SizedBox(height: 28),
+              // EPUB currently supplies this transitional adapter. The
+              // semantic FlowBlock renderer will replace it in a follow-up.
+              if (widget.chapter.hasTransitionalHtml)
+                Html(
+                  data: widget.chapter.transitionalHtml!,
+                  extensions: [
+                    TagWrapExtension(
+                      tagsToWrap: const {'img'},
+                      builder: (child) => ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth:
+                              constraints.maxWidth - horizontalPadding * 2,
+                          maxHeight: (constraints.maxHeight - 96).clamp(
+                            48,
+                            double.infinity,
                           ),
                         ),
-                    },
-                  )
-                else
-                  Text.rich(
-                    TextSpan(
-                      children: _chapterTextSpans(
-                        context,
-                        widget.chapter,
-                        widget.preferences,
-                        _linkRecognizerFor,
+                        child: child,
                       ),
                     ),
+                    TagWrapExtension(
+                      tagsToWrap: const {'table'},
+                      builder: (child) => SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: child,
+                      ),
+                    ),
+                    const TableHtmlExtension(),
+                  ],
+                  onLinkTap: (url, attributes, element) {
+                    final uri = url == null ? null : Uri.tryParse(url);
+                    final chapterIndex = int.tryParse(
+                      uri?.pathSegments.singleOrNull ?? '',
+                    );
+                    if (uri?.scheme == 'fbooks' &&
+                        uri?.host == 'chapter' &&
+                        chapterIndex != null) {
+                      widget.onChapterSelected(chapterIndex);
+                    }
+                  },
+                  style: {
+                    // 出版物对子节点的 CSS 会覆盖 body 的继承值，阅读偏好
+                    // 必须直接应用到每个元素，才能按当前字号和行高重新分页。
+                    '*': Style(
+                      color: _foregroundColor(widget.preferences.appearance),
+                      fontSize: FontSize(widget.preferences.fontSize),
+                      lineHeight: LineHeight(widget.preferences.lineHeight),
+                    ),
+                    'body': Style(
+                      margin: Margins.zero,
+                      padding: HtmlPaddings.zero,
+                    ),
+                    for (final (tag, scale) in [
+                      ('h1', 2.0),
+                      ('h2', 1.5),
+                      ('h3', 1.17),
+                      ('h4', 1.0),
+                      ('h5', 0.83),
+                      ('h6', 0.67),
+                    ])
+                      tag: Style(
+                        fontSize: FontSize(widget.preferences.fontSize * scale),
+                      ),
+                  },
+                )
+              else
+                Text.rich(
+                  TextSpan(
+                    children: _chapterTextSpans(
+                      context,
+                      widget.chapter,
+                      widget.preferences,
+                      _linkRecognizerFor,
+                    ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         );
       },
