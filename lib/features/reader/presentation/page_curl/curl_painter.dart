@@ -152,9 +152,7 @@ class CurlPainter extends CustomPainter {
     workspace.update(
       geometry,
       paperColor: paperColor,
-      clipBounds: opaquePages && !spread
-          ? canvas.getLocalClipBounds().inflate(1)
-          : null,
+      clipBounds: opaquePages ? canvas.getLocalClipBounds().inflate(1) : null,
     );
     final vertices = workspace._vertices;
     final triangles = workspace._sorted;

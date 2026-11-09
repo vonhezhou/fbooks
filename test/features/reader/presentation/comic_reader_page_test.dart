@@ -1,5 +1,12 @@
+import 'package:fbooks/features/reader/presentation/page_curl/curl_painter.dart';
+
+import 'dart:ui' as ui;
+
+import 'package:flutter/services.dart';
+
+import 'package:fbooks/features/reader/presentation/page_curl/page_curl_viewport.dart';
+
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:fbooks/app/providers.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
@@ -24,6 +31,172 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'failed page preparation stays on source and retries without a stale commit',
+    (tester) async {
+      await _setWindow(tester, const Size(390, 844));
+      final session = _RetryComicReaderSession();
+      final progress = _ReadingProgressRepository();
+      await _pumpReader(tester, session: session, progress: progress);
+      await tester.tap(find.byKey(const Key('comic-turn-right')));
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 3'), findsOneWidget);
+      expect(progress.saved, isEmpty);
+      await tester.tap(find.byKey(const Key('comic-turn-right')));
+      await tester.pumpAndSettle();
+      expect(find.text('2 / 3'), findsOneWidget);
+      expect((progress.saved.single.locator as ComicPageLocator).pageIndex, 1);
+      expect(session.failures, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final rtl in [false, true]) {
+    testWidgets('double-page paper turn preserves page mapping with rtl=$rtl', (
+      tester,
+    ) async {
+      await _setWindow(tester, const Size(800, 1000));
+      final progress = _ReadingProgressRepository(
+        ReadingProgress(
+          publicationId: 'bobby',
+          locator: const ComicPageLocator(1),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await _pumpReader(
+        tester,
+        session: const _ManyComicReaderSession(),
+        progress: progress,
+        preferences: _ComicReadingPreferencesRepository(
+          ComicReadingPreferences(
+            doublePage: true,
+            mode: rtl
+                ? ComicReadingMode.rightToLeft
+                : ComicReadingMode.leftToRight,
+          ),
+        ),
+      );
+      expect(find.text('2–3 / 8'), findsOneWidget);
+      final rect = tester.getRect(find.byType(PageCurlViewport));
+      final start = Offset(
+        rtl ? rect.left + 24 : rect.right - 24,
+        rect.center.dy,
+      );
+      final end = Offset(
+        rtl ? rect.right - 24 : rect.left + 24,
+        rect.center.dy + 20,
+      );
+      final drag = await tester.startGesture(start);
+      await drag.moveTo(end);
+      await tester.pumpAndSettle();
+      final painter =
+          tester
+                  .widget<CustomPaint>(
+                    find.byKey(const Key('reader-page-curl')),
+                  )
+                  .painter!
+              as CurlPainter;
+      expect(painter.spread, isTrue);
+      expect(painter.images, hasLength(4));
+      expect(find.text('2–3 / 8'), findsOneWidget);
+      await drag.up();
+      await tester.pumpAndSettle();
+      expect(find.text('4–5 / 8'), findsOneWidget);
+      expect((progress.saved.last.locator as ComicPageLocator).pageIndex, 3);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final rtl in [false, true]) {
+    testWidgets('comic drag commits only after release with rtl=$rtl', (
+      tester,
+    ) async {
+      await _setWindow(tester, const Size(390, 844));
+      final progress = _ReadingProgressRepository();
+      await _pumpReader(
+        tester,
+        progress: progress,
+        preferences: _ComicReadingPreferencesRepository(
+          ComicReadingPreferences(
+            mode: rtl
+                ? ComicReadingMode.rightToLeft
+                : ComicReadingMode.leftToRight,
+          ),
+        ),
+      );
+      final rect = tester.getRect(find.byType(PageCurlViewport));
+      final start = Offset(
+        rtl ? rect.left + 24 : rect.right - 24,
+        rect.center.dy,
+      );
+      final end = Offset(
+        rtl ? rect.right - 24 : rect.left + 24,
+        rect.center.dy + 20,
+      );
+      final drag = await tester.startGesture(start);
+      await drag.moveTo(end);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('reader-page-curl')), findsOneWidget);
+      expect(find.text('1 / 3'), findsOneWidget);
+      await drag.up();
+      await tester.pumpAndSettle();
+      expect(find.text('2 / 3'), findsOneWidget);
+      expect((progress.saved.last.locator as ComicPageLocator).pageIndex, 1);
+      await tester.sendKeyEvent(
+        rtl ? LogicalKeyboardKey.arrowLeft : LogicalKeyboardKey.arrowRight,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('3 / 3'), findsOneWidget);
+      expect((progress.saved.last.locator as ComicPageLocator).pageIndex, 2);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets(
+    'pinch zoom owns multi-touch and disables paper dragging until restored',
+    (tester) async {
+      await _setWindow(tester, const Size(390, 844));
+      await _pumpReader(tester);
+      final center = tester.getCenter(find.byType(PageCurlViewport));
+      final first = await tester.startGesture(
+        center - const Offset(25, 0),
+        pointer: 1,
+      );
+      final second = await tester.startGesture(
+        center + const Offset(25, 0),
+        pointer: 2,
+      );
+      await first.moveTo(center - const Offset(70, 0));
+      await second.moveTo(center + const Offset(70, 0));
+      await tester.pump();
+      await first.up();
+      await second.up();
+      await tester.pumpAndSettle();
+      final viewer = tester.widget<InteractiveViewer>(
+        find.byType(InteractiveViewer),
+      );
+      expect(
+        viewer.transformationController!.value.getMaxScaleOnAxis(),
+        greaterThan(1),
+      );
+      expect(
+        tester.widget<PageCurlViewport>(find.byType(PageCurlViewport)).enabled,
+        isFalse,
+      );
+      await tester.dragFrom(center, const Offset(-100, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 3'), findsOneWidget);
+      expect(find.byKey(const Key('reader-page-curl')), findsNothing);
+      viewer.transformationController!.value = Matrix4.identity();
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<PageCurlViewport>(find.byType(PageCurlViewport)).enabled,
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   for (final size in [
     const Size(390, 844),
     const Size(800, 1000),
@@ -121,7 +294,10 @@ void main() {
     await tester.tap(find.byTooltip('Close settings'));
     await tester.pumpAndSettle();
     expect(find.text('1 / 3'), findsOneWidget);
-    expect(tester.widget<PageView>(find.byType(PageView)).reverse, isTrue);
+    expect(
+      tester.widget<PageCurlViewport>(find.byType(PageCurlViewport)).rtl,
+      isTrue,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -269,7 +445,10 @@ void main() {
     await tester.tap(find.byTooltip('Close settings'));
     await tester.pumpAndSettle();
     expect(find.text('2–3 / 3'), findsOneWidget);
-    expect(tester.widget<PageView>(find.byType(PageView)).reverse, isTrue);
+    expect(
+      tester.widget<PageCurlViewport>(find.byType(PageCurlViewport)).rtl,
+      isTrue,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -377,6 +556,7 @@ Future<void> _pumpReader(
         home: ComicReaderPage(
           publicationId: 'bobby',
           title: 'Bobby Make-Believe',
+          curlDecoder: _testDecode,
         ),
       ),
     ),
@@ -631,4 +811,44 @@ class _BookCollectionRepository implements BookCollectionRepository {
   Stream<List<BookCollection>> watchCollections() async* {
     yield [];
   }
+}
+
+// 图片解码是外部异步边界；导航测试使用同步生成的纹理，真实编解码另做像素回归。
+Future<ui.Image> _testDecode(
+  Uint8List bytes, {
+  required int maxWidth,
+  required int maxHeight,
+}) async {
+  final recorder = ui.PictureRecorder();
+  Canvas(recorder)
+      .drawRect(const Rect.fromLTWH(0, 0, 16, 16), Paint()..color = Colors.red);
+  final picture = recorder.endRecording();
+  try {
+    return picture.toImageSync(16, 16);
+  } finally {
+    picture.dispose();
+  }
+}
+
+class _RetryComicReaderSession extends _ComicReaderSession {
+  var failures = 0;
+  @override
+  Future<Uint8List> readPage(int index) async {
+    if (index == 1 && failures == 0) {
+      failures++;
+      throw StateError('Transient page failure');
+    }
+    return super.readPage(index);
+  }
+}
+
+class _ManyComicReaderSession extends _ComicReaderSession {
+  const _ManyComicReaderSession();
+  @override
+  ComicDocument get document => ComicDocument(
+    publicationId: 'bobby',
+    pages: [
+      for (var i = 0; i < 8; i++) ComicPageDescriptor(index: i, name: '$i.png'),
+    ],
+  );
 }

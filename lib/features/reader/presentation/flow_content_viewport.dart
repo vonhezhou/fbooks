@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:fbooks/features/reader/presentation/page_curl/page_curl_viewport.dart';
+import 'package:fbooks/features/reader/presentation/page_curl/curl_painter.dart';
 
 import 'package:fbooks/domain/reading/reading_locator.dart';
 import 'package:fbooks/domain/reading/text_reading_preferences.dart';
@@ -11,7 +12,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+bool _curlPipelineWarming = false;
+
 typedef FlowPagePreview = Widget Function(VoidCallback onReady);
+
+// 只在同一阅读器的已布局章节之间交接页图，不暴露像素偏移作为持久化位置。
+class FlowPageSnapshotController {
+  _FlowContentViewportState? _state;
+  Completer<void> _ready = Completer<void>();
+  Future<void> Function()? prepare;
+
+  void _attach(_FlowContentViewportState state) {
+    if (_state == null && _ready.isCompleted) _ready = Completer<void>();
+    _state = state;
+    if (state._ready && !_ready.isCompleted) _ready.complete();
+  }
+
+  void cancelPending() {
+    _state = null;
+    if (!_ready.isCompleted) _ready.complete();
+  }
+
+  Future<ui.Image?> captureBoundary({required bool fromEnd}) async {
+    await prepare?.call();
+    await _ready.future;
+    final state = _state;
+    if (state == null || !state.mounted || !state._ready) return null;
+    final page = fromEnd ? state._breaks.length - 2 : 0;
+    state._showSnapshotPage(page);
+    await WidgetsBinding.instance.endOfFrame;
+    if (_state != state || !state.mounted) return null;
+    return state._capturePage(page);
+  }
+}
 
 class FlowPagination {
   const FlowPagination({
@@ -50,6 +83,8 @@ class FlowContentViewport extends StatefulWidget {
     this.contentRevision = 0,
     this.prepareChapter,
     this.previewOnly = false,
+    this.snapshotController,
+    this.captureChapterPage,
   });
 
   final TextOffsetLocator position;
@@ -63,6 +98,8 @@ class FlowContentViewport extends StatefulWidget {
   final Object contentRevision;
   final Future<FlowPagePreview?> Function(int direction)? prepareChapter;
   final bool previewOnly;
+  final FlowPageSnapshotController? snapshotController;
+  final Future<ui.Image?> Function(int direction)? captureChapterPage;
   final Widget Function(BuildContext context, FlowPagination pagination)?
   controlsBuilder;
   final ValueChanged<FlowPagination>? onPaginationChanged;
@@ -96,14 +133,20 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
   void initState() {
     super.initState();
     _scroll.addListener(_scrolled);
+    widget.snapshotController?._attach(this);
   }
 
   @override
   void didUpdateWidget(covariant FlowContentViewport oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.snapshotController != widget.snapshotController) {
+      oldWidget.snapshotController?.cancelPending();
+      widget.snapshotController?._attach(this);
+    }
     // 父组件重建时可能创建等值 locator；只有位置内容变化才是跳转请求。
-    if (!_samePosition(oldWidget.position, widget.position) &&
-        !_samePosition(widget.position, _position)) {
+    if ((oldWidget.previewOnly && !widget.previewOnly) ||
+        (!_samePosition(oldWidget.position, widget.position) &&
+            !_samePosition(widget.position, _position))) {
       _position = widget.position;
       _revision++;
       _clearPreview();
@@ -128,6 +171,7 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
   void dispose() {
     _revision++;
     _clearPreview();
+    widget.snapshotController?.cancelPending();
     _scroll.dispose();
     super.dispose();
   }
@@ -252,6 +296,8 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     final target = _paged ? _breaks[_page] : offset;
     _scroll.jumpTo(target.clamp(0, _scroll.position.maxScrollExtent));
     _ready = true;
+    widget.snapshotController?._attach(this);
+    _warmPipeline();
     _measuring = false;
     setState(() {});
     _reportPosition(preserveAnchor: paragraphIndex != null);
@@ -306,6 +352,40 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     widget.onPositionChanged(_position);
   }
 
+  void _warmPipeline() {
+    if (!_paged || widget.previewOnly || _curlPipelineWarming) return;
+    _curlPipelineWarming = true;
+    final size = _pageSize, ratio = _textureRatio;
+    final paper = widget.paperColor;
+    // 在首次真实正文已绘制后预热同一材质和阴影，不等第一次触摸才创建 GPU 管线。
+    // 借用的快照由本任务独占，页面卸载不影响释放；不改变滚动或阅读位置。
+    ui.Image? image;
+    unawaited(() async {
+      try {
+        image = _capturePage(_page);
+        await warmCurlMesh(
+          [image!, image!],
+          size: size,
+          pixelRatio: ratio,
+          spread: false,
+          opaquePages: true,
+          paperColor: paper,
+        );
+      } catch (_) {
+        // 预热失败不阻断正文；后续实际绘制和下一次阅读仍可重试。
+        _curlPipelineWarming = false;
+      } finally {
+        image?.dispose();
+      }
+    }());
+  }
+
+  void _showSnapshotPage(int page) {
+    setState(() => _page = page);
+    _scroll.jumpTo(_breaks[page]);
+    _reportPagination();
+  }
+
   // 直接截取内容层中的页区间，不滚动正文，也不生成整章的大纹理。
   ui.Image _capturePage(int page) {
     final content = _content as _RenderPageContentBoundary;
@@ -319,8 +399,15 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder)..scale(ratio);
     canvas.drawRect(
-      Offset.zero & _pageSize,
-      Paint()..color = widget.paperColor,
+      Rect.fromLTWH(
+        0,
+        0,
+        (_pageSize.width * ratio).ceil() / ratio,
+        (_pageSize.height * ratio).ceil() / ratio,
+      ),
+      Paint()
+        ..color = widget.paperColor
+        ..isAntiAlias = false,
     );
     canvas.drawImageRect(
       image,
@@ -354,7 +441,7 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
     final page = _page + direction;
     final chapterTurn = page < 0 || page >= _breaks.length - 1;
     if (chapterTurn &&
-        (widget.prepareChapter == null ||
+        ((widget.prepareChapter == null && widget.captureChapterPage == null) ||
             (direction < 0 ? widget.onPreviousChapter : widget.onNextChapter) ==
                 null)) {
       return null;
@@ -366,6 +453,15 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
       if (!chapterTurn) {
         current = _capturePage(_page);
         target = _capturePage(page);
+      } else if (widget.captureChapterPage != null) {
+        target = await widget.captureChapterPage!(direction);
+        if (!mounted ||
+            revision != _revision ||
+            sourcePage != _page ||
+            target == null) {
+          return null;
+        }
+        current = _capturePage(_page);
       } else {
         final builder = await widget.prepareChapter!(direction);
         if (!mounted ||
@@ -499,8 +595,9 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
                 child: Padding(padding: padding, child: viewport),
               );
               if (_paged) {
-                if (!widget.previewOnly) {
+                {
                   viewport = PageCurlViewport(
+                    enabled: !widget.previewOnly,
                     revision: (_revision, _page, widget.paperColor),
                     paperColor: widget.paperColor,
                     prepareTurn: _prepareTurn,
@@ -540,7 +637,11 @@ class _FlowContentViewportState extends State<FlowContentViewport> {
                     const SingleActivator(LogicalKeyboardKey.pageUp): () =>
                         _turn(-1),
                   },
-                  child: Focus(autofocus: true, child: viewport),
+                  child: Focus(
+                    autofocus: !widget.previewOnly,
+                    canRequestFocus: !widget.previewOnly,
+                    child: viewport,
+                  ),
                 );
               }
               return SelectionArea(child: viewport);

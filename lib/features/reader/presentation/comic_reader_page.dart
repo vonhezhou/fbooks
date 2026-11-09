@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:fbooks/app/providers.dart';
+import 'package:fbooks/features/reader/presentation/comic_curl_pages.dart';
+import 'package:fbooks/features/reader/presentation/page_curl/page_curl_viewport.dart';
+import 'package:fbooks/features/reader/presentation/page_curl/curl_painter.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/features/reader/presentation/reader_chrome.dart';
 import 'package:fbooks/application/reader/comic_reader_session.dart';
@@ -24,10 +28,12 @@ class ComicReaderPage extends ConsumerStatefulWidget {
     super.key,
     required this.publicationId,
     required this.title,
+    this.curlDecoder = decodeComicCurlImage,
   });
 
   final PublicationId publicationId;
   final String title;
+  final ComicCurlDecoder curlDecoder;
 
   @override
   ConsumerState<ComicReaderPage> createState() => _ComicReaderPageState();
@@ -50,6 +56,8 @@ class _ComicReaderPageState extends ConsumerState<ComicReaderPage> {
           Positioned.fill(
             child: session.when(
               data: (value) => _ComicPageView(
+                key: ObjectKey(value),
+                curlDecoder: widget.curlDecoder,
                 publicationId: widget.publicationId,
                 session: value,
                 preferences: preferences,
@@ -102,6 +110,8 @@ class _ComicReaderPageState extends ConsumerState<ComicReaderPage> {
 
 class _ComicPageView extends ConsumerStatefulWidget {
   const _ComicPageView({
+    super.key,
+    required this.curlDecoder,
     required this.publicationId,
     required this.session,
     required this.preferences,
@@ -112,6 +122,7 @@ class _ComicPageView extends ConsumerStatefulWidget {
 
   final PublicationId publicationId;
   final ComicReaderSession session;
+  final ComicCurlDecoder curlDecoder;
   final ComicReadingPreferences preferences;
   final bool desktop;
   final bool controlsVisible;
@@ -122,7 +133,15 @@ class _ComicPageView extends ConsumerStatefulWidget {
 }
 
 class _ComicPageViewState extends ConsumerState<_ComicPageView> {
-  late final PageController _pageController;
+  final _curl = PageCurlController();
+  final _pageBytes = <int, Future<Uint8List>>{};
+  final _readyPages = <int>{};
+  final _zoomedPages = <int>{};
+  final _warmedLayouts = <bool>{};
+  final _frameKey = GlobalKey();
+  Size _stageSize = Size.zero;
+  ui.Image? _landingImage;
+  int? _landingPage;
   late final ScrollController _verticalScrollController;
   final _verticalPageKeys = <int, GlobalKey>{};
   bool _hasRestoredPosition = false;
@@ -132,14 +151,13 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
     _verticalScrollController = ScrollController();
   }
 
   @override
   void dispose() {
     _pendingVerticalPageSync?.cancel();
-    _pageController.dispose();
+    _landingImage?.dispose();
     _verticalScrollController.dispose();
     super.dispose();
   }
@@ -152,14 +170,16 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
             widget.preferences.usesDoublePage) {
       return;
     }
+    _landingImage?.dispose();
+    _landingImage = null;
+    _zoomedPages.clear();
+    _readyPages.clear();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       if (widget.preferences.mode == ComicReadingMode.vertical) {
         unawaited(_goToVerticalPage(_currentPage, animate: false));
-      } else if (_pageController.hasClients) {
-        _pageController.jumpToPage(_viewerIndexForPage(_currentPage));
+      } else {
+        _savePosition(_firstPageForViewer(_viewerIndexForPage(_currentPage)));
       }
     });
   }
@@ -176,21 +196,7 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
     progress.whenData(_restorePosition);
     final reader = widget.preferences.mode == ComicReadingMode.vertical
         ? _buildVerticalReader(pageCount)
-        : PageView.builder(
-            controller: _pageController,
-            itemCount: _viewerCount,
-            reverse: widget.preferences.mode == ComicReadingMode.rightToLeft,
-            onPageChanged: (index) => _savePosition(_firstPageForViewer(index)),
-            itemBuilder: (context, index) {
-              return _ComicPageSpread(
-                session: widget.session,
-                firstPage: _firstPageForViewer(index),
-                doublePage: widget.preferences.usesDoublePage,
-                rightToLeft:
-                    widget.preferences.mode == ComicReadingMode.rightToLeft,
-              );
-            },
-          );
+        : _buildHorizontalReader();
     final vertical = widget.preferences.mode == ComicReadingMode.vertical;
     final rightToLeft = widget.preferences.mode == ComicReadingMode.rightToLeft;
     final lastVisiblePage =
@@ -209,7 +215,29 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
             child: _ComicReaderStage(
               desktop: widget.desktop,
               vertical: vertical,
-              child: reader,
+              child: vertical
+                  ? reader
+                  : CallbackShortcuts(
+                      bindings: {
+                        const SingleActivator(
+                          LogicalKeyboardKey.arrowLeft,
+                        ): () => unawaited(
+                          rightToLeft ? _goToNext() : _goToPrevious(),
+                        ),
+                        const SingleActivator(
+                          LogicalKeyboardKey.arrowRight,
+                        ): () => unawaited(
+                          rightToLeft ? _goToPrevious() : _goToNext(),
+                        ),
+                        const SingleActivator(LogicalKeyboardKey.pageUp): () =>
+                            unawaited(_goToPrevious()),
+                        const SingleActivator(
+                          LogicalKeyboardKey.pageDown,
+                        ): () =>
+                            unawaited(_goToNext()),
+                      },
+                      child: Focus(autofocus: true, child: reader),
+                    ),
             ),
           ),
         ),
@@ -327,17 +355,41 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
       if (!mounted) {
         return;
       }
-      setState(() => _currentPage = pageIndex);
+      final target = widget.preferences.mode == ComicReadingMode.vertical
+          ? pageIndex
+          : _firstPageForViewer(_viewerIndexForPage(pageIndex));
+      setState(() => _currentPage = target);
       if (widget.preferences.mode == ComicReadingMode.vertical) {
-        unawaited(_goToVerticalPage(pageIndex, animate: false));
-      } else if (_pageController.hasClients) {
-        _pageController.jumpToPage(_viewerIndexForPage(pageIndex));
+        unawaited(_goToVerticalPage(target, animate: false));
       }
     });
   }
 
   void _savePosition(int pageIndex) {
-    setState(() => _currentPage = pageIndex);
+    setState(() {
+      _currentPage = pageIndex;
+      _readyPages.clear();
+      _zoomedPages.clear();
+      if (_landingPage != pageIndex) {
+        _landingImage?.dispose();
+        _landingImage = null;
+        _landingPage = null;
+      }
+    });
+    final keep = <int>{};
+    final viewer = _viewerIndexForPage(pageIndex);
+    for (var i = viewer - 1; i <= viewer + 1; i++) {
+      if (i >= 0 && i < _viewerCount) {
+        keep.addAll(
+          comicVisiblePages(
+            _firstPageForViewer(i),
+            widget.session.document.pages.length,
+            widget.preferences,
+          ),
+        );
+      }
+    }
+    _pageBytes.removeWhere((index, _) => !keep.contains(index));
     unawaited(_persistPosition(pageIndex));
   }
 
@@ -346,7 +398,7 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
       await _goToVerticalPage(pageIndex);
       return;
     }
-    await _goToViewer(_viewerIndexForPage(pageIndex));
+    await _goToViewer(_viewerIndexForPage(pageIndex), animate: false);
   }
 
   Future<void> _goToPrevious() {
@@ -367,16 +419,170 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
     );
   }
 
-  Future<void> _goToViewer(int viewerIndex) async {
-    if (!_pageController.hasClients ||
-        viewerIndex == _viewerIndexForPage(_currentPage)) {
+  Future<void> _goToViewer(int viewerIndex, {bool animate = true}) async {
+    final current = _viewerIndexForPage(_currentPage);
+    if (viewerIndex == current) return;
+    if (animate && _zoomedPages.isEmpty && (viewerIndex - current).abs() == 1) {
+      await _curl.turn((viewerIndex - current).sign);
+    } else {
+      _savePosition(_firstPageForViewer(viewerIndex));
+    }
+  }
+
+  Future<Uint8List> _readPage(int index) {
+    final cached = _pageBytes[index];
+    if (cached != null) return cached;
+    late Future<Uint8List> request;
+    request = Future<Uint8List>.sync(() => widget.session.readPage(index)).then(
+      (bytes) => bytes,
+      onError: (Object error, StackTrace stack) {
+        if (identical(_pageBytes[index], request)) _pageBytes.remove(index);
+        Error.throwWithStackTrace(error, stack);
+      },
+    );
+    _pageBytes[index] = request;
+    return request;
+  }
+
+  Widget _buildHorizontalReader() => LayoutBuilder(
+    builder: (context, constraints) {
+      _stageSize = constraints.biggest;
+      final first = _firstPageForViewer(_viewerIndexForPage(_currentPage));
+      final pages = comicVisiblePages(
+        first,
+        widget.session.document.pages.length,
+        widget.preferences,
+      );
+      return PageCurlViewport(
+        controller: _curl,
+        revision: (
+          widget.session,
+          first,
+          widget.preferences.mode,
+          widget.preferences.doublePage,
+          widget.curlDecoder,
+        ),
+        rtl: widget.preferences.mode == ComicReadingMode.rightToLeft,
+        rawDrag: true,
+        enabled: !pages.any(_zoomedPages.contains),
+        paperColor: Colors.white,
+        prepareTurn: (direction) async {
+          final next = _viewerIndexForPage(_currentPage) + direction;
+          if (next < 0 || next >= _viewerCount) return null;
+          final target = _firstPageForViewer(next);
+          return prepareComicCurlPages(
+            currentPage: first,
+            targetPage: target,
+            pageCount: widget.session.document.pages.length,
+            size: _stageSize,
+            pixelRatio: MediaQuery.devicePixelRatioOf(context),
+            preferences: widget.preferences,
+            readPage: _readPage,
+            decode: widget.curlDecoder,
+            onCommitImage: (image) {
+              _landingImage?.dispose();
+              _landingImage = image;
+              _landingPage = target;
+            },
+          );
+        },
+        onTurn: (direction) => _savePosition(
+          _firstPageForViewer(_viewerIndexForPage(_currentPage) + direction),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            RepaintBoundary(
+              key: _frameKey,
+              child: _ComicPageSpread(
+                session: widget.session,
+                firstPage: first,
+                doublePage: widget.preferences.usesDoublePage,
+                rightToLeft:
+                    widget.preferences.mode == ComicReadingMode.rightToLeft,
+                readPage: _readPage,
+                onPageReady: _onPageReady,
+                onZoomChanged: (page, zoomed) {
+                  setState(() {
+                    if (zoomed) {
+                      _zoomedPages.add(page);
+                    } else {
+                      _zoomedPages.remove(page);
+                    }
+                  });
+                },
+              ),
+            ),
+            if (_landingImage case final image?)
+              IgnorePointer(
+                child: ExcludeSemantics(
+                  child: RawImage(image: image, fit: BoxFit.fill),
+                ),
+              ),
+          ],
+        ),
+      );
+    },
+  );
+
+  void _onPageReady(int page) {
+    if (!mounted) return;
+    final first = _firstPageForViewer(_viewerIndexForPage(_currentPage));
+    final visible = comicVisiblePages(
+      first,
+      widget.session.document.pages.length,
+      widget.preferences,
+    );
+    if (!visible.contains(page)) return;
+    _readyPages.add(page);
+    if (!visible.every(_readyPages.contains)) return;
+    if (_landingImage != null) {
+      setState(() {
+        _landingImage?.dispose();
+        _landingImage = null;
+        _landingPage = null;
+      });
+    }
+    _warmPipeline();
+  }
+
+  void _warmPipeline() {
+    final layouts = [
+      false,
+      if (widget.preferences.usesDoublePage) true,
+    ].where((spread) => !_warmedLayouts.contains(spread)).toList();
+    if (layouts.isEmpty) return;
+    final boundary = _frameKey.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary ||
+        !boundary.hasSize ||
+        boundary.debugNeedsPaint) {
       return;
     }
-    await _pageController.animateToPage(
-      viewerIndex,
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
+    _warmedLayouts.addAll(layouts);
+    final size = boundary.size;
+    final ratio = comicCurlPixelRatio(
+      size,
+      MediaQuery.devicePixelRatioOf(context),
     );
+    final image = boundary.toImageSync(pixelRatio: ratio);
+    unawaited(() async {
+      try {
+        for (final spread in layouts) {
+          await warmCurlMesh(
+            List.filled(spread ? 4 : 2, image),
+            size: size,
+            pixelRatio: ratio,
+            spread: spread,
+            opaquePages: true,
+            paperColor: Colors.white,
+          );
+        }
+      } catch (_) {
+        _warmedLayouts.removeAll(layouts);
+      } finally {
+        image.dispose();
+      }
+    }());
   }
 
   Widget _buildVerticalReader(int pageCount) {
@@ -698,18 +904,24 @@ class _ComicPageSpread extends StatelessWidget {
     required this.firstPage,
     required this.doublePage,
     required this.rightToLeft,
+    this.readPage,
+    this.onPageReady,
+    this.onZoomChanged,
   });
 
   final ComicReaderSession session;
   final int firstPage;
   final bool doublePage;
   final bool rightToLeft;
+  final Future<Uint8List> Function(int page)? readPage;
+  final ValueChanged<int>? onPageReady;
+  final void Function(int page, bool zoomed)? onZoomChanged;
 
   @override
   Widget build(BuildContext context) {
     final pageCount = session.document.pages.length;
     if (!doublePage || firstPage == 0 || firstPage + 1 >= pageCount) {
-      return _ComicImage(session: session, pageIndex: firstPage);
+      return _image(firstPage);
     }
     final pageIndexes = rightToLeft
         ? [firstPage + 1, firstPage]
@@ -718,13 +930,20 @@ class _ComicPageSpread extends StatelessWidget {
       children: [
         for (final pageIndex in pageIndexes) ...[
           if (pageIndex != pageIndexes.first) const SizedBox(width: 4),
-          Expanded(
-            child: _ComicImage(session: session, pageIndex: pageIndex),
-          ),
+          Expanded(child: _image(pageIndex)),
         ],
       ],
     );
   }
+
+  Widget _image(int page) => _ComicImage(
+    key: ValueKey((page, doublePage, rightToLeft)),
+    session: session,
+    pageIndex: page,
+    readPage: readPage,
+    onReady: () => onPageReady?.call(page),
+    onZoomChanged: (zoomed) => onZoomChanged?.call(page, zoomed),
+  );
 }
 
 class _VerticalComicPage extends StatelessWidget {
@@ -746,14 +965,21 @@ class _VerticalComicPage extends StatelessWidget {
 
 class _ComicImage extends StatefulWidget {
   const _ComicImage({
+    super.key,
     required this.session,
     required this.pageIndex,
     this.fitWidth = false,
+    this.readPage,
+    this.onReady,
+    this.onZoomChanged,
   });
 
   final ComicReaderSession session;
   final int pageIndex;
   final bool fitWidth;
+  final Future<Uint8List> Function(int page)? readPage;
+  final VoidCallback? onReady;
+  final ValueChanged<bool>? onZoomChanged;
 
   @override
   State<_ComicImage> createState() => _ComicImageState();
@@ -762,11 +988,54 @@ class _ComicImage extends StatefulWidget {
 class _ComicImageState extends State<_ComicImage> {
   // 工具栏显隐只重建界面，沿用同一图片请求以避免重新读取和闪烁。
   late Future<Uint8List> _pageBytes;
+  final _transform = TransformationController();
+  bool _zoomed = false, _readySent = false;
+  int _imageGeneration = 0;
+
+  void _transformChanged() {
+    final zoomed = _transform.value.getMaxScaleOnAxis() > 1.001;
+    if (zoomed == _zoomed) return;
+    setState(() => _zoomed = zoomed);
+    widget.onZoomChanged?.call(zoomed);
+  }
+
+  Widget _frame(
+    BuildContext context,
+    Widget child,
+    int? frame,
+    bool synchronous,
+  ) {
+    if (!_readySent && (frame != null || synchronous)) {
+      _readySent = true;
+      final generation = _imageGeneration;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && generation == _imageGeneration) widget.onReady?.call();
+      });
+    }
+    return child;
+  }
+
+  Widget _imageError(BuildContext context, Object error, StackTrace? stack) =>
+      _frame(
+        context,
+        const _ReaderErrorView(
+          error: FormatException('Comic image cannot be decoded.'),
+        ),
+        0,
+        true,
+      );
+
+  @override
+  void dispose() {
+    _transform.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-    _pageBytes = widget.session.readPage(widget.pageIndex);
+    _pageBytes = (widget.readPage ?? widget.session.readPage)(widget.pageIndex);
+    _transform.addListener(_transformChanged);
   }
 
   @override
@@ -774,7 +1043,15 @@ class _ComicImageState extends State<_ComicImage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.session != widget.session ||
         oldWidget.pageIndex != widget.pageIndex) {
-      _pageBytes = widget.session.readPage(widget.pageIndex);
+      _pageBytes = (widget.readPage ?? widget.session.readPage)(
+        widget.pageIndex,
+      );
+      _readySent = false;
+      _imageGeneration++;
+      _transform.removeListener(_transformChanged);
+      _transform.value = Matrix4.identity();
+      _zoomed = false;
+      _transform.addListener(_transformChanged);
     }
   }
 
@@ -786,20 +1063,30 @@ class _ComicImageState extends State<_ComicImage> {
         if (snapshot.hasError) {
           return _ReaderErrorView(error: snapshot.error!);
         }
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData ||
+            snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
         return LayoutBuilder(
           builder: (context, constraints) => InteractiveViewer(
+            transformationController: _transform,
+            panEnabled: _zoomed,
             maxScale: 4,
             child: widget.fitWidth
                 ? Image.memory(
                     snapshot.data!,
+                    frameBuilder: _frame,
+                    errorBuilder: _imageError,
                     width: constraints.maxWidth,
                     fit: BoxFit.fitWidth,
                   )
                 : SizedBox.expand(
-                    child: Image.memory(snapshot.data!, fit: BoxFit.contain),
+                    child: Image.memory(
+                      snapshot.data!,
+                      fit: BoxFit.contain,
+                      frameBuilder: _frame,
+                      errorBuilder: _imageError,
+                    ),
                   ),
           ),
         );

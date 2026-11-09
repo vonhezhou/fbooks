@@ -21,6 +21,210 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
+    'cancelled boundary preview preserves the previous chapter restore anchor',
+    (tester) async {
+      await tester.pumpWidget(
+        _readerApp(
+          FlowDocument(
+            publicationId: _publicationId,
+            chapters: [
+              FlowChapter(
+                index: 0,
+                title: 'Long first',
+                text: List.filled(160, 'Original chapter anchor.\n').join(),
+              ),
+              const FlowChapter(
+                index: 1,
+                title: 'Second',
+                text: 'Current source',
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Table of contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('text-reader-toc-1')));
+      await tester.pumpAndSettle();
+      final bounds = tester.getRect(
+        find.byKey(const Key('text-reader-content')),
+      );
+      final drag = await tester.startGesture(
+        Offset(bounds.left + 40, bounds.center.dy),
+      );
+      await drag.moveTo(
+        Offset(bounds.left + 100, bounds.center.dy + 10),
+        timeStamp: const Duration(milliseconds: 100),
+      );
+      await tester.pumpAndSettle();
+      await drag.up(timeStamp: const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+      expect(find.text('Current source').hitTestable(), findsOneWidget);
+      await tester.tap(find.byTooltip('Table of contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('text-reader-toc-0')));
+      await tester.pumpAndSettle();
+      expect(_pageInput(tester).controller!.text, '1');
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'chapter handoff keeps the same viewport while pagination becomes ready',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(top: 24, bottom: 24);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPadding);
+      await tester.pumpWidget(_readerApp(_documentWithTableOfContents));
+      await tester.pumpAndSettle();
+      final bounds = tester.getRect(
+        find.byKey(const Key('text-reader-content')),
+      );
+      await tester.tap(find.byTooltip('Table of contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('text-reader-toc-1')));
+      for (var frame = 0; frame < 5; frame++) {
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(
+          tester.getRect(find.byKey(const Key('text-reader-content'))),
+          bounds,
+        );
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('Continue').hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'retains only adjacent chapter renderers and saves only the active position',
+    (tester) async {
+      final repository = _ReadingProgressRepository();
+      await tester.pumpWidget(
+        _readerApp(
+          FlowDocument(
+            publicationId: _publicationId,
+            chapters: [
+              for (var i = 0; i < 5; i++)
+                FlowChapter(index: i, title: 'Chapter $i', text: 'Content $i'),
+            ],
+          ),
+          progressRepository: repository,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widgetList<FlowChapterRenderer>(find.byType(FlowChapterRenderer))
+            .map((w) => w.chapter.index)
+            .toSet(),
+        {0, 1},
+      );
+      await tester.tap(find.byTooltip('Table of contents'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('text-reader-toc-3')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(
+        tester
+            .widgetList<FlowChapterRenderer>(find.byType(FlowChapterRenderer))
+            .map((w) => w.chapter.index)
+            .toSet(),
+        {2, 3, 4},
+      );
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 3);
+      expect(find.text('Content 3').hitTestable(), findsOneWidget);
+      expect(find.text('Content 2').hitTestable(), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'failed cached neighbor can retry and the prepared renderer survives commit',
+    (tester) async {
+      var attempts = 0;
+      final repository = _ReadingProgressRepository();
+      await tester.pumpWidget(
+        _readerApp(
+          _documentWithTableOfContents,
+          progressRepository: repository,
+          onLoadChapter: (index) {
+            if (index == 1 && ++attempts == 1) {
+              throw StateError('Transient chapter failure');
+            }
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      final bounds = tester.getRect(
+        find.byKey(const Key('text-reader-content')),
+      );
+      final drag = await tester.startGesture(
+        Offset(bounds.right - 40, bounds.center.dy),
+      );
+      await drag.moveTo(Offset(bounds.left + 40, bounds.center.dy + 20));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('reader-page-curl')), findsOneWidget);
+      final target = find.byWidgetPredicate(
+        (w) => w is FlowChapterRenderer && w.chapter.index == 1,
+      );
+      final prepared = tester.element(target);
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 0);
+      await drag.up();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(tester.element(target), same(prepared));
+      expect(attempts, 2);
+      expect((repository.saved!.locator as TextOffsetLocator).chapterIndex, 1);
+      expect(find.text('Continue').hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'page progress updates do not reload or rebuild chapter content',
+    (tester) async {
+      var loads = 0;
+      await tester.pumpWidget(
+        _readerApp(
+          FlowDocument(
+            publicationId: _publicationId,
+            chapters: [
+              FlowChapter(
+                index: 0,
+                title: 'Long chapter',
+                text: List.filled(
+                  160,
+                  'Stable chapter content and pagination.\n',
+                ).join(),
+              ),
+            ],
+          ),
+          onLoadChapter: (_) => loads++,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final initialLoads = loads;
+      expect(initialLoads, greaterThan(0));
+      for (var page = 2; page <= 3; page++) {
+        await tester.tap(find.byTooltip('Next page'));
+        await tester.pumpAndSettle();
+        expect(_pageInput(tester).controller!.text, '$page');
+        expect(loads, initialLoads);
+      }
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
     'curl previews chapters without saving and commits correct anchors in both directions',
     (tester) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -91,7 +295,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Table of contents'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Second'));
+      await tester.tap(find.byKey(const Key('text-reader-toc-1')));
       await tester.pumpAndSettle();
       expect(find.text('Arrival'), findsOneWidget);
       await tester.tap(find.byTooltip('Previous page'));
@@ -533,13 +737,14 @@ Widget _readerApp(
   TextReadingPreferences preferences = TextReadingPreferences.defaults,
   _ReadingProgressRepository? progressRepository,
   _TextReadingPreferencesRepository? preferencesRepository,
+  ValueChanged<int>? onLoadChapter,
 }) => ProviderScope(
   overrides: [
     publicationRepositoryProvider.overrideWithValue(
       _PublicationRepository(_publication),
     ),
     flowReadingSessionFactoryProvider.overrideWithValue(
-      _FlowReadingSessionFactory(document),
+      _FlowReadingSessionFactory(document, onLoadChapter: onLoadChapter),
     ),
     readingProgressRepositoryProvider.overrideWithValue(
       progressRepository ?? _ReadingProgressRepository(),
@@ -581,23 +786,30 @@ class _PublicationRepository implements PublicationRepository {
 }
 
 class _FlowReadingSessionFactory implements FlowReadingSessionFactory {
-  const _FlowReadingSessionFactory(this.document);
+  const _FlowReadingSessionFactory(this.document, {this.onLoadChapter});
+
+  final ValueChanged<int>? onLoadChapter;
 
   final FlowDocument document;
 
   @override
   Future<FlowReadingSession> open(Publication publication) async =>
-      _FlowReadingSession(document);
+      _FlowReadingSession(document, onLoadChapter: onLoadChapter);
 }
 
 class _FlowReadingSession implements FlowReadingSession {
-  const _FlowReadingSession(this.document);
+  const _FlowReadingSession(this.document, {this.onLoadChapter});
+
+  final ValueChanged<int>? onLoadChapter;
 
   @override
   final FlowDocument document;
 
   @override
-  Future<FlowChapter> loadChapter(int index) async => document.chapters[index];
+  Future<FlowChapter> loadChapter(int index) async {
+    onLoadChapter?.call(index);
+    return document.chapters[index];
+  }
 
   @override
   Future<void> close() async {}

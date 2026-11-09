@@ -19,6 +19,123 @@ CurlTurnPages pages() =>
     CurlTurnPages(current: page(Colors.white), target: page(Colors.amber));
 
 void main() {
+  testWidgets('trackpad pan turns a page and pinch cancels the turn', (
+    tester,
+  ) async {
+    final turns = <int>[];
+    await tester.pumpWidget(_app(onTurn: turns.add));
+    final pan = await tester.createGesture(kind: ui.PointerDeviceKind.trackpad);
+    await pan.panZoomStart(const Offset(350, 300));
+    await pan.panZoomUpdate(
+      const Offset(350, 300),
+      pan: const Offset(-260, 10),
+    );
+    await tester.pumpAndSettle();
+    expect(turns, isEmpty);
+    await pan.panZoomEnd();
+    await tester.pumpAndSettle();
+    expect(turns, [1]);
+    final pinch = await tester.createGesture(
+      kind: ui.PointerDeviceKind.trackpad,
+    );
+    await pinch.panZoomStart(const Offset(350, 300));
+    await pinch.panZoomUpdate(
+      const Offset(350, 300),
+      pan: const Offset(-220, 10),
+    );
+    await tester.pumpAndSettle();
+    await pinch.panZoomUpdate(
+      const Offset(350, 300),
+      pan: const Offset(-240, 10),
+      scale: 1.2,
+    );
+    await pinch.panZoomEnd();
+    await tester.pumpAndSettle();
+    expect(turns, [1]);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('RTL turns advance rightward and preserve backward navigation', (
+    tester,
+  ) async {
+    final turns = <int>[];
+    await tester.pumpWidget(_app(onTurn: turns.add, rtl: true));
+    await tester.dragFrom(const Offset(30, 300), const Offset(290, 20));
+    await tester.pumpAndSettle();
+    expect(turns, [1]);
+    await tester.dragFrom(const Offset(360, 300), const Offset(-290, 20));
+    await tester.pumpAndSettle();
+    expect(turns, [1, -1]);
+  });
+
+  testWidgets(
+    'raw dragging works beside a scale recognizer and two fingers cancel the turn',
+    (tester) async {
+      final turns = <int>[];
+      await tester.pumpWidget(
+        _app(
+          onTurn: turns.add,
+          rawDrag: true,
+          child: GestureDetector(
+            onScaleUpdate: (_) {},
+            child: const ColoredBox(color: Colors.white),
+          ),
+        ),
+      );
+      final first = await tester.startGesture(
+        const Offset(360, 300),
+        pointer: 1,
+      );
+      await first.moveTo(const Offset(140, 320));
+      await tester.pump();
+      expect(find.byKey(const Key('reader-page-curl')), findsOneWidget);
+      final second = await tester.startGesture(
+        const Offset(210, 350),
+        pointer: 2,
+      );
+      await tester.pump();
+      await second.up();
+      await first.up();
+      await tester.pumpAndSettle();
+      expect(turns, isEmpty);
+      final next = await tester.startGesture(const Offset(360, 300));
+      await next.moveTo(const Offset(60, 320));
+      await tester.pump();
+      await next.up();
+      await tester.pumpAndSettle();
+      expect(turns, [1]);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'button controller uses the same release and commits a landing image once',
+    (tester) async {
+      final controller = PageCurlController();
+      final turns = <int>[];
+      var commits = 0;
+      await tester.pumpWidget(
+        _app(
+          onTurn: turns.add,
+          controller: controller,
+          prepare: (_) async => CurlTurnPages(
+            current: page(Colors.white),
+            target: page(Colors.blue),
+            onCommit: () => commits++,
+          ),
+        ),
+      );
+      final turn = controller.turn(1);
+      await tester.pump();
+      expect(turns, isEmpty);
+      expect(commits, 0);
+      await tester.pumpAndSettle();
+      await turn;
+      expect(turns, [1]);
+      expect(commits, 1);
+    },
+  );
+
   testWidgets(
     'reduced motion commits at release without a settling animation',
     (tester) async {
@@ -178,6 +295,10 @@ Widget _app({
   Future<CurlTurnPages?> Function(int)? prepare,
   double reservedEdges = 0,
   bool reducedMotion = false,
+  bool rtl = false,
+  bool rawDrag = false,
+  PageCurlController? controller,
+  Widget? child,
 }) => MaterialApp(
   home: Align(
     alignment: Alignment.topLeft,
@@ -192,10 +313,13 @@ Widget _app({
         ),
         child: PageCurlViewport(
           revision: revision,
+          rtl: rtl,
+          rawDrag: rawDrag,
+          controller: controller,
           paperColor: Colors.white,
           prepareTurn: prepare ?? (_) async => pages(),
           onTurn: onTurn,
-          child: const ColoredBox(color: Colors.white),
+          child: child ?? const ColoredBox(color: Colors.white),
         ),
       ),
     ),
