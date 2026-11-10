@@ -7,6 +7,7 @@ import 'package:fbooks/features/reader/presentation/comic_curl_pages.dart';
 import 'package:fbooks/features/reader/presentation/page_curl/page_curl_viewport.dart';
 import 'package:fbooks/features/reader/presentation/page_curl/curl_painter.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:fbooks/domain/collection/book_collection.dart';
 import 'package:fbooks/features/reader/presentation/reader_chrome.dart';
@@ -574,6 +575,7 @@ class _ComicPageViewState extends ConsumerState<_ComicPageView> {
             pixelRatio: ratio,
             spread: spread,
             opaquePages: true,
+            batchOpaqueSpread: defaultTargetPlatform == TargetPlatform.android,
             paperColor: Colors.white,
           );
         }

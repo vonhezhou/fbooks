@@ -17,6 +17,7 @@ Future<Duration> warmCurlMesh(
   required double pixelRatio,
   required bool spread,
   bool opaquePages = false,
+  bool batchOpaqueSpread = false,
   Color paperColor = const Color(0xfffaf6ec),
 }) async {
   final watch = Stopwatch()..start();
@@ -25,12 +26,16 @@ Future<Duration> warmCurlMesh(
     for (final progress in [0.005, 0.52]) {
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder)..scale(pixelRatio);
+      if (batchOpaqueSpread) {
+        canvas.clipRect(Offset.zero & size, doAntiAlias: false);
+      }
       CurlPainter(
         images: images,
         progress: progress,
         spread: spread,
         mesh: mesh,
         opaquePages: opaquePages,
+        batchOpaqueSpread: batchOpaqueSpread,
         paperColor: paperColor,
         horizontalWeight: horizontalWeight,
       ).paint(canvas, size);
@@ -66,6 +71,7 @@ class CurlPainter extends CustomPainter {
     this.onPaint,
     this.mesh,
     this.opaquePages = false,
+    this.batchOpaqueSpread = false,
     this.paperColor = const Color(0xfffaf6ec),
   });
   final List<ui.Image> images;
@@ -85,6 +91,8 @@ class CurlPainter extends CustomPainter {
   final Color paperColor;
   // 仅预先铺满纸底的不透明纹理可使用单次合成；透明来源保持原有 alpha 契约。
   final bool opaquePages;
+  // 调用方需使用硬边缘裁剪，避免离屏图层叠乘软裁剪的覆盖率。
+  final bool batchOpaqueSpread;
   static final _identity = Float64List.fromList([
     1,
     0,
@@ -270,86 +278,96 @@ class CurlPainter extends CustomPainter {
         );
       }
     }
-    // 按深度排序，再合并连续同面三角形，避免每个三角形独立 draw call。
-    // 深度排序可能产生数十个交错批次；同一页的着色器每帧只创建一次。
-    final pagePaints = <ui.Image, Paint>{};
-    final shaders = <ui.ImageShader>[];
-    final coatingPaint = Paint()..color = Colors.white;
-    final composite = opaquePages && !spread;
-    var start = 0;
-    try {
-      while (start < triangles.length) {
-        final back = triangles[start].back;
-        var end = start + 1;
-        while (end < triangles.length &&
-            (composite || triangles[end].back == back)) {
-          end++;
-        }
-        final image = images[spread ? (back ? 2 : 1) : 0];
-        final positions = workspace._positions;
-        final uv = workspace._uv;
-        final colors = workspace._colors;
-        var index = start * 3;
-        for (var t = start; t < end; t++) {
-          for (final v in triangles[t].indices) {
-            final vertex = vertices[v];
-            positions[index * 2] = vertex.x;
-            positions[index * 2 + 1] = vertex.y;
-            var u = workspace._normalizedUv[v * 2];
-            if (back && spread) u = 1 - u;
-            if (rtl) u = 1 - u;
-            uv[index * 2] = u * image.width;
-            uv[index * 2 + 1] =
-                workspace._normalizedUv[v * 2 + 1] * image.height;
-            colors[index] = composite
-                ? workspace._opaquePalette[(triangles[t].back ? 256 : 0) +
-                      (workspace._vertexColors[v] & 255)]
-                : workspace._vertexColors[v];
-            if (back && !spread) {
-              workspace._paperColors[index] = workspace._vertexPaperColors[v];
-            }
-            index++;
+    final maskedSpread =
+        opaquePages &&
+        spread &&
+        batchOpaqueSpread &&
+        triangles.isNotEmpty &&
+        triangles.any((triangle) => triangle.back != triangles.first.back);
+    if (maskedSpread) {
+      _paintMaskedSpread(canvas, workspace);
+    } else {
+      // 按深度排序，再合并连续同面三角形，避免每个三角形独立 draw call。
+      // 深度排序可能产生数十个交错批次；同一页的着色器每帧只创建一次。
+      final pagePaints = <ui.Image, Paint>{};
+      final shaders = <ui.ImageShader>[];
+      final coatingPaint = Paint()..color = Colors.white;
+      final composite = opaquePages && !spread;
+      var start = 0;
+      try {
+        while (start < triangles.length) {
+          final back = triangles[start].back;
+          var end = start + 1;
+          while (end < triangles.length &&
+              (composite || triangles[end].back == back)) {
+            end++;
           }
-        }
-        final mesh = ui.Vertices.raw(
-          ui.VertexMode.triangles,
-          Float32List.sublistView(positions, start * 6, end * 6),
-          textureCoordinates: Float32List.sublistView(uv, start * 6, end * 6),
-          colors: Int32List.sublistView(colors, start * 3, end * 3),
-        );
-        final pagePaint = pagePaints.putIfAbsent(image, () {
-          final shader = ui.ImageShader(
-            image,
-            TileMode.clamp,
-            TileMode.clamp,
-            _identity,
-            filterQuality: FilterQuality.medium,
-          );
-          shaders.add(shader);
-          return Paint()..shader = shader;
-        });
-        // drawVertices 以图像为 src、顶点颜色为 dst；dstOver 将顶点涂层覆在图像上。
-        canvas.drawVertices(
-          mesh,
-          composite ? BlendMode.dstOver : BlendMode.modulate,
-          pagePaint,
-        );
-        if (back && !spread && !composite) {
-          final paperColors = workspace._paperColors;
-          final coating = ui.Vertices.raw(
+          final image = images[spread ? (back ? 2 : 1) : 0];
+          final positions = workspace._positions;
+          final uv = workspace._uv;
+          final colors = workspace._colors;
+          var index = start * 3;
+          for (var t = start; t < end; t++) {
+            for (final v in triangles[t].indices) {
+              final vertex = vertices[v];
+              positions[index * 2] = vertex.x;
+              positions[index * 2 + 1] = vertex.y;
+              var u = workspace._normalizedUv[v * 2];
+              if (back && spread) u = 1 - u;
+              if (rtl) u = 1 - u;
+              uv[index * 2] = u * image.width;
+              uv[index * 2 + 1] =
+                  workspace._normalizedUv[v * 2 + 1] * image.height;
+              colors[index] = composite
+                  ? workspace._opaquePalette[(triangles[t].back ? 256 : 0) +
+                        (workspace._vertexColors[v] & 255)]
+                  : workspace._vertexColors[v];
+              if (back && !spread) {
+                workspace._paperColors[index] = workspace._vertexPaperColors[v];
+              }
+              index++;
+            }
+          }
+          final mesh = ui.Vertices.raw(
             ui.VertexMode.triangles,
             Float32List.sublistView(positions, start * 6, end * 6),
-            colors: Int32List.sublistView(paperColors, start * 3, end * 3),
+            textureCoordinates: Float32List.sublistView(uv, start * 6, end * 6),
+            colors: Int32List.sublistView(colors, start * 3, end * 3),
           );
-          canvas.drawVertices(coating, BlendMode.srcOver, coatingPaint);
-          coating.dispose();
+          final pagePaint = pagePaints.putIfAbsent(image, () {
+            final shader = ui.ImageShader(
+              image,
+              TileMode.clamp,
+              TileMode.clamp,
+              _identity,
+              filterQuality: FilterQuality.medium,
+            );
+            shaders.add(shader);
+            return Paint()..shader = shader;
+          });
+          // drawVertices 以图像为 src、顶点颜色为 dst；dstOver 将顶点涂层覆在图像上。
+          canvas.drawVertices(
+            mesh,
+            composite ? BlendMode.dstOver : BlendMode.modulate,
+            pagePaint,
+          );
+          if (back && !spread && !composite) {
+            final paperColors = workspace._paperColors;
+            final coating = ui.Vertices.raw(
+              ui.VertexMode.triangles,
+              Float32List.sublistView(positions, start * 6, end * 6),
+              colors: Int32List.sublistView(paperColors, start * 3, end * 3),
+            );
+            canvas.drawVertices(coating, BlendMode.srcOver, coatingPaint);
+            coating.dispose();
+          }
+          mesh.dispose();
+          start = end;
         }
-        mesh.dispose();
-        start = end;
-      }
-    } finally {
-      for (final shader in shaders) {
-        shader.dispose();
+      } finally {
+        for (final shader in shaders) {
+          shader.dispose();
+        }
       }
     }
     if (progress > 0 && progress < 1) {
@@ -380,8 +398,96 @@ class CurlPainter extends CustomPainter {
     canvas.restore();
   }
 
+  // 先以原深度顺序写入可见面，再在各自图层中用 srcIn 填入整批原页纹理。
+  // 只接受不透明页面，因此最终可见面就是最后覆盖该像素的三角形。
+  void _paintMaskedSpread(Canvas canvas, CurlMesh workspace) {
+    final triangles = workspace._sorted;
+    final positions = workspace._positions;
+    final uv = workspace._uv;
+    final colors = workspace._colors;
+    final frontMask = workspace._frontMask, backMask = workspace._backMask;
+    var vertex = 0;
+    for (final triangle in triangles) {
+      final image = images[triangle.back ? 2 : 1];
+      for (final index in triangle.indices) {
+        final point = workspace._vertices[index];
+        positions[vertex * 2] = point.x;
+        positions[vertex * 2 + 1] = point.y;
+        var u = workspace._normalizedUv[index * 2];
+        if (triangle.back) u = 1 - u;
+        if (rtl) u = 1 - u;
+        uv[vertex * 2] = u * image.width;
+        uv[vertex * 2 + 1] =
+            workspace._normalizedUv[index * 2 + 1] * image.height;
+        colors[vertex] = workspace._vertexColors[index];
+        frontMask[vertex] = triangle.back ? 0 : 0xffffffff;
+        backMask[vertex] = triangle.back ? 0xffffffff : 0;
+        vertex++;
+      }
+    }
+    final points = Float32List.sublistView(positions, 0, vertex * 2);
+    final coordinates = Float32List.sublistView(uv, 0, vertex * 2);
+    final shades = Int32List.sublistView(colors, 0, vertex);
+    final frontVisibility = ui.Vertices.raw(
+      ui.VertexMode.triangles,
+      points,
+      colors: Int32List.sublistView(frontMask, 0, vertex),
+    );
+    final backVisibility = ui.Vertices.raw(
+      ui.VertexMode.triangles,
+      points,
+      colors: Int32List.sublistView(backMask, 0, vertex),
+    );
+    final paper = ui.Vertices.raw(
+      ui.VertexMode.triangles,
+      points,
+      textureCoordinates: coordinates,
+      colors: shades,
+    );
+    void face(ui.Image image, bool front) {
+      final shader = ui.ImageShader(
+        image,
+        TileMode.clamp,
+        TileMode.clamp,
+        _identity,
+        filterQuality: FilterQuality.medium,
+      );
+      try {
+        canvas.saveLayer(null, Paint());
+        canvas.drawVertices(
+          front ? frontVisibility : backVisibility,
+          BlendMode.dst,
+          Paint()
+            ..color = Colors.white
+            ..blendMode = BlendMode.src,
+        );
+        // 可见面对应的最后一个三角形会覆盖此前写入的颜色，沿用原深度顺序。
+        canvas.drawVertices(
+          paper,
+          BlendMode.modulate,
+          Paint()
+            ..shader = shader
+            ..blendMode = BlendMode.srcIn,
+        );
+        canvas.restore();
+      } finally {
+        shader.dispose();
+      }
+    }
+
+    try {
+      face(images[1], true);
+      face(images[2], false);
+    } finally {
+      frontVisibility.dispose();
+      backVisibility.dispose();
+      paper.dispose();
+    }
+  }
+
   @override
   bool shouldRepaint(CurlPainter old) =>
+      old.batchOpaqueSpread != batchOpaqueSpread ||
       old.opaquePages != opaquePages ||
       old.progress != progress ||
       old.grabY != grabY ||
@@ -449,6 +555,11 @@ class CurlMesh {
   final _opaquePalette = Int32List(512);
   Color? _paperColor;
   late final _shadowProjected = Float32List(_vertices.length * 2);
+  late final _shadowIndices = _vertices.length <= 0x10000
+      ? Uint16List(columns * rows * 6)
+      : null;
+  late final _frontMask = Int32List(columns * rows * 6);
+  late final _backMask = Int32List(columns * rows * 6);
 
   static const _bandColumns = 32;
   // 阴影独立采样，避免高密度曲面使 16 位条带索引回绕。
@@ -513,17 +624,16 @@ class CurlMesh {
   ) {
     var sum = 0.0;
     var count = 0;
+    final camera =
+        size.width *
+        curlCameraScaleForCorner(
+          cornerWeight,
+          horizontalWeight: horizontalWeight,
+        );
     for (var i = 0; i < _vertices.length; i++) {
       final v = _vertices[i];
       final depth = math.max(0.0, v.depth);
-      final scale =
-          1 -
-          depth /
-              (size.width *
-                  curlCameraScaleForCorner(
-                    cornerWeight,
-                    horizontalWeight: horizontalWeight,
-                  ));
+      final scale = 1 - depth / camera;
       _shadowProjected[i * 2] = v.x * scale + depth * 0.22;
       _shadowProjected[i * 2 + 1] =
           (v.y - size.height / 2) /
@@ -536,21 +646,40 @@ class CurlMesh {
       }
     }
     var index = 0;
+    final indices = _shadowIndices;
     for (final triangle in _triangles) {
-      if (triangle.indices.every((i) => _vertices[i].depth <= 0.000001)) {
+      final a = triangle.indices[0],
+          b = triangle.indices[1],
+          c = triangle.indices[2];
+      if (_vertices[a].depth <= 0.000001 &&
+          _vertices[b].depth <= 0.000001 &&
+          _vertices[c].depth <= 0.000001) {
         continue;
       }
-      for (final i in triangle.indices) {
-        _positions[index++] = _shadowProjected[i * 2];
-        _positions[index++] = _shadowProjected[i * 2 + 1];
+      if (indices != null) {
+        indices[index++] = a;
+        indices[index++] = b;
+        indices[index++] = c;
+      } else {
+        for (final i in triangle.indices) {
+          _positions[index++] = _shadowProjected[i * 2];
+          _positions[index++] = _shadowProjected[i * 2 + 1];
+        }
       }
     }
     if (index == 0) return (vertices: null, lift: 0);
     return (
-      vertices: ui.Vertices.raw(
-        ui.VertexMode.triangles,
-        Float32List.sublistView(_positions, 0, index),
-      ),
+      // 小网格共用已投影顶点；超过 16 位索引容量的网格保留展开路径。
+      vertices: indices == null
+          ? ui.Vertices.raw(
+              ui.VertexMode.triangles,
+              Float32List.sublistView(_positions, 0, index),
+            )
+          : ui.Vertices.raw(
+              ui.VertexMode.triangles,
+              _shadowProjected,
+              indices: Uint16List.sublistView(indices, 0, index),
+            ),
       lift: count == 0 ? 0 : sum / count,
     );
   }

@@ -146,11 +146,17 @@ class _DevelopableCurlSurface {
   final Size size;
   final double camera, verticalWeight, nativeWeight;
   double? _nativeEdge;
+  late double _nativeSigma, _nativeOpacity;
   final _edgeProbe = CurlVertexBuffer();
 
   void prepareRow(double y) {
     if (nativeWeight == 0) return;
     projectInto(size.width, y, _edgeProbe);
+    _nativeSigma = math.max(3.0, rowRadius(y) * .15 - 5);
+    _nativeOpacity = (.355 * (1 - _edgeProbe.x / size.width - .268)).clamp(
+      0.0,
+      .25,
+    );
     _nativeEdge = _edgeProbe.x;
   }
 
@@ -231,32 +237,52 @@ class _DevelopableCurlSurface {
       ny = 0;
       nz = math.cos(angle);
     } else {
-      final cy = lower ? size.height - y : y,
-          v = apex + cy,
-          r = math.sqrt(x * x + v * v);
-      _direction(math.atan2(x, v), _sample);
-      final dx = _sample.x - _origin.x,
-          dy = _sample.y - _origin.y,
-          dz = _sample.z - _origin.z;
-      final separation = (dx * dx + dy * dy + dz * dz) / 2;
-      px = r * (dx + _origin.x * separation) / _frameNorm;
-      final canonicalY = cy + x * x / (r + v) - r * separation;
-      py = lower ? size.height - canonicalY : canonicalY;
-      z = r * (dz * _origin.y - dy * _origin.z) / _frameNorm;
-      nx =
-          (_sample.nx -
-              _origin.x *
-                  (_sample.nx * _origin.x +
-                      _sample.ny * _origin.y +
-                      _sample.nz * _origin.z)) /
-          _frameNorm;
-      ny =
-          (_sample.nx * _origin.x +
-              _sample.ny * _origin.y +
-              _sample.nz * _origin.z) *
-          (lower ? -1 : 1);
-      nz = (-_sample.ny * _origin.z + _sample.nz * _origin.y) / _frameNorm;
-      angle = _sample.angle;
+      final cy = lower ? size.height - y : y, v = apex + cy;
+      // 未卷入的材料仍是原平面，用折线两侧的叉积判定，省去 atan/sin/cos。
+      if (join >= 0 && x >= 0 && x * joinCosine <= v * joinSine) {
+        var lighting = 1.0;
+        if (_nativeEdge case final edge?) {
+          if (_nativeOpacity != 0) {
+            final distance = (x - edge).abs() / _nativeSigma;
+            final native =
+                1 - _nativeOpacity * math.exp(-distance * math.sqrt(distance));
+            lighting += (native - lighting) * nativeWeight;
+          }
+        }
+        out
+          ..x = x
+          ..y = y
+          ..depth = 0
+          ..light = lighting.clamp(0.0, 1.0)
+          ..facing = 1
+          ..back = false;
+        return;
+      } else {
+        final r = math.sqrt(x * x + v * v);
+        _direction(math.atan2(x, v), _sample);
+        final dx = _sample.x - _origin.x,
+            dy = _sample.y - _origin.y,
+            dz = _sample.z - _origin.z;
+        final separation = (dx * dx + dy * dy + dz * dz) / 2;
+        px = r * (dx + _origin.x * separation) / _frameNorm;
+        final canonicalY = cy + x * x / (r + v) - r * separation;
+        py = lower ? size.height - canonicalY : canonicalY;
+        z = r * (dz * _origin.y - dy * _origin.z) / _frameNorm;
+        nx =
+            (_sample.nx -
+                _origin.x *
+                    (_sample.nx * _origin.x +
+                        _sample.ny * _origin.y +
+                        _sample.nz * _origin.z)) /
+            _frameNorm;
+        ny =
+            (_sample.nx * _origin.x +
+                _sample.ny * _origin.y +
+                _sample.nz * _origin.z) *
+            (lower ? -1 : 1);
+        nz = (-_sample.ny * _origin.z + _sample.nz * _origin.y) / _frameNorm;
+        angle = _sample.angle;
+      }
     }
     final perspective = 1 / (1 - z / camera);
     final vertical = curlVerticalProjectionScale(perspective, verticalWeight);
@@ -273,13 +299,17 @@ class _DevelopableCurlSurface {
     final s = math.sin(angle), s2 = s * s, s4 = s2 * s2;
     var lighting = diffuse + .12 * s4 * s4 * s4;
     if (_nativeEdge case final edge?) {
-      final sigma = math.max(3.0, rowRadius(y) * .15 - 5);
-      final distance = (px * perspective - edge).abs() / sigma;
-      final opacity = (.355 * (1 - edge / size.width - .268)).clamp(0.0, .25);
-      final native = angle > math.pi / 2
-          ? 1 - .035 * s4
-          : lighting *
-                (1 - opacity * math.exp(-distance * math.sqrt(distance)));
+      double native;
+      if (angle > math.pi / 2) {
+        native = 1 - .035 * s4;
+      } else if (_nativeOpacity == 0) {
+        native = lighting;
+      } else {
+        final distance = (px * perspective - edge).abs() / _nativeSigma;
+        native =
+            lighting *
+            (1 - _nativeOpacity * math.exp(-distance * math.sqrt(distance)));
+      }
       lighting += (native - lighting) * nativeWeight;
     }
     out

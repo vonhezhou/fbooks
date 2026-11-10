@@ -5,6 +5,7 @@ import 'package:fbooks/features/reader/presentation/page_curl/curl_drag.dart';
 import 'package:fbooks/features/reader/presentation/page_curl/curl_motion.dart';
 import 'package:fbooks/features/reader/presentation/page_curl/curl_painter.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // 一个手势持有单页／双页卷曲贴图及可选落页图，取消和卸载时统一释放。
@@ -539,6 +540,8 @@ class _PageCurlViewportState extends State<PageCurlViewport>
                             spread: pages.spread,
                             rtl: widget.rtl,
                             opaquePages: true,
+                            batchOpaqueSpread:
+                                defaultTargetPlatform == TargetPlatform.android,
                             mesh: _mesh,
                             paperColor: widget.paperColor,
                           ),
